@@ -1,0 +1,20 @@
+
+TARGETNAME=pwrite
+TARGETPATH=../../bin
+TARGETTYPE=PROGRAM
+
+TARGETLIBS=../../bin/*/opencbm.lib
+
+INCLUDES=../include/WINDOWS;../../include;../../include/WINDOWS;../../arch/windows/
+
+SOURCES=../pwrite.c \
+	../gcr.c \
+	../write.c \
+	../drive.c \
+	../prot.c \
+        pwrite.rc
+
+UMTYPE=console
+#UMBASE=0x100000
+
+NTTARGETFILE0=a65

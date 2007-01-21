@@ -1,0 +1,20 @@
+
+TARGETNAME=mnib
+TARGETPATH=../../bin
+TARGETTYPE=PROGRAM
+
+TARGETLIBS=../../bin/*/opencbm.lib
+
+INCLUDES=../include/WINDOWS;../../include;../../include/WINDOWS;../../arch/windows/
+
+SOURCES=../mnib.c \
+	../gcr.c \
+	../read.c \
+	../drive.c \
+	../prot.c \
+        mnib.rc
+
+UMTYPE=console
+#UMBASE=0x100000
+
+NTTARGETFILE0=a65
