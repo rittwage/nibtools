@@ -60,8 +60,6 @@ main(int argc, char *argv[])
 	  "\nnibscan - Commodore disk image scanner / comparator\n"
 	  "(C) Pete Rittwage\n" "Version " VERSION "\n\n");
 
-	//crc32_init();
-
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
 
