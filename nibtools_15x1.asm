@@ -10,7 +10,7 @@
 ;
 ; (From Pete)
 ; It's writing 7424 bytes after the sync mark, so it should not overwrite
-; the sync at density 3 unless the drive motor it really, really fast..
+; the sync at density 3 unless the drive motor is really, really fast..
 
 ; $c2: current track
 ; $c3-$c8: density statistic bins

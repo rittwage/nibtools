@@ -38,13 +38,14 @@ int verbose;
 float motor_speed;
 
 CBM_FILE fd;
+FILE *fplog;
 
 int ARCH_MAINDECL
 main(int argc, char *argv[])
 {
 	BYTE drive = 8;
 	int bump, reset, i;
-	char cmd[80], error[500], filename[256];
+	char filename[256];
 	char argcache[256];
 
 	fprintf(stdout,
@@ -225,19 +226,13 @@ main(int argc, char *argv[])
 	}
 	printf("\n");
 
-	if (mode == MODE_WRITE_DISK)
-	{
-		if (argc < 1)
-			usage();
-		else
-			strcpy(filename, argv[0]);
-	}
+	if (argc < 1)	usage();
+	strcpy(filename, argv[0]);
 
 #ifdef DJGPP
 	calibrate();
-
 	if (!detect_ports(reset))
-		exit(3);
+		return 0;
 #else
 	/* under Linux we have to open the device via cbm4linux */
 	cbm_driver_open(&fd, 0);
@@ -247,89 +242,37 @@ main(int argc, char *argv[])
 	atexit(handle_exit);
 	signal(SIGINT, handle_signals);
 
-	/* prepare error string $73: CBM DOS V2.6 1541 */
-	sprintf(cmd, "M-W%c%c%c%c%c%c%c%c", 0, 3, 5, 0xa9, 0x73, 0x4c, 0xc1, 0xe6);
-	cbm_exec_command(fd, drive, cmd, 11);
-	sprintf(cmd, "M-E%c%c", 0x00, 0x03);
-	cbm_exec_command(fd, drive, cmd, 5);
-	cbm_device_status(fd, drive, error, sizeof(error));
-	printf("Drive Version: %s\n", error);
-
-	if (error[18] == '7')
-		drivetype = 1571;
-	else
-		drivetype = 1541;	/* if unknown drive, use 1541 code */
-
-	printf("Drive type: %d\n", drivetype);
-
-	delay(1000);
-
-	if (bump)
-		perform_bump(fd,drive);
-
-	/*
-	 * Initialize media and switch drive to 1541 mode.
-	 * We initialize first to do the head seek to read the BAM after
-	 * the bump above.
-	 * Changed to perform the 1541 mode select first, or else it breaks on a 1571 (PR)
-	 */
-	printf("Initializing\n");
-	cbm_exec_command(fd, drive, "U0>M0", 0);
-	cbm_exec_command(fd, drive, "I0", 0);
-
-	if (upload_code(fd, drive) < 0) {
-		printf("code upload failed, exiting\n");
-		exit(5);
-	}
-
-	/* Begin executing drive code at $300 */
-	sprintf(cmd, "M-E%c%c", 0x00, 0x03);
-	cbm_exec_command(fd, drive, cmd, 5);
-
-	cbm_parallel_burst_read(fd);
-
-#ifdef DJGPP
-	if (!find_par_port(fd)) {
-		exit(6);
-	}
-#endif
-
-	if(!test_par_port(fd))
+	if(!init_floppy(fd, drive, bump))
 	{
-		printf("\nFailed parallel port transfer test. Check cabling.\n");
-		exit(7);
-	}
-	if(!verify_floppy(fd))
-	{
-		printf("\nFailed parallel port transfer test. Check cabling.\n");
-		exit(7);
+		printf("Floppy drive initialization failed\n");
+		exit(0);
 	}
 
 	switch (mode)
 	{
-	case MODE_WRITE_DISK:
-		//printf("Ready to write '%s'.\n", filename);
-		//printf("Current disk WILL be OVERWRITTEN!\n"
-		//	"Press ENTER to continue or CTRL-C to quit.\n");
-		//getchar();
-		file2disk(fd, filename);
-		break;
+		case MODE_WRITE_DISK:
+			//printf("Ready to write '%s'.\n", filename);
+			//printf("Current disk WILL be OVERWRITTEN!\n"
+			//	"Press ENTER to continue or CTRL-C to quit.\n");
+			//getchar();
+			file2disk(fd, filename);
+			break;
 
-	case MODE_UNFORMAT_DISK:
-		//printf("Ready to unformat disk.\n");
-		//printf("Current disk WILL be DESTROYED!\n"
-		//  "Press ENTER to continue or CTRL-C to quit.\n");
-		//getchar();
-		unformat_disk(fd);
-		break;
+		case MODE_UNFORMAT_DISK:
+			//printf("Ready to unformat disk.\n");
+			//printf("Current disk WILL be DESTROYED!\n"
+			//  "Press ENTER to continue or CTRL-C to quit.\n");
+			//getchar();
+			unformat_disk(fd);
+			break;
 
-	case MODE_WRITE_RAW:
-		//printf("Ready to write raw tracks to disk.\n");
-		//printf("Current disk WILL be OVERWRITTEN!\n"
-		//  "Press ENTER to continue or CTRL-C to quit.\n");
-		//getchar();
-		write_raw(fd);
-		break;
+		case MODE_WRITE_RAW:
+			//printf("Ready to write raw tracks to disk.\n");
+			//printf("Current disk WILL be OVERWRITTEN!\n"
+			//  "Press ENTER to continue or CTRL-C to quit.\n");
+			//getchar();
+			write_raw(fd);
+			break;
 	}
 
 	motor_on(fd);
@@ -374,7 +317,7 @@ file2disk(CBM_FILE fd, char * filename)
 			printf("unable to read G64 header\n");
 			exit(2);
 		}
-		parse_disk(fd, fpin, g64header + 0x9);
+		parse_gcr_file(fd, fpin, g64header + 0x9);
 	}
 	else if (compare_extension(filename, "NIB"))
 	{
@@ -406,7 +349,7 @@ file2disk(CBM_FILE fd, char * filename)
 			printf("unable to read NIB header\n");
 			exit(2);
 		}
-		parse_disk(fd, fpin, mnibheader + 0x10);
+		parse_gcr_file(fd, fpin, mnibheader + 0x10);
 	}
 	else
 		printf("\nUnknown image type");

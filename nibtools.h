@@ -71,15 +71,13 @@ extern BYTE start_track, end_track, track_inc;
 extern int fix_gcr, reduce_syncs, reduce_gaps, reduce_weak;
 extern int imagetype, auto_capacity_adjust;
 
-/////////////// function prototypes /////////////////////////////
-
 /* common */
 void usage(void);
 
-/* mnib.c */
+/* nibread.c */
 int disk2file(CBM_FILE fd, char * filename);
 
-/* pwrite.c */
+/* nibwrite.c */
 int file2disk(CBM_FILE fd, char * filename);
 
 /* read.c */
@@ -91,9 +89,11 @@ void get_disk_id(CBM_FILE fd);
 BYTE scan_density(CBM_FILE fd);
 
 /* write.c */
+void process_halftrack(int halftrack, int density, int length, BYTE * gcrdata);
+void parse_gcr_file(CBM_FILE fd, FILE * fpin, char * track_header);
 void write_raw(CBM_FILE fd);
 void unformat_disk(CBM_FILE fd);
-void parse_disk(CBM_FILE fd, FILE * fpin, char * track_header);
+void unformat_track(CBM_FILE fd, int track);
 int write_d64(CBM_FILE fd, FILE * fpin);
 unsigned int track_capacity(CBM_FILE fd);
 void init_aligned_disk(CBM_FILE fd);
@@ -104,6 +104,7 @@ void ARCH_SIGNALDECL handle_signals(int sig);
 void ARCH_SIGNALDECL handle_exit(void);
 int upload_code(CBM_FILE fd, BYTE drive);
 int reset_floppy(CBM_FILE fd, BYTE drive);
+int init_floppy(CBM_FILE fd, BYTE drive, int bump);
 int set_density(CBM_FILE fd, int density);
 int set_bitrate(CBM_FILE fd, int density);
 BYTE set_default_bitrate(CBM_FILE fd, int track);

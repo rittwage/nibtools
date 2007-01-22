@@ -1,5 +1,5 @@
 /*
- * MNIB Write routines
+ * NIBTOOL write routines
  * Copyright 2001-2007 Pete Rittwage <peter(at)rittwage(dot)com>
  * based on MNIB by Markus Brenner <markus(at)brenner(dot)de>
  */
@@ -14,14 +14,12 @@
 #include "nibtools.h"
 
 static BYTE diskbuf[MAX_TRACKS_1571 * NIB_TRACK_LENGTH];
-static int track_length[MAX_TRACKS_1571], track_density[MAX_TRACKS_1571];
+static int track_length[MAX_TRACKS_1571];
+static int track_density[MAX_TRACKS_1571];
 
-static void write_halftrack(int halftrack, int density, int length,  BYTE * gcrdata);
-static void master_disk(CBM_FILE fd);
-static void unformat_track(CBM_FILE fd, int track);
 
-static void
-write_halftrack(int halftrack, int density, int length, BYTE * gcrdata)
+void
+process_halftrack(int halftrack, int density, int length, BYTE * gcrdata)
 {
 	int defdens, orglen;
 	int badgcr = 0;
@@ -183,7 +181,7 @@ write_halftrack(int halftrack, int density, int length, BYTE * gcrdata)
 	}
 }
 
-static void
+void
 master_disk(CBM_FILE fd)
 {
 	int track, i;
@@ -295,7 +293,7 @@ write_raw(CBM_FILE fd)
 			fread(trackbuf, length, 1, trkin); // @@@SRT: check success
 			fclose(trkin);
 
-			write_halftrack(track, density, length, trackbuf);
+			process_halftrack(track, density, length, trackbuf);
 		}
 	}
 	master_disk(fd);
@@ -335,7 +333,7 @@ unformat_track(CBM_FILE fd, int track)
 }
 
 void
-parse_disk(CBM_FILE fd, FILE * fpin, char *track_header)
+parse_gcr_file(CBM_FILE fd, FILE * fpin, char *track_header)
 {
 	int track, density, dens_pointer, header_entry;
 	BYTE buffer[NIB_TRACK_LENGTH];
@@ -366,8 +364,8 @@ parse_disk(CBM_FILE fd, FILE * fpin, char *track_header)
 			length = extract_GCR_track(gcrdata, buffer, &align,
 			  force_align, capacity_min[density & 3], capacity_max[density & 3]);
 
-			// write track
-			write_halftrack(track, density, length, gcrdata);
+			// process track
+			process_halftrack(track, density, length, gcrdata);
 		}
 	}
 	else if (imagetype == IMAGE_G64)
@@ -398,8 +396,8 @@ parse_disk(CBM_FILE fd, FILE * fpin, char *track_header)
 			/* get track from file */
 			fread(gcrdata, g64maxtrack, 1, fpin); // @@@SRT: check success
 
-			// write track
-			write_halftrack(track, density, length, gcrdata);
+			// process track
+			process_halftrack(track, density, length, gcrdata);
 		}
 	}
 	master_disk(fd);
@@ -485,7 +483,7 @@ write_d64(CBM_FILE fd, FILE * fpin)
 		for (density = 3; track * 2 >= bitrate_range[density]; density--);
 
 		// write track
-		write_halftrack(track * 2, density, length, gcrdata);
+		process_halftrack(track * 2, density, length, gcrdata);
 		printf("%s", errorstring);
 	}
 

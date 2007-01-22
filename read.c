@@ -1,5 +1,5 @@
 /*
- * MNIB Read routines
+ * NIBTOOL read routines
  * Copyright 2001-2005 Markus Brenner <markus(at)brenner(dot)de>
  * and Pete Rittwage <peter(at)rittwage(dot)com>
  */

@@ -42,7 +42,7 @@ main(int argc, char *argv[])
 {
 	BYTE drive = 8;
 	int bump, reset, i;
-	char cmd[80], error[500], filename[256], logfilename[256], *dotpos;
+	char filename[256], logfilename[256], *dotpos;
 	char argcache[256];
 
 	fprintf(stdout,
@@ -167,14 +167,14 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Couldn't create log file %s!\n", logfilename);
 		exit(2);
 	}
+
 	fprintf(fplog, "%s\n", VERSION);
 	fprintf(fplog, "'%s'\n", argcache);
 
 #ifdef DJGPP
 	calibrate();
-
 	if (!detect_ports(reset))
-		exit(3);
+		return 0;
 #else
 	/* under Linux we have to open the device via cbm4linux */
 	cbm_driver_open(&fd, 0);
@@ -184,64 +184,10 @@ main(int argc, char *argv[])
 	atexit(handle_exit);
 	signal(SIGINT, handle_signals);
 
-	/* prepare error string $73: CBM DOS V2.6 1541 */
-	sprintf(cmd, "M-W%c%c%c%c%c%c%c%c", 0, 3, 5, 0xa9, 0x73, 0x4c, 0xc1, 0xe6);
-	cbm_exec_command(fd, drive, cmd, 11);
-	sprintf(cmd, "M-E%c%c", 0x00, 0x03);
-	cbm_exec_command(fd, drive, cmd, 5);
-	cbm_device_status(fd, drive, error, sizeof(error));
-	printf("Drive Version: %s\n", error);
-	if(fplog) fprintf(fplog,"Drive Version: %s\n", error);
-
-	if (error[18] == '7')
-		drivetype = 1571;
-	else
-		drivetype = 1541;	/* if unknown drive, use 1541 code */
-
-	printf("Drive type: %d\n", drivetype);
-	if(fplog) fprintf(fplog,"Drive type: %d\n", drivetype);
-
-	delay(1000);
-
-	if (bump)
-		perform_bump(fd,drive);
-
-	/*
-	 * Initialize media and switch drive to 1541 mode.
-	 * We initialize first to do the head seek to read the BAM after
-	 * the bump above.
-	 * Changed to perform the 1541 mode select first, or else it breaks on a 1571 (PR)
-	 */
-	printf("Initializing\n");
-	cbm_exec_command(fd, drive, "U0>M0", 0);
-	cbm_exec_command(fd, drive, "I0", 0);
-
-	if (upload_code(fd, drive) < 0) {
-		printf("code upload failed, exiting\n");
-		exit(5);
-	}
-
-	/* Begin executing drive code at $300 */
-	sprintf(cmd, "M-E%c%c", 0x00, 0x03);
-	cbm_exec_command(fd, drive, cmd, 5);
-
-	cbm_parallel_burst_read(fd);
-
-#ifdef DJGPP
-	if (!find_par_port(fd)) {
-		exit(6);
-	}
-#endif
-
-	if(!test_par_port(fd))
+	if(!init_floppy(fd, drive, bump))
 	{
-		printf("\nFailed parallel port transfer test. Check cabling.\n");
-		exit(7);
-	}
-	if(!verify_floppy(fd))
-	{
-		printf("\nFailed parallel port transfer test. Check cabling.\n");
-		exit(7);
+		printf("Floppy drive initialization failed\n");
+		exit(0);
 	}
 
 	disk2file(fd, filename);
