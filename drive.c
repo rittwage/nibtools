@@ -20,6 +20,28 @@ extern int drivetype;
 unsigned int floppybytes;
 extern CBM_FILE fd;
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* these three functions do not belong here, but no better place for now */
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int
+compare_extension(char * filename, char * extension)
+{
+	char *dot;
+
+	dot = strrchr(filename, '.');
+	if (dot == NULL)
+		return (0);
+
+	for (++dot; *dot != '\0'; dot++, extension++)
+		if (tolower(*dot) != tolower(*extension))
+			return (0);
+
+	if (*extension == '\0')
+		return (1);
+	else
+		return (0);
+}
+
 void ARCH_SIGNALDECL
 handle_signals(int sig)
 {
@@ -39,26 +61,8 @@ handle_exit(void)
 	cbm_driver_close(fd);
 #endif
 }
-
-
-int
-compare_extension(char * filename, char * extension)
-{
-	char *dot;
-
-	dot = strrchr(filename, '.');
-	if (dot == NULL)
-		return (0);
-
-	for (++dot; *dot != '\0'; dot++, extension++)
-		if (tolower(*dot) != tolower(*extension))
-			return (0);
-
-	if (*extension == '\0')
-		return (1);
-	else
-		return (0);
-}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int
 upload_code(CBM_FILE fd, BYTE drive)
