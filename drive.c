@@ -324,7 +324,7 @@ init_floppy(CBM_FILE fd, BYTE drive, int bump)
 		return 0;
 	}
 
-	printf("\nPassed basic parallel port checks.\n");
+	printf("Passed basic parallel port checks.\n");
 	return 1;
 }
 

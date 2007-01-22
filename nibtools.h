@@ -100,6 +100,7 @@ void init_aligned_disk(CBM_FILE fd);
 void adjust_target(CBM_FILE fd);
 
 /* drive.c  */
+int compare_extension(char * filename, char * extension);
 void ARCH_SIGNALDECL handle_signals(int sig);
 void ARCH_SIGNALDECL handle_exit(void);
 int upload_code(CBM_FILE fd, BYTE drive);
@@ -116,7 +117,6 @@ void set_full_track(CBM_FILE fd);
 void motor_on(CBM_FILE fd);
 void motor_off(CBM_FILE fd);
 void step_to_halftrack(CBM_FILE fd, int halftrack);
-int compare_extension(char * filename, char * extension);
 int verify_floppy(CBM_FILE fd);
 #ifdef DJGPP
 int find_par_port(CBM_FILE fd);
