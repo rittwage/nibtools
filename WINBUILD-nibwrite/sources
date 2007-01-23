@@ -13,6 +13,7 @@ SOURCES=../nibwrite.c \
 	../drive.c \
 	../prot.c \
 	../write.c \
+	../fileio.c \
         nibwrite.rc
 
 UMTYPE=console

@@ -240,8 +240,8 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *trac
 {
     /*	writes contents of buffers into NIB file, with header and density information */
 
-    BYTE track;
-    FILE * fpout;
+  int track;
+  FILE * fpout;
 	char header[0x100];
 	int header_entry = 0;
 
@@ -268,7 +268,7 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *trac
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		header[0x10 + (header_entry * 2)] = track;
+		header[0x10 + (header_entry * 2)] = (BYTE)track;
 		header[0x10 + (header_entry * 2) + 1] = track_density[track];
 		header_entry++;
 
@@ -303,7 +303,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	DWORD gcr_track_p[MAX_HALFTRACKS_1541];
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
 	BYTE gcr_track[G64_TRACK_MAXLEN + 2];
-	BYTE track;
+	int track;
 	FILE * fpout;
 	int track_len;
 	BYTE buffer[NIB_TRACK_LENGTH];
@@ -538,7 +538,7 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	memcpy(gcrdata, track_buffer, NIB_TRACK_LENGTH);
 
 	/* double-check our sync-flag assumptions */
-	density = check_sync_flags(gcrdata, density, length);
+	density = (BYTE)check_sync_flags(gcrdata, density, length);
 
 	/* user display */
 	printf("\n%4.1f: (", (float) halftrack / 2);

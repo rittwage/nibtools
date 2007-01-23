@@ -13,6 +13,7 @@ SOURCES=../nibread.c \
 	../drive.c \
 	../prot.c \
 	../read.c \
+	../fileio.c \
         nibread.rc
 
 UMTYPE=console

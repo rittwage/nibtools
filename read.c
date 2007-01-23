@@ -302,8 +302,9 @@ read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 void
 read_nb2_old(CBM_FILE fd, char * filename)
 {
-    BYTE track, density;
-    FILE * fpout;
+	int track;
+  BYTE density;
+  FILE * fpout;
 	int header_entry, pass, pass_density;
 	BYTE buffer[NIB_TRACK_LENGTH];
 	char header[0x100];
@@ -341,7 +342,7 @@ read_nb2_old(CBM_FILE fd, char * filename)
 
 		// density = read_halftrack(fd, track, buffer, 0xff);
 		density = paranoia_read_halftrack(fd, track, buffer, 0xff);
-		header[0x10 + (header_entry * 2)] = track;
+		header[0x10 + (header_entry * 2)] = (BYTE)track;
 		header[0x10 + (header_entry * 2) + 1] = density;
 		header_entry++;
 

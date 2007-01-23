@@ -12,7 +12,7 @@
 /*! ************************************************************** 
 ** \file include/opencbm.h \n
 ** \author Michael Klein <michael(dot)klein(at)puffin(dot)lb(dot)shuttle(dot)de> \n
-** \version $Id: opencbm.h,v 1.19 2006/06/02 22:51:55 wmsr Exp $ \n
+** \version $Id: opencbm.h,v 1.1.1.1 2007/01/21 17:15:35 peter Exp $ \n
 ** \authors With modifications to fit on Windows from
 **    Spiro Trikaliotis \n
 ** \authors With additions from Wolfgang Moser \n
