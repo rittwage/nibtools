@@ -14,7 +14,7 @@ CBM_LNX_PATH=	/usr/local
 CBM_WIN_PATH=	../
 
 # Default compile flags.  Be careful with optimization (-O2)
-CFLAGS=		${WARNS}
+CFLAGS=		${WARNS} 
 
 # cl65 defs, contributed by Ullrich von Bassewitz <uz(at)musoftware(dot)de>
 # (cc65 >= 2.6 required)
@@ -59,8 +59,8 @@ WARNS=	-Werror -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wpointer-arit
 OBJ=gcr.o prot.o 
 
 # Objects for just mnib
-NIBREAD_OBJ=nibread.o read.o drive.o
-NIBWRITE_OBJ=nibwrite.o write.o drive.o 
+NIBREAD_OBJ=nibread.o read.o drive.o fileio.o
+NIBWRITE_OBJ=nibwrite.o write.o drive.o fileio.o
 
 NIBTOOLS_BIN=nibtools_1541.inc nibtools_1571.inc
 

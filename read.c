@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <assert.h>
 
 #include "mnibarch.h"
 #include "gcr.h"
@@ -276,75 +275,32 @@ paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_de
 	return denso;
 }
 
-void
-read_nib(CBM_FILE fd, char * filename)
+int
+read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
-    BYTE track, density;
-    FILE * fpout;
-	int header_entry;
-	char header[0x100];
-	BYTE buffer[NIB_TRACK_LENGTH];
+    int track;
+    BYTE dummy[NIB_TRACK_LENGTH];
 
 	printf("\n");
 	fprintf(fplog,"\n");
 
-	/* create output file */
-	if ((fpout = fopen(filename, "wb")) == NULL)
-	{
-		fprintf(stderr, "Couldn't create output file %s!\n", filename);
-		exit(2);
-	}
-
-	/* write initial NIB-header */
-	memset(header, 0x00, sizeof(header));
-
-	/* header now contains whether halftracks were read */
-	if(track_inc == 1)
-		sprintf(header, "MNIB-1541-RAW%c%c%c", 2, 0, 1);
-	else
-		sprintf(header, "MNIB-1541-RAW%c%c%c", 2, 0, 0);
-
-	if (fwrite(header, sizeof(header), 1, fpout) != 1) {
-		printf("unable to write NIB header\n");
-		exit(2);
-	}
-
 	get_disk_id(fd);
 
-	header_entry = 0;
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		memset(buffer, 0, sizeof(buffer));
+		// track_density[track] = read_halftrack(fd, track, track_ buffer + (track * NIB_TRACK_LENGTH), 0xff);
+		track_density[track] = paranoia_read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH), 0xff);
 
-		// density = read_halftrack(fd, track, buffer, 0xff);
-		density = paranoia_read_halftrack(fd, track, buffer, 0xff);
-		header[0x10 + (header_entry * 2)] = track;
-		header[0x10 + (header_entry * 2) + 1] = density;
-		header_entry++;
-
-		/* process and save track to disk */
-		if (fwrite(buffer, sizeof(buffer), 1, fpout) != 1)
-		{
-			printf("unable to rewrite NIB track data\n");
-			fclose(fpout);
-			exit(2);
-		}
-		fflush(fpout);
+		track_length[track] = extract_GCR_track(dummy, track_buffer + (track * NIB_TRACK_LENGTH),
+			&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
 	}
 
-	/* fill NIB-header */
-	rewind(fpout);
-	if (fwrite(header, sizeof(header), 1, fpout) != 1) {
-		printf("unable to rewrite NIB header\n");
-		exit(2);
-	}
-
-	fclose(fpout);
-	step_to_halftrack(fd, 18 * 2);
+	step_to_halftrack(fd, 18*2);
+	return 1;
 }
 
 void
-read_nb2(CBM_FILE fd, char * filename)
+read_nb2_old(CBM_FILE fd, char * filename)
 {
     BYTE track, density;
     FILE * fpout;
@@ -462,205 +418,6 @@ void get_disk_id(CBM_FILE fd)
 
 		printf("\n");
 		fprintf(fplog,"\n");
-}
-
-
-int
-read_d64(CBM_FILE fd, char * filename)
-{
-	FILE *fpout;
-	int density, track, sector;
-	int csec;		/* compare sector variable */
-	int blockindex, save_errorinfo, save_40_errors, save_40_tracks;
-	int retry;
-	BYTE buffer[0x2100];
-	BYTE *cycle_start;	/* start position of cycle     */
-	BYTE *cycle_stop;	/* stop  position of cycle + 1 */
-	BYTE id[3];
-	BYTE rawdata[260];
-	BYTE *sectordata, *d64data, *d64ptr;
-	BYTE errorinfo[MAXBLOCKSONDISK], errorcode;
-	int sector_count[21];	/* number of different sector data read */
-	int sector_occur[21][16];	/* how many times was this sector data read? */
-	BYTE sector_error[21][16];	/* type of error on this sector data */
-	int sector_use[21];	/* best data for this sector so far */
-	int sector_max[21];	/* # of times the best sector data has occured */
-	int goodtrack, goodsector;
-	int any_sectors;	/* any valid sectors on track at all? */
-	int blocks_to_save;
-
-	/* create output file */
-	if ((fpout = fopen(filename, "wb")) == NULL)
-	{
-		fprintf(stderr, "Couldn't create output file %s!\n", filename);
-		exit(2);
-	}
-
-	d64data = calloc(MAXBLOCKSONDISK, 256);
-	sectordata = calloc(16 * 21, 260);
-
-	if((!d64data) || (!sectordata))
-	{
-		printf("not enough memory for buffers");
-		if(d64data) free(d64data);
-		if(sectordata) free(sectordata);
-		return 0;
-	}
-
-	blockindex = 0;
-	save_errorinfo = 0;
-	save_40_errors = 0;
-	save_40_tracks = 0;
-
-	density = read_halftrack(fd, 18 * 2, buffer, 0xff);
-	printf("\n");
-	if (!extract_id(buffer, id))
-	{
-		fprintf(stderr, "Cannot find directory sector.\n");
-		free(d64data);
-		free(sectordata);
-		return 0;
-	}
-
-	d64ptr = d64data;
-	for (track = 1; track <= 40; track += 1)
-	{
-		/* no sector data read in yet */
-		for (sector = 0; sector < 21; sector++)
-			sector_count[sector] = 0;
-
-		any_sectors = 0;
-		for (retry = 0; retry < 16; retry++)
-		{
-			goodtrack = 1;
-			density = read_halftrack(fd, 2 * track, buffer, 0xff);
-
-			cycle_start = buffer;
-			find_track_cycle(&cycle_start, &cycle_stop,
-			  capacity_min[density & 3],
-			  capacity_max[density & 3]);
-
-			for (sector = 0; sector < sector_map_1541[track]; sector++)
-			{
-				sector_max[sector] = 0;
-				/* convert sector to free sector buffer */
-				errorcode =
-				  convert_GCR_sector(cycle_start, cycle_stop,
-				  rawdata, track, sector, id);
-
-				if (errorcode == SECTOR_OK)
-					any_sectors = 1;
-
-				/* check, if identical sector has been read before */
-				for (csec = 0; csec < sector_count[sector]; csec++)
-				{
-					if (memcmp(sectordata + (21 * csec + sector) * 260,
-					  rawdata, 260) == 0 &&
-					  sector_error[sector][csec] == errorcode)
-					{
-						sector_occur[sector][csec] += 1;
-						break;
-					}
-				}
-				if (csec == sector_count[sector])
-				{
-					/* sectordaten sind neu, kopieren, zaehler erhoehen */
-					memcpy(sectordata + (21 * csec + sector) * 260, rawdata,
-					  260);
-					sector_occur[sector][csec] = 1;
-					sector_error[sector][csec] = errorcode;
-					sector_count[sector] += 1;
-				}
-
-				goodsector = 0;
-				for (csec = 0; csec < sector_count[sector]; csec++)
-				{
-					if (sector_occur[sector][csec] -
-					  ((sector_error[sector][csec] == SECTOR_OK) ? 0 : 8) >
-					  sector_max[sector])
-					{
-						sector_use[sector] = csec;
-						sector_max[sector] = csec;
-					}
-
-					if (sector_occur[sector][csec] -
-					  ((sector_error[sector][csec] == SECTOR_OK) ? 0 : 8) >
-					  (retry / 2) + 1)
-					{
-						goodsector = 1;
-					}
-				}
-				if (goodsector == 0)
-					goodtrack = 0;
-			}
-
-			if (goodtrack == 1)
-				break;
-			if (retry == 1 && any_sectors == 0)
-				break;
-		}
-
-		/* keep the best data for each sector */
-		for (sector = 0; sector < sector_map_1541[track]; sector++)
-		{
-			printf("%d", sector);
-
-			memcpy(d64ptr,
-			  sectordata + 1 + (21 * sector_use[sector] + sector) * 260, 256);
-			d64ptr += 256;
-
-			errorcode = sector_error[sector][sector_use[sector]];
-			errorinfo[blockindex] = errorcode;
-
-			if (errorcode != SECTOR_OK)
-			{
-				if (track <= 35)
-					save_errorinfo = 1;
-				else
-					save_40_errors = 1;
-			}
-			else if (track > 35)
-			{
-				save_40_tracks = 1;
-			}
-
-			/* screen information */
-			if (errorcode == SECTOR_OK)
-				printf(" ");
-			else
-				printf("%d", errorcode);
-			blockindex++;
-		}
-		printf("\n");
-
-	}
-
-	blocks_to_save = (save_40_tracks) ? MAXBLOCKSONDISK : BLOCKSONDISK;
-
-	if (fwrite(d64data, blocks_to_save * 256, 1, fpout) != 1)
-	{
-		fprintf(stderr, "Cannot write d64 data.\n");
-		free(d64data);
-		free(sectordata);
-		return 0;
-	}
-
-	if (save_errorinfo == 1)
-	{
-                assert(sizeof(errorinfo) >= (size_t)blocks_to_save);
-		if (fwrite(errorinfo, blocks_to_save, 1, fpout) != 1)
-		{
-			fprintf(stderr, "Cannot write sector data.\n");
-			free(d64data);
-			free(sectordata);
-			return 0;
-		}
-	}
-
-	free(d64data);
-	free(sectordata);
-	fclose(fpout);
-	return 1;
 }
 
 /* $152b Density Scan */

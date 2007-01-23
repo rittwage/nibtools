@@ -153,3 +153,4 @@ int reduce_runs(BYTE * buffer, int length, int length_max, int minrun,
 int is_bad_gcr(BYTE * gcrdata, size_t length, size_t pos);
 int check_formatted(BYTE * gcrdata);
 int check_valid_data(BYTE * data, int length);
+

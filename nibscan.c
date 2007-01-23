@@ -14,7 +14,7 @@
 #include "nibtools.h"
 #include "version.h"
 
-BYTE start_track, end_track, track_inc;
+int start_track, end_track, track_inc;
 int imagetype, mode;
 int align, force_align;
 char bitrate_range[4] = { 43 * 2, 31 * 2, 25 * 2, 18 * 2 };

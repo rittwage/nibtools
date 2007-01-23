@@ -214,8 +214,8 @@ extract_cosmetic_id(BYTE * gcr_track, BYTE * id)
 }
 
 BYTE
-convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_cycle, BYTE * d64_sector,
-  int track, int sector, BYTE * id)
+convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector,
+  int track, int sector, BYTE *id)
 {
 	BYTE header[10];	/* block header */
 	BYTE hdr_chksum;	/* header checksum */
@@ -230,9 +230,15 @@ convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_cycle, BYTE * d64_sector,
 	error_code = SECTOR_OK;
 
 	if (track > MAX_TRACK_D64)
-		return (0);
+	{
+		//printf("no valid sectors above 40 tracks\n");
+		return 0;
+	}
 	if (gcr_cycle == NULL || gcr_cycle <= gcr_start)
-		return (0);
+	{
+		//printf("no track cycle, no data\n");
+		return 0;
+	}
 
 	/* initialize sector data with Original Format Pattern */
 	memset(d64_sector, 0x01, 260);
@@ -725,7 +731,7 @@ check_formatted(BYTE * gcrdata)
    [Return] length of copied track fragment
  */
 int
-extract_GCR_track(BYTE * destination, BYTE * source, int * align,
+extract_GCR_track(BYTE *destination, BYTE *source, int *align,
   int force_align, size_t cap_min, size_t cap_max)
 {
 	BYTE work_buffer[NIB_TRACK_LENGTH*2];	/* working buffer */
@@ -762,7 +768,6 @@ extract_GCR_track(BYTE * destination, BYTE * source, int * align,
 	/* second pass to find a cycle in track w/o syncs */
 	if (track_len > cap_max || track_len < cap_min)
 	{
-		//printf("(N)");
 		find_nondos_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
 		track_len = cycle_stop - cycle_start;
 	}

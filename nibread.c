@@ -20,7 +20,13 @@ char bitrate_range[4] = { 43 * 2, 31 * 2, 25 * 2, 18 * 2 };
 char bitrate_value[4] = { 0x00, 0x20, 0x40, 0x60 };
 char density_branch[4] = { 0xb1, 0xb5, 0xb7, 0xb9 };
 
-BYTE start_track, end_track, track_inc;
+BYTE *track_buffer;
+BYTE track_density[MAX_HALFTRACKS_1541];
+int track_length[MAX_HALFTRACKS_1541];
+
+int reduce_syncs, reduce_weak, reduce_gaps;
+int fix_gcr, aggressive_gcr;
+int start_track, end_track, track_inc;
 int read_killer;
 int align, force_align;
 int error_retries;
@@ -52,6 +58,13 @@ main(int argc, char *argv[])
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
 
+	track_buffer = malloc(MAX_HALFTRACKS_1541 * NIB_TRACK_LENGTH);
+	if(!track_buffer)
+	{
+		printf("could not allocate memory for buffers.\n");
+		exit(0);
+	}
+
 #ifdef DJGPP
 	fd = 1;
 #endif
@@ -61,6 +74,10 @@ main(int argc, char *argv[])
 	end_track = 82;
 	track_inc = 2;
 
+	reduce_syncs = 1;
+	reduce_weak = 0;
+	reduce_gaps = 0;
+	fix_gcr = 1;
 	read_killer = 1;
 	error_retries = 10;
 	default_density = 0;
@@ -202,69 +219,26 @@ main(int argc, char *argv[])
 
 int disk2file(CBM_FILE fd, char *filename)
 {
-	int filenum = 0;
-	char * seqname;
-
-	if (compare_extension(filename, "D64"))
-		imagetype = IMAGE_D64;
-	else if (compare_extension(filename, "G64"))
-		imagetype = IMAGE_G64;
-	else if (compare_extension(filename, "NB2"))
-		imagetype = IMAGE_NB2;
-	else
-		imagetype = IMAGE_NIB;
-
-	if (imagetype == IMAGE_G64)
-	{
-		printf("You cannot dump directly to G64 file format.  Use NIB or NB2 instead.");
-		exit(2);
-	}
-
 	/* read data from drive to file */
 	motor_on(fd);
 
-	if (imagetype == IMAGE_NIB)
+	if (compare_extension(filename, "D64"))
 	{
-		while(interactive_mode || filenum == 0)
-		{
-			if(strrchr(filename, '.') == NULL)  strcat(filename, ".nib");
-			read_nib(fd, filename);
-			filenum++;
-
-			if(interactive_mode)
-			{
-				printf("\nPress enter to image next side with automatic filename,\n");
-				printf("'f' to enter new filename, or 'q' to quit.\n:");
-
-				fflush(stdin);
-				switch(getchar())
-				{
-					case 'f':
-						printf("Enter new filename:");
-						scanf("%s",filename);
-						break;
-
-					case 'q':
-						interactive_mode = 0;
-						break;
-
-					default:
-						seqname = strtok (filename,".");
-						sprintf(filename, "%s%d", seqname, filenum+1);
-						break;
-				}
-			}
-		}
+		imagetype = IMAGE_D64;
+		read_floppy(fd, track_buffer, track_density, track_length);
+		write_d64(filename, track_buffer, track_density, track_length);
 	}
-	else if (imagetype == IMAGE_NB2)
+	else if (compare_extension(filename, "G64"))
 	{
-		track_inc = 1;
-		read_nb2(fd, filename);
+		imagetype = IMAGE_G64;
+		read_floppy(fd, track_buffer, track_density, track_length);
+		write_g64(filename, track_buffer, track_density, track_length);
 	}
 	else
 	{
-		read_killer = 0;  // no need to try this on a D64
-		read_d64(fd, filename);
+		imagetype = IMAGE_NIB;
+		read_floppy(fd, track_buffer, track_density, track_length);
+		write_nib(filename, track_buffer, track_density, track_length);
 	}
 
 	cbm_parallel_burst_read(fd);

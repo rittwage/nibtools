@@ -20,7 +20,11 @@ char bitrate_range[4] = { 43 * 2, 31 * 2, 25 * 2, 18 * 2 };
 char bitrate_value[4] = { 0x00, 0x20, 0x40, 0x60 };
 char density_branch[4] = { 0xb1, 0xb5, 0xb7, 0xb9 };
 
-BYTE start_track, end_track, track_inc;
+BYTE *track_buffer;
+BYTE track_density[MAX_HALFTRACKS_1541];
+int track_length[MAX_HALFTRACKS_1541];
+
+int start_track, end_track, track_inc;
 int reduce_syncs, reduce_weak, reduce_gaps;
 int fix_gcr, aggressive_gcr;
 int align, force_align;
@@ -54,6 +58,13 @@ main(int argc, char *argv[])
 
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
+
+	track_buffer = malloc(MAX_HALFTRACKS_1541 * NIB_TRACK_LENGTH);
+	if(!track_buffer)
+	{
+		printf("could not allocate memory for buffers.\n");
+		exit(0);
+	}
 
 #ifdef DJGPP
 	fd = 1;
@@ -226,8 +237,7 @@ main(int argc, char *argv[])
 	}
 	printf("\n");
 
-	if (argc < 1)	usage();
-	strcpy(filename, argv[0]);
+	if (argc > 0)	strcpy(filename, argv[0]);
 
 #ifdef DJGPP
 	calibrate();
@@ -271,7 +281,7 @@ main(int argc, char *argv[])
 			//printf("Current disk WILL be OVERWRITTEN!\n"
 			//  "Press ENTER to continue or CTRL-C to quit.\n");
 			//getchar();
-			write_raw(fd);
+			write_raw(fd, track_buffer, track_density, track_length);
 			break;
 	}
 
@@ -284,81 +294,42 @@ main(int argc, char *argv[])
 int
 file2disk(CBM_FILE fd, char * filename)
 {
-	FILE *fpin;
-	char mnibheader[0x100], g64header[0x2ac];
-	int nibsize, numtracks;
+	/* clear our buffers */
+	memset(track_buffer, 0, sizeof(track_buffer));
+	memset(track_density, 0, sizeof(track_density));
 
-	if ((fpin = fopen(filename, "rb")) == NULL)
-	{
-		fprintf(stderr, "Couldn't open input file %s!\n", filename);
-		exit(2);
-	}
-
+	/* turn on motor and measure speed */
 	motor_on(fd);
 
 	if (auto_capacity_adjust)
 		adjust_target(fd);
 
-	/* this is deprecated, we can do it during the write */
-	//if (align_disk)
-	//	init_aligned_disk(fd);
-
+	/* read and remaster disk */
 	if (compare_extension(filename, "D64"))
 	{
 		imagetype = IMAGE_D64;
-		write_d64(fd, fpin);
+		read_d64(filename, track_buffer, track_density, track_length);
+		master_disk(fd, track_buffer, track_density, track_length);
 	}
 	else if (compare_extension(filename, "G64"))
 	{
 		imagetype = IMAGE_G64;
-		memset(g64header, 0x00, sizeof(g64header));
-
-		if (fread(g64header, sizeof(g64header), 1, fpin) != 1) {
-			printf("unable to read G64 header\n");
-			exit(2);
-		}
-		parse_gcr_file(fd, fpin, g64header + 0x9);
+		read_g64(filename, track_buffer, track_density, track_length);
+		master_disk(fd, track_buffer, track_density, track_length);
 	}
 	else if (compare_extension(filename, "NIB"))
 	{
 		imagetype = IMAGE_NIB;
-
-		/* Determine number of tracks in image (crude) */
-		fseek(fpin, 0, SEEK_END);
-		nibsize = ftell(fpin);
-		numtracks = (nibsize - 0xff) / 8192;
-
-		if(numtracks <= 42)
-		{
-			end_track = (numtracks * 2) + 1;
-			track_inc = 2;
-		}
-		else
-		{
-			printf("\nImage contains halftracks!\n");
-			end_track = numtracks + 1;
-			track_inc = 1;
-		}
-
-		printf("\n%d track image (filesize = %d bytes)\n", numtracks, nibsize);
-		rewind(fpin);
-
-		/* gather mem and read header */
-		memset(mnibheader, 0x00, sizeof(mnibheader));
-		if (fread(mnibheader, sizeof(mnibheader), 1, fpin) != 1) {
-			printf("unable to read NIB header\n");
-			exit(2);
-		}
-		parse_gcr_file(fd, fpin, mnibheader + 0x10);
+		read_nib(filename, track_buffer, track_density, track_length);
+		master_disk(fd, track_buffer, track_density, track_length);
 	}
 	else
 		printf("\nUnknown image type");
 
-	printf("\n");
+	step_to_halftrack(fd, 18 * 2);
 	cbm_parallel_burst_read(fd);
-
-	fclose(fpin);
-	return (0);
+	printf("\n");
+	return 0;
 }
 
 void

@@ -67,7 +67,7 @@ extern int interactive_mode;
 extern int gap_match_length;
 extern int verbose;
 extern float motor_speed;
-extern BYTE start_track, end_track, track_inc;
+extern int start_track, end_track, track_inc;
 extern int fix_gcr, reduce_syncs, reduce_gaps, reduce_weak;
 extern int imagetype, auto_capacity_adjust;
 
@@ -80,21 +80,29 @@ int disk2file(CBM_FILE fd, char * filename);
 /* nibwrite.c */
 int file2disk(CBM_FILE fd, char * filename);
 
+/* fileio.c */
+int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
+int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
+int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
+int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
+int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
+int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
+int process_halftrack(int halftrack, BYTE *track_buffer, BYTE track_density, int track_length);
+int write_dword(FILE * fd, DWORD * buf, int num);
+
 /* read.c */
 BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_density);
-int read_d64(CBM_FILE fd, char * filename);
-void read_nib(CBM_FILE fd, char * filename);
-void read_nb2(CBM_FILE fd, char * filename);
+int read_d64_old(CBM_FILE fd, char * filename);
+int read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length);
+void read_nb2_old(CBM_FILE fd, char * filename);
 void get_disk_id(CBM_FILE fd);
 BYTE scan_density(CBM_FILE fd);
 
 /* write.c */
-void process_halftrack(int halftrack, int density, int length, BYTE * gcrdata);
-void parse_gcr_file(CBM_FILE fd, FILE * fpin, char * track_header);
-void write_raw(CBM_FILE fd);
+void master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length);
+void write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length);
 void unformat_disk(CBM_FILE fd);
 void unformat_track(CBM_FILE fd, int track);
-int write_d64(CBM_FILE fd, FILE * fpin);
 unsigned int track_capacity(CBM_FILE fd);
 void init_aligned_disk(CBM_FILE fd);
 void adjust_target(CBM_FILE fd);
