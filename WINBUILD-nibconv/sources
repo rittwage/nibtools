@@ -1,21 +1,14 @@
 
-TARGETNAME=nibwrite
+TARGETNAME=nibconv
 TARGETPATH=../../bin
 TARGETTYPE=PROGRAM
 
-TARGETLIBS=../../bin/*/opencbm.lib
-
 INCLUDES=../include/WINDOWS;../../include;../../include/WINDOWS;../../arch/windows/
 
-SOURCES=../nibwrite.c \
+SOURCES=../nibconv.c \
 	../gcr.c \
-	../nibwrite.c \
-	../drive.c \
 	../prot.c \
-	../write.c \
-        nibwrite.rc
+        nibconv.rc
 
 UMTYPE=console
 #UMBASE=0x100000
-
-NTTARGETFILE0=a65

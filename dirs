@@ -1,6 +1,4 @@
-DIRS=WINBUILD \
-     WINBUILD-n2d \
-     WINBUILD-n2g \
-     WINBUILD-pscan \
-     WINBUILD-pshift \
-     WINBUILD-pwrite
+DIRS=WINBUILD-nibread \
+     WINBUILD-nibscan \
+     WINBUILD-nibconv \
+     WINBUILD-nibwrite

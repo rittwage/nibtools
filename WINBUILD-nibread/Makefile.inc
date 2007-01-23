@@ -1,6 +1,6 @@
 a65: 
 
-..\nibwrite.c: ..\nibtools_1541.inc ..\nibtools_1571.inc
+..\nibread.c: ..\nibtools_1541.inc ..\nibtools_1571.inc
 
 ..\nibtools_1541.a65: ..\nibtools_15x1.asm
 	echo DRIVE=1541 > 1.tmp

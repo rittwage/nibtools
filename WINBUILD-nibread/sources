@@ -1,5 +1,5 @@
 
-TARGETNAME=nibwrite
+TARGETNAME=nibread
 TARGETPATH=../../bin
 TARGETTYPE=PROGRAM
 
@@ -7,13 +7,13 @@ TARGETLIBS=../../bin/*/opencbm.lib
 
 INCLUDES=../include/WINDOWS;../../include;../../include/WINDOWS;../../arch/windows/
 
-SOURCES=../nibwrite.c \
+SOURCES=../nibread.c \
 	../gcr.c \
-	../nibwrite.c \
+	../nibread.c \
 	../drive.c \
 	../prot.c \
-	../write.c \
-        nibwrite.rc
+	../read.c \
+        nibread.rc
 
 UMTYPE=console
 #UMBASE=0x100000

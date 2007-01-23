@@ -1,14 +1,14 @@
 
-TARGETNAME=pscan
+TARGETNAME=nibscan
 TARGETPATH=../../bin
 TARGETTYPE=PROGRAM
 
 INCLUDES=../include/WINDOWS;../../include;../../include/WINDOWS;../../arch/windows/
 
-SOURCES=../pscan.c \
+SOURCES=../nibscan.c \
 	../gcr.c \
 	../prot.c \
-        pscan.rc
+        nibscan.rc
 
 UMTYPE=console
 #UMBASE=0x100000
