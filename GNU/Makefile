@@ -56,11 +56,11 @@ win32:
 WARNS=	-Werror -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wpointer-arith 
 
 # Common objects
-OBJ=gcr.o prot.o 
+OBJ=gcr.o prot.o fileio.o
 
 # Objects for just mnib
-NIBREAD_OBJ=nibread.o read.o drive.o fileio.o
-NIBWRITE_OBJ=nibwrite.o write.o drive.o fileio.o
+NIBREAD_OBJ=nibread.o read.o drive.o 
+NIBWRITE_OBJ=nibwrite.o write.o drive.o
 
 NIBTOOLS_BIN=nibtools_1541.inc nibtools_1571.inc
 

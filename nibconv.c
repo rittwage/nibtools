@@ -141,7 +141,12 @@ main(int argc, char **argv)
 	}
 
 	if (compare_extension(outname, "D64"))
+	{
 		write_d64(outname, track_buffer, track_density, track_length, 0);
+		printf("WARNING!\nConverting to D64 is a lossy conversion.\n");
+		printf("All individual sector header and gap information is lost.\n");
+		printf("It is suggested you use the G64 format for most disks.\n");
+	}
 	else if (compare_extension(outname, "G64"))
 		write_g64(outname, track_buffer, track_density, track_length, 0);
 	else if (compare_extension(outname, "NIB"))
