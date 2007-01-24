@@ -271,11 +271,11 @@ compare_disks(void)
 		track_density[track] %= BM_MATCH;
 		track_density2[track] %= BM_MATCH;
 
-		printf("Track %2d, Disk 1: (%d) %d\n",
-		  track / 2, (track_density[track] & 3), track_length[track]);
+		printf("Track %4.1f, Disk 1: (%d) %d\n",
+		 	(float) track / 2, (track_density[track] & 3), track_length[track]);
 
-		printf("Track %2d, Disk 2: (%d) %d\n",
-		  track / 2, (track_density2[track] & 3), track_length2[track]);
+		printf("Track %4.1f, Disk 2: (%d) %d\n",
+		 	(float) track / 2, (track_density2[track] & 3), track_length2[track]);
 
 		if( ((track_length[track] > 0) && (track_length2[track] == 0)) ||
 			((track_length[track] == 0) && (track_length2[track] > 0)) )
