@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
 
-	track_buffer = malloc(MAX_HALFTRACKS_1541 * NIB_TRACK_LENGTH);
+	track_buffer = calloc(MAX_HALFTRACKS_1541, NIB_TRACK_LENGTH);
 	if(!track_buffer)
 	{
 		printf("could not allocate memory for buffers.\n");
@@ -111,7 +111,7 @@ main(int argc, char *argv[])
 
 		case 't':
 			align_disk = 1;
-			printf("* Timer-based track alignment\n");
+			printf("* Attempt soft track alignment\n");
 			break;
 
 		case 'u':
@@ -301,8 +301,9 @@ file2disk(CBM_FILE fd, char * filename)
 	/* turn on motor and measure speed */
 	motor_on(fd);
 
-	if (auto_capacity_adjust)
-		adjust_target(fd);
+	/* prepare fisk for writing */
+	if(auto_capacity_adjust) adjust_target(fd);
+	if(align_disk) init_aligned_disk(fd);
 
 	/* read and remaster disk */
 	if (compare_extension(filename, "D64"))

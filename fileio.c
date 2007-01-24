@@ -59,6 +59,7 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
+
 		/* get density from header or use default */
 		track_density[track] = (BYTE)(header[0x10 + (header_entry * 2) + 1]);
 		header_entry++;
@@ -73,9 +74,15 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		/* process track cycle */
 		track_length[track] = extract_GCR_track(track_buffer + (track * NIB_TRACK_LENGTH), nibdata,
 			&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
-	}
 
+		/* output some specs */
+		printf("%4.1f: (",(float) track / 2);
+		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
+	}
 	fclose(fpin);
+	printf("Successfully loaded NIB file\n");
 	return 1;
 }
 
@@ -129,8 +136,8 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 			return 0;
 		}
 	}
-
 	fclose(fpin);
+	printf("Successfully loaded G64 file\n");
 	return 1;
 }
 
@@ -184,7 +191,7 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 	// determine disk id from track 18 (offsets $165A2, $165A3)
 	fseek(fpin, 0x165a2, SEEK_SET);
 	fread(id, 2, 1, fpin); // @@@SRT: check success
-	printf("\ndisk id: %s", id);
+	printf("\ndisk id: %s\n", id);
 	rewind(fpin);
 
 	sector_ref = 0;
@@ -228,11 +235,14 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 	{
 		for (track = 36 * 2; track <= end_track; track += 2)
 		{
-			track_density[track] = 2;
+			memset(track_buffer + (track * NIB_TRACK_LENGTH), 0, NIB_TRACK_LENGTH);
+			track_density[track] = (2 | BM_NO_SYNC);
 			track_length[track] = 0;
 		}
 	}
 
+	fclose(fpin);
+	printf("Successfully loaded D64 file\n");
 	return 1;
 }
 
@@ -291,7 +301,7 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *trac
 	}
 
 	fclose(fpout);
-
+	printf("Successfully saved NIB file\n");
 	return 1;
 }
 
@@ -408,6 +418,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		}
 	}
 	fclose(fpout);
+	printf("\nSuccessfully saved G64 file\n");
 	return 1;
 }
 
@@ -497,8 +508,8 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 			return 0;
 		}
 	}
-
 	fclose(fpout);
+	printf("Successfully saved D64 file\n");
 	return 1;
 }
 
@@ -538,28 +549,23 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	memcpy(gcrdata, track_buffer, NIB_TRACK_LENGTH);
 
 	/* double-check our sync-flag assumptions */
-	density = (BYTE)check_sync_flags(gcrdata, density, length);
+	density = (BYTE) check_sync_flags(gcrdata, density, length);
 
 	/* user display */
 	printf("\n%4.1f: (", (float) halftrack / 2);
-	if (density & BM_NO_SYNC)
-		printf("NOSYNC:");
-	else if (density & BM_FF_TRACK)
-		printf("KILLER:");
 	printf("%d", density & 3);
-	if (density != speed_map_1541[(halftrack / 2) - 1])
-		printf("!");
-	printf(":%d) [", length);
+	if (density != speed_map_1541[(halftrack / 2) - 1]) printf("!");
+	printf(":%d) ", length);
+	if (density & BM_NO_SYNC) printf("{NOSYNC!}");
+	else if (density & BM_FF_TRACK) printf("{KILLER!}");
+	printf(" [");
 
 	/* compress / expand track */
 	if (length > 0)
 	{
 		// handle bad GCR / weak bits
 		badgcr = check_bad_gcr(gcrdata, length, fix_gcr);
-		if (badgcr > 0)
-		{
-			printf("weak:%d ", badgcr);
-		}
+		if (badgcr > 0) printf("weak:%d ", badgcr);
 
 		// If our track contains sync, we reduce to a minimum of 16
 		// (only 10 are required, technically)
@@ -571,9 +577,7 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 				length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 2, 0xff);
 
 			if (length < orglen)
-			{
 				printf("rsync:%d ", orglen - length);
-			}
 		}
 
 		// We could reduce gap bytes ($55 and $AA) here too,
@@ -584,9 +588,7 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 2, 0xaa);
 
 			if (length < orglen)
-			{
 				printf("rgaps:%d ", orglen - length);
-			}
 		}
 
 		// reduce weak bit runs (experimental)
@@ -596,9 +598,7 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 2, 0x00);
 
 			if (length < orglen)
-			{
 				printf("rweak:%d ", orglen - length);
-			}
 		}
 
 		// still not small enough, we have to truncate the end
@@ -608,13 +608,9 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 			length = capacity[density & 3] - CAPACITY_MARGIN;
 
 			if (length < orglen)
-			{
 				printf("trunc:%d ", orglen - length);
-			}
 			else
-			{
-					printf("\nHad to truncate track %d by %d bytes.", halftrack / 2, orglen - length);
-			}
+				printf("\nHad to truncate track %d by %d bytes.", halftrack / 2, orglen - length);
 		}
 
 		// handle short tracks
@@ -628,9 +624,9 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	}
 
 	// if track is empty (unformatted) overfill with '0' bytes to simulate
-	if (!length && (density & BM_NO_SYNC))
+	if ( (!length) && (density & BM_NO_SYNC))
 	{
-		memset(gcrdata, 0x00, NIB_TRACK_LENGTH);
+		memset(gcrdata, 0, NIB_TRACK_LENGTH);
 		length = NIB_TRACK_LENGTH;
 	}
 

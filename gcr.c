@@ -703,7 +703,7 @@ find_sector_gap(BYTE * work_buffer, int tracklen, size_t * p_sectorlen)
 
 // checks if there is any reasonable section of formatted (GCR) data
 int
-check_formatted(BYTE * gcrdata)
+check_formatted(BYTE *gcrdata)
 {
 	int i, run = 0;
 
@@ -939,7 +939,7 @@ reduce_runs(BYTE * buffer, int length, int length_max, int minrun,
 // this routine checks the track data and makes simple decisions
 // about the special cases of being all sync or having no sync
 int
-check_sync_flags(BYTE * gcrdata, int density, int length)
+check_sync_flags(BYTE *gcrdata, int density, int length)
 {
 	int i, syncs = 0;
 
@@ -950,8 +950,6 @@ check_sync_flags(BYTE * gcrdata, int density, int length)
 			syncs++;
 	}
 
-	//printf("syncs: %d\n",syncs);
-
 	if(!syncs)
 		return (density |= BM_NO_SYNC);
 	else if (syncs == length)
@@ -961,7 +959,7 @@ check_sync_flags(BYTE * gcrdata, int density, int length)
 }
 
 int
-compare_tracks(BYTE * track1, BYTE * track2, int length1, int length2,
+compare_tracks(BYTE *track1, BYTE *track2, int length1, int length2,
   int same_disk, char *outputstring)
 {
 	int match, j, k, sync_diff, presync_diff;

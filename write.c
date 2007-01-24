@@ -17,7 +17,7 @@ void
 master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
 	int track, length, i;
-	int align_delay;
+	//int align_delay;
 	BYTE rawtrack[NIB_TRACK_LENGTH + 0x100];
 
 	for (track = start_track; track <= end_track; track += track_inc)
@@ -25,10 +25,17 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		length = process_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
 
 		/* skip empty tracks (raw mode) */
-		if ( (mode == MODE_WRITE_RAW) && (length == 0))
+		if ((mode == MODE_WRITE_RAW) && (length == 0))
 		{
 			printf(".");
 			continue;
+		}
+
+		/* zero out empty tracks entirely */
+		if( (length == NIB_TRACK_LENGTH) && (track_density[track] & BM_NO_SYNC) )
+		{
+				unformat_track(fd, track);
+				continue;
 		}
 
 		// add filler so track is completely erased, then append track data
@@ -39,30 +46,11 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		step_to_halftrack(fd, track);
 		set_density(fd, track_density[track]&3);
 
-		// try to do track alignment through simple timers
-		if((align_disk) && (auto_capacity_adjust))
-		{
-			/* subtract 28300ms overhead from one 200000ms rev;
-			    adjust for motor speed and density;
-			    doesn't seem to be a skew between densities 2 and 1.
-			*/
-			align_delay = (int) ((171700) + ((300 - motor_speed) * 600));
-
-			if((track_density[track] & 3) == 2 || (track_density[track] & 3) ==1 )
-				align_delay -= 1000;
-
-			if((track_density[track] & 3) == 0)
-				align_delay -= 2000;
-
-			msleep(align_delay);
-		}
-
 		// send track
 		for (i = 0; i < 10; i ++)
 		{
 			send_mnib_cmd(fd, FL_WRITENOSYNC);
-			//cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
-			cbm_parallel_burst_write(fd, 0x00);
+			cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
 
 			if (!cbm_parallel_burst_write_track(fd, rawtrack, 0x100 + length))
 			{
@@ -215,48 +203,27 @@ adjust_target(CBM_FILE fd)
 void
 init_aligned_disk(CBM_FILE fd)
 {
-	int track, track_delay;
+	int track;
+	BYTE sync[2];
 
-	/*
-	> $1172: a0 6c           LDY  #$6c    ; 2
-	> $1174: a2 87           LDX  #$87    ; 2
-	> $1176: c8              INY          ; 2
-	> $1177: d0 fd           BNE  $1176    ; 2 (+1)
-	> $1179: ca              DEX          ; 2
-	> $117a: d0 fa           BNE  $1176    ; 2 (+1)
-	>
-	> The trouble with the BNE opcode is, that it has three different
-	> cycle values, depending weather it branches or not, and how
-	> far it branches.
-	>
-	> No branch: 2 cycles
-	> Branch within the page: 3 cycles
-	> Branch outside page: 4 cycles
-	>
-	> All branches are within the same pages, but sometimes
-	> it doesn't branch, so the calculation becomes somewhat more
-	> complicated.
+	unformat_disk(fd);
 
-	> 2 + 2 + (5 * 0x94 - 1)       // 0x2e7 / 743
-	> + (5 * 0x100 - 1) * (0x86) + (5 * 0x87 - 1) // 2a01c / 172060
-	>
-	> = 0x2a303 = 172803 cycles
-	>
-	> t = 172803 / 985248 = 0.175390 seconds
-	*/
-
-	// adjust delay based on measured motor speed
-	track_delay = (int) ((175390 * 300) / motor_speed);
-	printf("Formatting track-aligned disk with calulated delay of %dus\n", track_delay);
-
-	// make sure we are at highest bitrate
-	set_bitrate(fd, 3);
+	sync[0] = sync[1] = 0xff;
+	set_bitrate(fd, 2);
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		step_to_halftrack(fd, track);
-		msleep(track_delay);
-		send_mnib_cmd(fd, FL_INITTRACK);
+		send_mnib_cmd(fd, FL_STEPTO);
+		cbm_parallel_burst_write(fd, track);
+		cbm_parallel_burst_read(fd);
+
+		msleep( (int) ((180000 * 300) / motor_speed) );
+
+		send_mnib_cmd(fd, FL_WRITENOSYNC);
+		cbm_parallel_burst_write(fd, 0);
+
+		cbm_parallel_burst_write_track(fd, sync, sizeof(sync));
 		cbm_parallel_burst_read(fd);
 	}
+	printf("Successfully aligned tracks on disk\n");
 }

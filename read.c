@@ -296,6 +296,7 @@ read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 	}
 
 	step_to_halftrack(fd, 18*2);
+
 	return 1;
 }
 
