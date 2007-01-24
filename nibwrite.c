@@ -310,7 +310,7 @@ file2disk(CBM_FILE fd, char * filename)
 		imagetype = IMAGE_D64;
 		read_d64(filename, track_buffer, track_density, track_length);
 		master_disk(fd, track_buffer, track_density, track_length);
-		printf("WARNING!\nConverting to D64 is a lossy conversion.\n");
+		printf("\nWARNING!\nConverting to D64 is a lossy conversion.\n");
 		printf("All individual sector header and gap information is lost.\n");
 		printf("It is suggested you use the G64 format for most disks.\n");
 	}
@@ -319,7 +319,7 @@ file2disk(CBM_FILE fd, char * filename)
 		imagetype = IMAGE_G64;
 		read_g64(filename, track_buffer, track_density, track_length);
 		master_disk(fd, track_buffer, track_density, track_length);
-		printf("WARNING!\nConverting to G64 is a slightly lossy conversion.\n");
+		printf("\nWARNING!\nConverting to G64 is a slightly lossy conversion.\n");
 		printf("Some track cycle information is lost.\n");
 		printf("It is suggested you use the NIB format for archival.\n");
 	}
