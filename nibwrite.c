@@ -59,8 +59,7 @@ main(int argc, char *argv[])
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
 
-	track_buffer = calloc(MAX_HALFTRACKS_1541, NIB_TRACK_LENGTH);
-	if(!track_buffer)
+	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541, NIB_TRACK_LENGTH)))
 	{
 		printf("could not allocate memory for buffers.\n");
 		exit(0);

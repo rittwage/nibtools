@@ -10,6 +10,8 @@
 #include <string.h>
 #include <time.h>
 #include <assert.h>
+#include <ctype.h>
+#include <signal.h>
 
 #include "mnibarch.h"
 #include "gcr.h"
@@ -168,30 +170,31 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 
 	switch (d64size)
 	{
-		case (BLOCKSONDISK * 257):		/* 35 track image with errorinfo */
-			fseek(fpin, BLOCKSONDISK * 256, SEEK_SET);
-			fread(errorinfo, BLOCKSONDISK, 1, fpin); // @@@SRT: check success
-			/* FALLTHROUGH */
-		case (BLOCKSONDISK * 256):		/* 35 track image w/o errorinfo */
-			last_track = 35;
-			break;
-		case (MAXBLOCKSONDISK * 257):	/* 40 track image with errorinfo */
-			fseek(fpin, MAXBLOCKSONDISK * 256, SEEK_SET);
-			fread(errorinfo, MAXBLOCKSONDISK, 1, fpin); // @@@SRT: check success
-			/* FALLTHROUGH */
-		case (MAXBLOCKSONDISK * 256):	/* 40 track image w/o errorinfo */
-			last_track = 40;
-			break;
-			default:
-			rewind(fpin);
-			fprintf(stderr, "Bad d64 image size.\n");
-			return 0;
-		}
+	case (BLOCKSONDISK * 257):		/* 35 track image with errorinfo */
+		fseek(fpin, BLOCKSONDISK * 256, SEEK_SET);
+		fread(errorinfo, BLOCKSONDISK, 1, fpin); // @@@SRT: check success
+		/* FALLTHROUGH */
+	case (BLOCKSONDISK * 256):		/* 35 track image w/o errorinfo */
+		last_track = 35;
+		break;
+
+	case (MAXBLOCKSONDISK * 257):	/* 40 track image with errorinfo */
+		fseek(fpin, MAXBLOCKSONDISK * 256, SEEK_SET);
+		fread(errorinfo, MAXBLOCKSONDISK, 1, fpin); // @@@SRT: check success
+		/* FALLTHROUGH */
+	case (MAXBLOCKSONDISK * 256):	/* 40 track image w/o errorinfo */
+		last_track = 40;
+		break;
+
+	default:
+		rewind(fpin);
+		fprintf(stderr, "Bad d64 image size.\n");
+		return 0;
+	}
 
 	// determine disk id from track 18 (offsets $165A2, $165A3)
 	fseek(fpin, 0x165a2, SEEK_SET);
 	fread(id, 2, 1, fpin); // @@@SRT: check success
-	printf("\ndisk id: %s\n", id);
 	rewind(fpin);
 
 	sector_ref = 0;
@@ -205,6 +208,7 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 		{
 			// get error and increase reference pointer in errorinfo
 			error = errorinfo[sector_ref++];
+
 			if (error != SECTOR_OK)
 			{
 				sprintf(tmpstr, " E%dS%d", error, sector);
@@ -227,7 +231,7 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 
 		// write track
 		memcpy(track_buffer + (track * 2 * NIB_TRACK_LENGTH), gcrdata, track_length[track*2]);
-		printf("%s", errorstring);
+		//printf("%s", errorstring);
 	}
 
 	// "unformat" last 5 tracks on 35 track disk
@@ -248,7 +252,9 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 
 int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
-    /*	writes contents of buffers into NIB file, with header and density information */
+    /*	writes contents of buffers into NIB file, with header and density information
+    	this is only called by nibread, so it does not extract/process the track
+    */
 
   int track;
   FILE * fpout;
@@ -306,9 +312,12 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *trac
 }
 
 int
-write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
+write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, int extract)
 {
-	/* writes contents of buffers into NIB file, with header and density information */
+	/* writes contents of buffers into G64 file, with header and density information
+		extract: set to 1 to extract the track cycle, 0 to if it's already done
+	*/
+
 	BYTE header[12];
 	DWORD gcr_track_p[MAX_HALFTRACKS_1541];
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
@@ -339,7 +348,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	}
 
 	/* Create index and speed tables */
-	for (track = 0; track < (MAX_TRACKS_1541 * 2); track += track_inc)
+	for (track = 0; track < MAX_HALFTRACKS_1541; track += track_inc)
 	{
 		/* calculate track positions and speed zone data */
 		if(track_inc == 2)
@@ -357,11 +366,12 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		else
 		{
 			gcr_track_p[track] = 12 + MAX_TRACKS_1541 * 16 + track * (G64_TRACK_MAXLEN + 2);
-			gcr_speed_p[track] = track_density[track+2]; //(nib_header[17 + (track * 2)] & 0x03);
+			gcr_speed_p[track] = track_density[track];
 		}
 
 	}
 
+	/* write headers */
 	if (write_dword(fpout, gcr_track_p, sizeof(gcr_track_p)) < 0)
 	{
 		fprintf(stderr, "Cannot write track header.\n");
@@ -387,10 +397,11 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		//if (skip_halftracks)
 		//	fseek(fpin, NIB_TRACK_LENGTH, SEEK_CUR);
 
-		align = ALIGN_NONE;
-
-		track_len = extract_GCR_track(buffer, track_buffer + ((track+2) * NIB_TRACK_LENGTH), &align,
-			force_align, capacity_min[gcr_speed_p[track]], capacity_max[gcr_speed_p[track]]);
+		if(extract)
+			track_length[track+2] = extract_GCR_track(buffer, track_buffer + ((track+2) * NIB_TRACK_LENGTH),
+				&align, force_align, capacity_min[track_density[track+2]&3], capacity_max[track_density[track+2]&3]);
+		else
+			memcpy(buffer, track_buffer + ((track+2) * NIB_TRACK_LENGTH), track_length[track+2]);
 
 		track_len = process_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
 
@@ -423,12 +434,15 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 }
 
 int
-write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
+write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, int extract)
 {
     /*	writes contents of buffers into D64 file, with errorblock information (if detected) */
 	FILE *fpout;
 	int track, sector;
-	int save_errorinfo, save_40_errors, save_40_tracks;
+	int save_errorinfo = 0;
+	int save_40_errors = 0;
+	int save_40_tracks = 0;
+	int blockindex = 0;
 	BYTE id[3];
 	BYTE rawdata[260];
 	BYTE d64data[MAXBLOCKSONDISK * 256], *d64ptr;
@@ -441,10 +455,6 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		fprintf(stderr, "Couldn't create output file %s!\n", filename);
 		exit(2);
 	}
-
-	save_errorinfo = 0;
-	save_40_errors = 0;
-	save_40_tracks = 0;
 
 	/* get disk id */
 	if (!extract_id(track_buffer + (18 * 2 * NIB_TRACK_LENGTH), id))
@@ -463,8 +473,10 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 			printf("%d", sector);
 
 			errorcode = convert_GCR_sector(track_buffer + (track * NIB_TRACK_LENGTH),
-			track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
+				track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
 				rawdata, track/2, sector, id);
+
+			errorinfo[blockindex] = errorcode;	/* OK by default */
 
 			if (errorcode != SECTOR_OK)
 			{
@@ -487,6 +499,8 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 			/* dump to buffer */
 			memcpy(d64ptr, rawdata+1 , 256);
 			d64ptr += 256;
+
+			blockindex++;
 		}
 		printf("\n");
 	}
@@ -508,13 +522,14 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 			return 0;
 		}
 	}
+
 	fclose(fpout);
 	printf("Successfully saved D64 file\n");
 	return 1;
 }
 
 int
-write_dword(FILE * fd, DWORD * buf, int num)
+write_dword(FILE *fd, DWORD * buf, int num)
 {
 	int i;
 	BYTE *tmpbuf;
@@ -638,33 +653,25 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 
 	printf("] (%d) ", length);
 
-	// print out track alignment, as determined
-	if (imagetype == IMAGE_NIB)
-	{
-		switch (align)
-		{
-			case ALIGN_NONE:
-				printf("(none) ");
-				break;
-			case ALIGN_SEC0:
-				printf("(sec0) ");
-				break;
-			case ALIGN_GAP:
-				printf("(gap) ");
-				break;
-			case ALIGN_LONGSYNC:
-				printf("(sync) ");
-				break;
-			case ALIGN_WEAK:
-				printf("(weak) ");
-				break;
-			case ALIGN_VMAX:
-				printf("(v-max) ");
-				break;
-			case ALIGN_AUTOGAP:
-				printf("(auto) ");
-				break;
-		}
-	}
 	return length;
 }
+
+int
+compare_extension(char * filename, char * extension)
+{
+	char *dot;
+
+	dot = strrchr(filename, '.');
+	if (dot == NULL)
+		return (0);
+
+	for (++dot; *dot != '\0'; dot++, extension++)
+		if (tolower(*dot) != tolower(*extension))
+			return (0);
+
+	if (*extension == '\0')
+		return (1);
+	else
+		return (0);
+}
+

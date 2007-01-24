@@ -19,35 +19,36 @@ BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541];
 int track_length[MAX_HALFTRACKS_1541];
 
+int start_track, end_track, track_inc;
 int reduce_syncs, reduce_weak, reduce_gaps;
-int fixgcr, align, force_align;
+int fix_gcr, align, force_align;
 int gap_match_length;
+int skip_halftracks;
 
 int ARCH_MAINDECL
 main(int argc, char **argv)
 {
-	//FILE *fpin, *fpout;
-	//	char *dotpos;
 	char inname[256], outname[256];
-	int skip_halftracks;
-	int gap_match_length;
 
-	fixgcr = 0;
-	reduce_syncs = 0;
+	start_track = 1 * 2;
+	end_track = 41 * 2;
+	track_inc = 2;
+	fix_gcr = 0;
+	reduce_syncs = 1;
 	reduce_weak = 0;
 	reduce_gaps = 0;
-	gap_match_length = 7;
 	skip_halftracks = 0;
 	align = ALIGN_NONE;
 	force_align = ALIGN_NONE;
+	gap_match_length = 7;
+
 
 	fprintf(stdout,
 	  "\nnibconv - converts a CBM disk image from one format to another.\n"
 	  "(C) Pete Rittwage, Dr. Markus Brenner, and friends.\n"
 	  "Version " VERSION "\n\n");
 
-	track_buffer = calloc(MAX_HALFTRACKS_1541, NIB_TRACK_LENGTH);
-	if(!track_buffer)
+	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541, NIB_TRACK_LENGTH)))
 	{
 		printf("could not allocate memory for buffers.\n");
 		exit(0);
@@ -59,7 +60,7 @@ main(int argc, char **argv)
 		{
 		case 'f':
 			printf("* Fix weak GCR\n");
-			fixgcr = 1;
+			fix_gcr = 1;
 			break;
 
 		case 'r':
@@ -122,22 +123,37 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (argc == 1)
+	if(argc < 2) usage();
+	strcpy(inname, argv[0]);
+	strcpy(outname, argv[1]);
+
+	/* convert */
+	if (compare_extension(inname, "D64"))
+		read_d64(inname, track_buffer, track_density, track_length);
+	else if (compare_extension(inname, "G64"))
+		read_g64(inname, track_buffer, track_density, track_length);
+	else if (compare_extension(inname, "NIB"))
+		read_nib(inname, track_buffer, track_density, track_length);
+	else
 	{
-		strcpy(inname, argv[0]);
-		strcpy(outname, inname);
+		printf("Unknown input file type\n");
+		exit(0);
 	}
-	else if (argc == 2)
+
+	if (compare_extension(outname, "D64"))
+		write_d64(outname, track_buffer, track_density, track_length, 0);
+	else if (compare_extension(outname, "G64"))
+		write_g64(outname, track_buffer, track_density, track_length, 0);
+	else if (compare_extension(outname, "NIB"))
 	{
-		strcpy(inname, argv[0]);
-		strcpy(outname, argv[1]);
+		printf("Output to NIB format makes no sense\n");
+		exit(0);
 	}
 	else
-		usage();
-
-	/* code logic here */
-
-
+	{
+		printf("Unknown output file type\n");
+		exit(0);
+	}
 	return 0;
 }
 

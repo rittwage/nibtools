@@ -58,8 +58,7 @@ main(int argc, char *argv[])
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
 
-	track_buffer = calloc(MAX_HALFTRACKS_1541, NIB_TRACK_LENGTH);
-	if(!track_buffer)
+	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541, NIB_TRACK_LENGTH)))
 	{
 		printf("could not allocate memory for buffers.\n");
 		exit(0);
@@ -224,19 +223,16 @@ int disk2file(CBM_FILE fd, char *filename)
 
 	if (compare_extension(filename, "D64"))
 	{
-		imagetype = IMAGE_D64;
 		read_floppy(fd, track_buffer, track_density, track_length);
-		write_d64(filename, track_buffer, track_density, track_length);
+		write_d64(filename, track_buffer, track_density, track_length, 1);
 	}
 	else if (compare_extension(filename, "G64"))
 	{
-		imagetype = IMAGE_G64;
 		read_floppy(fd, track_buffer, track_density, track_length);
-		write_g64(filename, track_buffer, track_density, track_length);
+		write_g64(filename, track_buffer, track_density, track_length, 1);
 	}
 	else
 	{
-		imagetype = IMAGE_NIB;
 		read_floppy(fd, track_buffer, track_density, track_length);
 		write_nib(filename, track_buffer, track_density, track_length);
 	}

@@ -232,12 +232,12 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector,
 	if (track > MAX_TRACK_D64)
 	{
 		//printf("no valid sectors above 40 tracks\n");
-		return 0;
+		return SYNC_NOT_FOUND;
 	}
 	if (gcr_cycle == NULL || gcr_cycle <= gcr_start)
 	{
 		//printf("no track cycle, no data\n");
-		return 0;
+		return SYNC_NOT_FOUND;
 	}
 
 	/* initialize sector data with Original Format Pattern */
