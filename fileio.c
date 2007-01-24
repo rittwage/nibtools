@@ -17,6 +17,8 @@
 #include "gcr.h"
 #include "nibtools.h"
 
+extern int skip_halftracks;
+
 int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
     /*	reads contents of a NIB file into 'buffer' */
@@ -355,12 +357,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		{
 			gcr_track_p[track] = 12 + MAX_TRACKS_1541 * 16 + (track/2) * (G64_TRACK_MAXLEN + 2);
 			gcr_track_p[track+1] = 0;	/* no halftracks */
-
-			//if(skip_halftracks)
-			//	gcr_speed_p[track] =  track_density[track*2]; //(nib_header[17 + (track * 2)] & 0x03);
-			//else
-				gcr_speed_p[track] = track_density[track+2]; //(nib_header[17 + track] & 0x03);
-
+			gcr_speed_p[track] = track_density[track+2];
 			gcr_speed_p[track+1] = 0;
 		}
 		else
@@ -392,10 +389,6 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 
 		gcr_track[0] = raw_track_size[speed_map_1541[track/2]] % 256;
 		gcr_track[1] = raw_track_size[speed_map_1541[track/2]] / 256;
-
-		/* Skip halftracks if present and directed to do so */
-		//if (skip_halftracks)
-		//	fseek(fpin, NIB_TRACK_LENGTH, SEEK_CUR);
 
 		if(extract)
 			track_length[track+2] = extract_GCR_track(buffer, track_buffer + ((track+2) * NIB_TRACK_LENGTH),
@@ -464,7 +457,7 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	}
 
 	d64ptr = d64data;
-	for (track = start_track; track <= 40*2; track += track_inc)
+	for (track = start_track; track <= 40*2; track += 2)
 	{
 		printf("%.2d (%d):" ,track/2, track_length[track]);
 
