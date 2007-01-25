@@ -307,29 +307,31 @@ file2disk(CBM_FILE fd, char * filename)
 	/* read and remaster disk */
 	if (compare_extension(filename, "D64"))
 	{
-		imagetype = IMAGE_D64;
-		read_d64(filename, track_buffer, track_density, track_length);
-		master_disk(fd, track_buffer, track_density, track_length);
+		if(!read_d64(filename, track_buffer, track_density, track_length))
+			return 0;
 	}
 	else if (compare_extension(filename, "G64"))
 	{
-		imagetype = IMAGE_G64;
-		read_g64(filename, track_buffer, track_density, track_length);
-		master_disk(fd, track_buffer, track_density, track_length);
+		if(!read_g64(filename, track_buffer, track_density, track_length))
+			return 0;
 	}
 	else if (compare_extension(filename, "NIB"))
 	{
-		imagetype = IMAGE_NIB;
-		read_nib(filename, track_buffer, track_density, track_length);
-		master_disk(fd, track_buffer, track_density, track_length);
+		if(!read_nib(filename, track_buffer, track_density, track_length))
+			return 0;
 	}
 	else
+	{
 		printf("\nUnknown image type");
+		return 0;
+	}
 
+	master_disk(fd, track_buffer, track_density, track_length);
 	step_to_halftrack(fd, 18 * 2);
 	cbm_parallel_burst_read(fd);
 	printf("\n");
-	return 0;
+
+	return 1;
 }
 
 void

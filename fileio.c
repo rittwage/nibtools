@@ -381,7 +381,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	}
 
 	/* shuffle raw GCR between formats */
-	for (track = 0; track < track_end; track += track_inc)
+	for (track = 0; track < end_track; track += track_inc)
 	{
 		int raw_track_size[4] = { 6250, 6666, 7142, 7692 };
 

@@ -129,11 +129,20 @@ main(int argc, char **argv)
 
 	/* convert */
 	if (compare_extension(inname, "D64"))
-		read_d64(inname, track_buffer, track_density, track_length);
+	{
+		if(!read_d64(inname, track_buffer, track_density, track_length))
+			exit(0);
+	}
 	else if (compare_extension(inname, "G64"))
-		read_g64(inname, track_buffer, track_density, track_length);
+	{
+		if(!read_g64(inname, track_buffer, track_density, track_length))
+			exit(0);
+	}
 	else if (compare_extension(inname, "NIB"))
-		read_nib(inname, track_buffer, track_density, track_length);
+	{
+		if(!read_nib(inname, track_buffer, track_density, track_length))
+			exit(0);
+	}
 	else
 	{
 		printf("Unknown input file type\n");

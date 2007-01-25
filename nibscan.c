@@ -189,14 +189,19 @@ main(int argc, char *argv[])
 	// compare
 	if (mode == 1)
 	{
-		load_image(file1, track_buffer, track_density, track_length);
-		load_image(file2,  track_buffer2, track_density2, track_length2);
+		if(!load_image(file1, track_buffer, track_density, track_length))
+			exit(0);
+		if(!load_image(file2,  track_buffer2, track_density2, track_length2))
+			exit(0);
+
 		compare_disks();
 	}
 	// just scan for errors, etc.
 	else
 	{
-		load_image(file1, track_buffer, track_density, track_length);
+		if(!load_image(file1, track_buffer, track_density, track_length))
+			exit(0);
+
 		scandisk();
 	}
 
@@ -210,17 +215,15 @@ int
 load_image(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
 	if (compare_extension(filename, "D64"))
-		read_d64(filename, track_buffer, track_density, track_length);
+		return(read_d64(filename, track_buffer, track_density, track_length));
 	else if (compare_extension(filename, "G64"))
-		read_g64(filename, track_buffer, track_density, track_length);
+		return(read_g64(filename, track_buffer, track_density, track_length));
 	else if (compare_extension(filename, "NIB"))
-		read_nib(filename, track_buffer, track_density, track_length);
+		return(read_nib(filename, track_buffer, track_density, track_length));
 	else
-	{
 		printf("Unknown image type = %s!\n", filename);
-		exit(2);
-	}
-	return 1;
+
+	return 0;
 }
 
 int
