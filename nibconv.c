@@ -150,7 +150,7 @@ main(int argc, char **argv)
 	else if (compare_extension(outname, "G64"))
 	{
 		write_g64(outname, track_buffer, track_density, track_length, 0);
-		if (compare_extension(inname, "D64"))
+		if (compare_extension(inname, "G64"))
 		{
 			printf("\nWARNING!\nConverting from D64 to G64 is not entirely useful.\n");
 			printf("All individual sector header and gap information is not stored in a D64 image,\n");
