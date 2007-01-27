@@ -301,7 +301,7 @@ read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 }
 
 void
-read_nb2_old(CBM_FILE fd, char * filename)
+write_nb2(CBM_FILE fd, char * filename)
 {
 	int track;
   BYTE density;

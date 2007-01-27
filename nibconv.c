@@ -143,6 +143,11 @@ main(int argc, char **argv)
 		if(!read_nib(inname, track_buffer, track_density, track_length))
 			exit(0);
 	}
+	else if (compare_extension(inname, "NB2"))
+	{
+		if(!read_nb2(inname, track_buffer, track_density, track_length))
+			exit(0);
+	}
 	else
 	{
 		printf("Unknown input file type\n");
@@ -158,6 +163,8 @@ main(int argc, char **argv)
 	}
 	else if (compare_extension(outname, "G64"))
 	{
+		if(skip_halftracks) track_inc = 2;
+
 		write_g64(outname, track_buffer, track_density, track_length, 0);
 		if (compare_extension(inname, "G64"))
 		{

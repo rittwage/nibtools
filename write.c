@@ -17,12 +17,14 @@ void
 master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
 	int track, length, i;
-	//int align_delay;
 	BYTE rawtrack[NIB_TRACK_LENGTH + 0x100];
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		length = process_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+
+		// replace 0x00 bytes by 0x01, as 0x00 indicates end of track
+		replace_bytes(track_buffer + (track * NIB_TRACK_LENGTH), length, 0x00, 0x01);
 
 		/* skip empty tracks (raw mode) */
 		if ((mode == MODE_WRITE_RAW) && (length == 0))

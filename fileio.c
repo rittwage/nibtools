@@ -90,6 +90,79 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 	return 1;
 }
 
+int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
+{
+    /*	reads contents of a NIB file into 'buffer' */
+
+	int track, pass_density, pass;
+	int header_entry = 0;
+	char header[0x100];
+	BYTE nibdata[0x2000];
+	BYTE skipdata[0x2000];
+	FILE *fpin;
+
+	track_inc = 1;  /* all nb2 files contain halftracks */
+
+	if ((fpin = fopen(filename, "rb")) == NULL)
+	{
+		fprintf(stderr, "Couldn't open input file %s!\n", filename);
+		return 0;
+	}
+
+	/* gather mem and read header */
+	if (fread(header, sizeof(header), 1, fpin) != 1) {
+		printf("unable to read NIB header\n");
+		return 0;
+	}
+
+	for (track = start_track; track <= end_track; track += track_inc)
+	{
+		/* get density from header or use default */
+		track_density[track] = (BYTE)(header[0x10 + (header_entry * 2) + 1]);
+		header_entry++;
+
+		/* contains 16 passes of track, four for each density */
+		for(pass_density = 0; pass_density < 4; pass_density ++)
+		{
+			printf("%4.1f: (%d) ", (float) track / 2, pass_density);
+
+			for(pass = 0; pass < 4; pass ++)
+			{
+				/* get track from file */
+				if(pass_density == track_density[track])
+				{
+					if(fread(nibdata, NIB_TRACK_LENGTH, 1, fpin) !=1)
+					{
+						printf("error reading NIB file\n");
+						return 0;
+					}
+				}
+				else
+				{
+					if(fread(skipdata, NIB_TRACK_LENGTH, 1, fpin) !=1)
+					{
+						printf("error reading NIB file\n");
+						return 0;
+					}
+				}
+			}
+		}
+
+		/* process track cycle */
+		track_length[track] = extract_GCR_track(track_buffer + (track * NIB_TRACK_LENGTH), nibdata,
+			&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
+
+		/* output some specs */
+		printf("%4.1f: (",(float) track / 2);
+		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
+	}
+	fclose(fpin);
+	printf("Successfully loaded NIB file\n");
+	return 1;
+}
+
 int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
     /*	reads contents of a G64 file into 'buffer'  */
@@ -637,9 +710,6 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 		memset(gcrdata, 0, NIB_TRACK_LENGTH);
 		length = NIB_TRACK_LENGTH;
 	}
-
-	// replace 0x00 bytes by 0x01, as 0x00 indicates end of track
-	replace_bytes(gcrdata, length, 0x00, 0x01);
 
 	// write processed track buffer
 	memcpy(track_buffer, gcrdata, length);

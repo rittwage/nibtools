@@ -82,6 +82,7 @@ int file2disk(CBM_FILE fd, char * filename);
 
 /* fileio.c */
 int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
+int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
 int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
 int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
 int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
@@ -94,7 +95,7 @@ int write_dword(FILE * fd, DWORD * buf, int num);
 BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_density);
 int read_d64_old(CBM_FILE fd, char * filename);
 int read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length);
-void read_nb2_old(CBM_FILE fd, char * filename);
+void write_nb2(CBM_FILE fd, char * filename);
 void get_disk_id(CBM_FILE fd);
 BYTE scan_density(CBM_FILE fd);
 
