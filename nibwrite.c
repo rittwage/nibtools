@@ -40,6 +40,7 @@ int align_disk;
 int gap_match_length;
 int verbose;
 float motor_speed;
+int skew = 0;
 
 CBM_FILE fd;
 FILE *fplog;
@@ -229,6 +230,13 @@ main(int argc, char *argv[])
 			printf("* Disabled automatic capacity adjustment\n");
 			break;
 
+		case 's':
+			if (!(*argv)[2])
+				usage();
+			skew = atoi((char *) (&(*argv)[2]));
+			printf("* Skew set to %dus\n",skew);
+			break;
+
 		default:
 			usage();
 			break;
@@ -326,6 +334,7 @@ file2disk(CBM_FILE fd, char * filename)
 		return 0;
 	}
 
+	track_inc = 2;  /* 15x1 can't write halftracks */
 	master_disk(fd, track_buffer, track_density, track_length);
 	step_to_halftrack(fd, 18 * 2);
 	cbm_parallel_burst_read(fd);

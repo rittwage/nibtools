@@ -67,6 +67,7 @@ extern int interactive_mode;
 extern int gap_match_length;
 extern int verbose;
 extern float motor_speed;
+extern int skew;
 extern int start_track, end_track, track_inc;
 extern int fix_gcr, reduce_syncs, reduce_gaps, reduce_weak;
 extern int imagetype, auto_capacity_adjust;

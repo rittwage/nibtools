@@ -219,7 +219,7 @@ init_aligned_disk(CBM_FILE fd)
 		cbm_parallel_burst_write(fd, (BYTE)track);
 		cbm_parallel_burst_read(fd);
 
-		msleep( (int) ((180000 * 300) / motor_speed) );
+		msleep( (int) (((200000 - 20000 + skew) * 300) / motor_speed) );
 
 		send_mnib_cmd(fd, FL_WRITENOSYNC);
 		cbm_parallel_burst_write(fd, 0);
