@@ -179,6 +179,11 @@ main(int argc, char **argv)
 		printf("Output to NIB format makes no sense\n");
 		exit(0);
 	}
+	else if (compare_extension(outname, "NB2"))
+	{
+		printf("Output to NB2 format makes no sense\n");
+		exit(0);
+	}
 	else
 	{
 		printf("Unknown output file type\n");
