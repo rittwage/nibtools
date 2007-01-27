@@ -8,6 +8,7 @@ INCLUDES=../include/WINDOWS;../../include;../../include/WINDOWS;../../arch/windo
 SOURCES=../nibconv.c \
 	../gcr.c \
 	../prot.c \
+	../fileio.c \
         nibconv.rc
 
 UMTYPE=console

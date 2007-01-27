@@ -8,6 +8,7 @@ INCLUDES=../include/WINDOWS;../../include;../../include/WINDOWS;../../arch/windo
 SOURCES=../nibscan.c \
 	../gcr.c \
 	../prot.c \
+	../fileio.c \
         nibscan.rc
 
 UMTYPE=console

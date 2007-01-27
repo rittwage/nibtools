@@ -411,7 +411,7 @@ scandisk(void)
 		if (track_length[track] > 0)
 		{
 			track_density[track] =
-			  check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH), track_density[track] & 3, track_length[track]);
+			  (BYTE)check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH), track_density[track] & 3, track_length[track]);
 
 			printf("(%d", track_density[track] & 3);
 

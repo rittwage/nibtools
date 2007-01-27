@@ -216,7 +216,7 @@ init_aligned_disk(CBM_FILE fd)
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		send_mnib_cmd(fd, FL_STEPTO);
-		cbm_parallel_burst_write(fd, track);
+		cbm_parallel_burst_write(fd, (BYTE)track);
 		cbm_parallel_burst_read(fd);
 
 		msleep( (int) ((180000 * 300) / motor_speed) );
