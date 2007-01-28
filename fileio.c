@@ -166,10 +166,12 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		best_pass = 0;
 		best_len = 0;  /* unused for now */
 
+		printf("%4.1f:",(float) track / 2);
+
 		/* contains 16 passes of track, four for each density */
 		for(pass_density = 0; pass_density < 4; pass_density ++)
 		{
-			printf("%4.1f: (%d) ", (float) track / 2, pass_density);
+			printf(" (%d)", pass_density);
 
 			for(pass = 0; pass <= 3; pass ++)
 			{
@@ -207,10 +209,10 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		}
 
 		/* output some specs */
-		printf("%4.1f: (",(float) track / 2);
+		printf(" (");
 		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-		printf("%d:%d) (pass:%d,%d errors)\n", track_density[track]&3, track_length[track], best_pass, best_err);
+		printf("%d:%d) (pass %d, %d errors)\n", track_density[track]&3, track_length[track], best_pass, best_err);
 		//printf("%s",errorstring);
 	}
 	fclose(fpin);
