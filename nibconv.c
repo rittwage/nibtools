@@ -79,8 +79,7 @@ main(int argc, char **argv)
 			break;
 
 		case 'G':
-			if (!(*argv)[2])
-				usage();
+			if (!(*argv)[2]) usage();
 			gap_match_length = atoi((char *) (&(*argv)[2]));
 			printf("* Gap match length set to %d\n", gap_match_length);
 			break;

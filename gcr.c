@@ -187,8 +187,7 @@ extract_id(BYTE * gcr_track, BYTE * id)
 
 		convert_4bytes_from_GCR(gcr_ptr, header);
 		convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
-	} while (header[0] != 0x08 || header[2] != sector ||
-	  header[3] != track);
+	} while (header[0] != 0x08 || header[2] != sector || header[3] != track);
 
 	id[0] = header[5];
 	id[1] = header[4];

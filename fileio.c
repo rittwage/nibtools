@@ -93,13 +93,16 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
     /*	reads contents of a NIB file */
-
 	int track, pass_density, pass, nibsize, numtracks;
 	int header_entry = 0;
 	char header[0x100];
-	BYTE nibdata[0x8000];
-	BYTE skipdata[0x2000];
+	BYTE nibdata[0x2000];
+	BYTE tmpdata[0x2000];
 	FILE *fpin;
+	int errors, best_err, best_pass;
+	int length, best_len;
+	BYTE diskid[2];
+	char errorstring[0x1000];
 
 	track_inc = 1;  /* all nb2 files contain halftracks */
 
@@ -125,11 +128,30 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		end_track = numtracks + 1;
 		track_inc = 1;
 	}
-
 	printf("\n%d track image (filesize = %d bytes)\n", numtracks, nibsize);
+
+	/* get disk id */
 	rewind(fpin);
+	if(track_inc == 2)
+		fseek(fpin, sizeof(header) + (17 * NIB_TRACK_LENGTH * 16) + (8 * NIB_TRACK_LENGTH), SEEK_SET);
+	else
+		fseek(fpin, sizeof(header) + (17 * 2 * NIB_TRACK_LENGTH * 16) + (8 * NIB_TRACK_LENGTH), SEEK_SET);
+
+	if(fread(tmpdata, NIB_TRACK_LENGTH, 1, fpin) !=1)
+	{
+		printf("error reading NB2 file\n");
+		return 0;
+	}
+
+	if (!extract_id(tmpdata, diskid))
+	{
+			fprintf(stderr, "Cannot find directory sector.\n");
+			return 0;
+	}
+	printf("\ndiskid: %s\n", diskid);
 
 	/* gather mem and read header */
+	rewind(fpin);
 	if (fread(header, sizeof(header), 1, fpin) != 1) {
 		printf("unable to read NIB header\n");
 		return 0;
@@ -141,25 +163,41 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		track_density[track] = (BYTE)(header[0x10 + (header_entry * 2) + 1]);
 		header_entry++;
 
+		best_pass = 0;
+		best_len = 0;  /* unused for now */
+
 		/* contains 16 passes of track, four for each density */
 		for(pass_density = 0; pass_density < 4; pass_density ++)
 		{
 			printf("%4.1f: (%d) ", (float) track / 2, pass_density);
 
-			for(pass = 0; pass < 4; pass ++)
+			for(pass = 0; pass <= 3; pass ++)
 			{
 				/* get track from file */
-				if(pass_density == track_density[track])
+				if( (pass_density == track_density[track]) )
 				{
-					if(fread(nibdata + (pass * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH, 1, fpin) !=1)
+					if(fread(nibdata, NIB_TRACK_LENGTH, 1, fpin) !=1)
 					{
 						printf("error reading NB2 file\n");
 						return 0;
 					}
+
+					length = extract_GCR_track(tmpdata, nibdata,
+						&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
+
+					errors = check_errors(tmpdata, length, track, diskid, errorstring);
+
+					if( (pass == 0) || (errors < best_err) )
+					{
+						track_length[track] = length;
+						memcpy(track_buffer + (track * NIB_TRACK_LENGTH), tmpdata, NIB_TRACK_LENGTH);
+						best_pass = pass;
+						best_err = errors;
+					}
 				}
 				else
 				{
-					if(fread(skipdata, NIB_TRACK_LENGTH, 1, fpin) !=1)
+					if(fread(tmpdata, NIB_TRACK_LENGTH, 1, fpin) !=1)
 					{
 						printf("error reading NB2 file\n");
 						return 0;
@@ -168,15 +206,12 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 			}
 		}
 
-		/* process track cycle(s)  (UNFINISHED) */
-		track_length[track] = extract_GCR_track(track_buffer + (track * NIB_TRACK_LENGTH), nibdata,
-			&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
-
 		/* output some specs */
 		printf("%4.1f: (",(float) track / 2);
 		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
+		printf("%d:%d) (pass:%d,%d errors)\n", track_density[track]&3, track_length[track], best_pass, best_err);
+		//printf("%s",errorstring);
 	}
 	fclose(fpin);
 	printf("Successfully loaded NB2 file\n");
