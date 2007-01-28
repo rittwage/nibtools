@@ -241,7 +241,7 @@ int disk2file(CBM_FILE fd, char *filename)
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
-		write_nb2(filename, track_buffer, track_density, track_length);
+		write_nb2(fd, filename);
 	}
 	else
 	{
