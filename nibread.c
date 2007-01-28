@@ -235,12 +235,13 @@ int disk2file(CBM_FILE fd, char *filename)
 	{
 		read_floppy(fd, track_buffer, track_density, track_length);
 		write_g64(filename, track_buffer, track_density, track_length, 1);
-		printf("\nWARNING!\nRaeading to G64 is a slightly lossy conversion.\n");
+		printf("\nWARNING!\nReading to G64 is a slightly lossy conversion.\n");
 		printf("Some track cycle information is lost.\n");
 		printf("It is suggested you use the NIB format for archival.\n");
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
+		track_inc = 1;
 		write_nb2(fd, filename);
 	}
 	else

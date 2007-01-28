@@ -206,8 +206,7 @@ main(int argc, char *argv[])
 	}
 	printf("\n");
 
-	// compare
-	if (mode == 1)
+	if (mode == 1) 	// compare images
 	{
 		if(!load_image(file1, track_buffer, track_density, track_length))
 			exit(0);
@@ -216,8 +215,7 @@ main(int argc, char *argv[])
 
 		compare_disks();
 	}
-	// just scan for errors, etc.
-	else
+	else 	// just scan for errors, etc.
 	{
 		if(!load_image(file1, track_buffer, track_density, track_length))
 			exit(0);
@@ -240,6 +238,8 @@ load_image(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_l
 		return(read_g64(filename, track_buffer, track_density, track_length));
 	else if (compare_extension(filename, "NIB"))
 		return(read_nib(filename, track_buffer, track_density, track_length));
+	else if (compare_extension(filename, "NB2"))
+		return(read_nb2(filename, track_buffer, track_density, track_length));
 	else
 		printf("Unknown image type = %s!\n", filename);
 

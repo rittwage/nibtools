@@ -304,8 +304,8 @@ void
 write_nb2(CBM_FILE fd, char * filename)
 {
 	int track;
-  BYTE density;
-  FILE * fpout;
+	BYTE density;
+	FILE * fpout;
 	int header_entry, pass, pass_density;
 	BYTE buffer[NIB_TRACK_LENGTH];
 	char header[0x100];
@@ -322,12 +322,7 @@ write_nb2(CBM_FILE fd, char * filename)
 
 	/* write initial NIB-header */
 	memset(header, 0x00, sizeof(header));
-
-	/* header now contains whether halftracks were read */
-	if(track_inc == 1)
-		sprintf(header, "MNIB-1541-RAW%c%c%c", 3, 0, 1);
-	else
-		sprintf(header, "MNIB-1541-RAW%c%c%c", 3, 0, 0);
+	sprintf(header, "MNIB-1541-RAW%c%c%c", 2, 0, 1);
 
 	if (fwrite(header, sizeof(header), 1, fpout) != 1) {
 		printf("unable to write NB2 header\n");

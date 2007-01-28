@@ -21,7 +21,7 @@ extern int skip_halftracks;
 
 int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
-    /*	reads contents of a NIB file into 'buffer' */
+    /*	reads contents of a NIB file */
 
 	int track, nibsize, numtracks;
 	int header_entry = 0;
@@ -92,12 +92,12 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
-    /*	reads contents of a NIB file into 'buffer' */
+    /*	reads contents of a NIB file */
 
 	int track, pass_density, pass;
 	int header_entry = 0;
 	char header[0x100];
-	BYTE nibdata[0x2000];
+	BYTE nibdata[0x8000];
 	BYTE skipdata[0x2000];
 	FILE *fpin;
 
@@ -131,7 +131,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 				/* get track from file */
 				if(pass_density == track_density[track])
 				{
-					if(fread(nibdata, NIB_TRACK_LENGTH, 1, fpin) !=1)
+					if(fread(nibdata + (pass * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH, 1, fpin) !=1)
 					{
 						printf("error reading NIB file\n");
 						return 0;
@@ -148,7 +148,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 			}
 		}
 
-		/* process track cycle */
+		/* process track cycle(s)  (UNFINISHED) */
 		track_length[track] = extract_GCR_track(track_buffer + (track * NIB_TRACK_LENGTH), nibdata,
 			&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
 
@@ -165,11 +165,11 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
-    /*	reads contents of a G64 file into 'buffer'  */
+    /*	reads contents of a G64 file */
 
 	int track, g64maxtrack;
 	int dens_pointer = 0;
-	int g64tracks;
+	int g64tracks, g64size, numtracks;
 	BYTE header[0x2ac];
 	BYTE length_record[2];
 	FILE *fpin;
@@ -187,16 +187,37 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 	g64tracks = (char) header[0x9];
 	g64maxtrack = (BYTE)header[0xb] << 8 | (BYTE)header[0xa];
-	printf("\nG64: %d tracks, %d bytes each\n", g64tracks, g64maxtrack);
 
-	/* reduce tracks if > 41, we can't write 42 tracks */
-	if (g64tracks > 82) g64tracks = 82;
+	/* Determine number of tracks in image (crudely estimated by filesize) */
+	fseek(fpin, 0, SEEK_END);
+	g64size = ftell(fpin);
+	numtracks = (g64size - sizeof(header)) / g64maxtrack;
+
+	if(numtracks <= 42)
+	{
+		end_track = (numtracks * 2) + 1;
+		track_inc = 2;
+	}
+	else
+	{
+		printf("Image contains halftracks!\n");
+		end_track = numtracks + 1;
+		track_inc = 1;
+	}
+
+	rewind(fpin);
+	if (fread(header, sizeof(header), 1, fpin) != 1) {
+		printf("unable to read G64 header\n");
+		return 0;
+	}
+
+	printf("\nG64: %d tracks, %d bytes each\n", g64tracks, g64maxtrack);
 
 	for (track = start_track; track <= g64tracks; track += track_inc)
 	{
 		/* get density from header */
 		track_density[track] = header[0x9 + 0x153 + dens_pointer];
-		dens_pointer += 8;
+		dens_pointer += (4 * track_inc);
 
 		/* get length */
 		if(fread(length_record, 2, 1, fpin) != 1)
@@ -221,7 +242,8 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 int
 read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
-	/* reads contents of a D64 file into 'buffer'  */
+	/* reads contents of a D64 file */
+
 	int track, sector, sector_ref;
 	BYTE buffer[256], gcrdata[NIB_TRACK_LENGTH];
 	BYTE errorinfo[MAXBLOCKSONDISK];
@@ -436,7 +458,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		else
 		{
 			gcr_track_p[track] = 12 + MAX_TRACKS_1541 * 16 + track * (G64_TRACK_MAXLEN + 2);
-			gcr_speed_p[track] = track_density[track];
+			gcr_speed_p[track] = track_density[track+2];
 		}
 
 	}
@@ -644,12 +666,8 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	/* compress / expand track */
 	if (length > 0)
 	{
-		// handle bad GCR / weak bits
-		badgcr = check_bad_gcr(gcrdata, length, fix_gcr);
-		if (badgcr > 0) printf("weak:%d ", badgcr);
-
-		// If our track contains sync, we reduce to a minimum of 16
-		// (only 10 are required, technically)
+		// If our track contains sync, we reduce to a minimum of 16 bits
+		// (only 10 nits are required, technically)
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN) && !(density & BM_NO_SYNC)) && (reduce_syncs) )
 		{
@@ -671,6 +689,10 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 			if (length < orglen)
 				printf("rgaps:%d ", orglen - length);
 		}
+
+		// handle bad GCR / weak bits
+		badgcr = check_bad_gcr(gcrdata, length, fix_gcr);
+		if (badgcr > 0) printf("weak:%d ", badgcr);
 
 		// reduce weak bit runs (experimental)
 		orglen = length;
