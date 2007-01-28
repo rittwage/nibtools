@@ -220,7 +220,7 @@ main(int argc, char *argv[])
 			printf("* Disabled weak GCR bit simulation\n");
 			break;
 
-		case 'V':
+		case 'v':
 			verbose = 1;
 			printf("* Verbose mode on\n");
 			break;
@@ -366,8 +366,8 @@ usage(void)
 	     " -c: Disable automatic capacity adjustment\n"
 	     " -f: Disable automatic weak GCR bit simulation\n"
 	     " -u: Unformat disk. (writes all 0 bits to surface)\n"
-	     " -V: Verbose (output more detailed track data)\n"
-	     " -G: Gap match length\n"
+	     " -v: Verbose (output more detailed track data)\n"
+	     " -G: Manual gap match length\n"
 	     );
 	exit(1);
 }

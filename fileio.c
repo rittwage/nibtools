@@ -94,7 +94,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 {
     /*	reads contents of a NIB file */
 
-	int track, pass_density, pass;
+	int track, pass_density, pass, nibsize, numtracks;
 	int header_entry = 0;
 	char header[0x100];
 	BYTE nibdata[0x8000];
@@ -108,6 +108,26 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		fprintf(stderr, "Couldn't open input file %s!\n", filename);
 		return 0;
 	}
+
+	/* Determine number of tracks in image (crudely estimated by filesize) */
+	fseek(fpin, 0, SEEK_END);
+	nibsize = ftell(fpin);
+	numtracks = (nibsize - NIB_HEADER_SIZE) / (NIB_TRACK_LENGTH * 16);
+
+	if(numtracks <= 42)
+	{
+		end_track = (numtracks * 2) + 1;
+		track_inc = 2;
+	}
+	else
+	{
+		printf("\nImage contains halftracks!\n");
+		end_track = numtracks + 1;
+		track_inc = 1;
+	}
+
+	printf("\n%d track image (filesize = %d bytes)\n", numtracks, nibsize);
+	rewind(fpin);
 
 	/* gather mem and read header */
 	if (fread(header, sizeof(header), 1, fpin) != 1) {
@@ -133,7 +153,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 				{
 					if(fread(nibdata + (pass * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH, 1, fpin) !=1)
 					{
-						printf("error reading NIB file\n");
+						printf("error reading NB2 file\n");
 						return 0;
 					}
 				}
@@ -141,7 +161,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 				{
 					if(fread(skipdata, NIB_TRACK_LENGTH, 1, fpin) !=1)
 					{
-						printf("error reading NIB file\n");
+						printf("error reading NB2 file\n");
 						return 0;
 					}
 				}
@@ -159,7 +179,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
 	}
 	fclose(fpin);
-	printf("Successfully loaded NIB file\n");
+	printf("Successfully loaded NB2 file\n");
 	return 1;
 }
 
@@ -424,6 +444,12 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	int track_len;
 	BYTE buffer[NIB_TRACK_LENGTH];
 
+	/* when writing a G64 file, we don't care about the limitations of drive hardware */
+	capacity[0] = G64_TRACK_MAXLEN;
+	capacity[1] = G64_TRACK_MAXLEN;
+	capacity[2] = G64_TRACK_MAXLEN;
+	capacity[3] = G64_TRACK_MAXLEN;
+
 	fpout = fopen(filename, "wb");
 	if (fpout == NULL)
 	{
@@ -491,7 +517,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		else
 			memcpy(buffer, track_buffer + ((track+2) * NIB_TRACK_LENGTH), track_length[track+2]);
 
-		track_len = process_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
+		track_len = track_length[track+2];
 
 		if(track_len == 0)
 		{
@@ -500,10 +526,8 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 			memset(&gcr_track[2], 0, track_len);
 		}
 		else if (track_len > G64_TRACK_MAXLEN)
-		{
-			printf("  Warning: track too long, cropping to %d!", G64_TRACK_MAXLEN);
-			track_len = G64_TRACK_MAXLEN;
-		}
+			track_len = process_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
+
 		gcr_track[0] = track_len % 256;
 		gcr_track[1] = track_len / 256;
 

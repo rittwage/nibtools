@@ -195,6 +195,18 @@ main(int argc, char **argv)
 void
 usage(void)
 {
-	fprintf(stderr, "usage: nibconv [options] <infile> <outfile>\n");
+	fprintf(stderr,
+	"usage: nibconv [options] <infile>.ext1 <outfile>.ext2\n"
+	"\nsupported file extensions for ext1:\n"
+	"NIB, NB2, D64, G64\n"
+	"\nsupported file extensions for ext2:\n"
+	"D64, G64\n"
+	"\noptions:\n"
+	" -a[x]: Force alternative track alignments (advanced users only)\n"
+	" -p[x]: Custom protection handlers (advanced users only)\n"
+     " -g: Enable gap reduction\n"
+     " -0: Enable weak-bit run reduction\n"
+     " -r: Disable automatic sync reduction\n"
+     " -G: Manual gap match length\n");
 	exit(1);
 }

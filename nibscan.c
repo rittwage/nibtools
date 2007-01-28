@@ -48,7 +48,20 @@ int gap_match_length;
 void
 usage(void)
 {
-	fprintf(stderr, "usage: nibscan <filename> [filename]\n");
+	fprintf(stderr, "usage: nibscan [options] <filename1> [filename2]\n"
+		"\nsupported file extensions:\n"
+		"NIB, NB2, D64, G64\n"
+		"\noptions:\n"
+		" -a[x]: Force alternative track alignments (advanced users only)\n"
+		" -p[x]: Custom protection handlers (advanced users only)\n"
+		" -g: Enable gap reduction\n"
+		" -f: Disable automatic 'fixing' of bad/weak GCR\n"
+		" -0: Enable weak-bit run reduction\n"
+		" -g: Enable gap reduction\n"
+		" -r: Disable automatic sync reduction\n"
+		" -G: Manual gap match length\n"
+		" -w: Disable waiting for a keypress upon errors or compare differences\n"
+		" -v: Verbose (output more detailed track data)\n");
 	exit(1);
 }
 
@@ -111,12 +124,12 @@ main(int argc, char *argv[])
 			break;
 
 		case 'w':
-			printf("ARG: Wait for keypress disabled\n");
+			printf("* Wait for keypress disabled\n");
 			waitkey = 0;
 			break;
 
 		case 'v':
-			printf("ARG: Advanced info (verbose)\n");
+			printf("* Verbose mode (more detailed track info)\n");
 			advanced_info = 1;
 			break;
 
@@ -124,11 +137,11 @@ main(int argc, char *argv[])
 			if (!(*argv)[2])
 				usage();
 			gap_match_length = atoi((char *) (&(*argv)[2]));
-			printf("ARG: Gap match length set to %d\n", gap_match_length);
+			printf("* Gap match length set to %d\n", gap_match_length);
 			break;
 
 		case 'f':
-			printf("ARG: Do not fix weak bits\n");
+			printf("* Weak bit correction/simulation disabled\n");
 			fix_gcr= 0;
 			break;
 
