@@ -9,7 +9,6 @@
 #include <sys/movedata.h>	/* _dosmemgetb() */
 #include "cbm.h"
 #include "kernel.h"
-#include "nibtools_rt.h"
 #include "gcr.h"
 #endif // DJGPP
 
@@ -78,7 +77,7 @@ cbm_parallel_burst_read_track(int fd, unsigned char * buffer, unsigned int lengt
 
 	disable();
 
-	for (i = 0; i < GCR_TRACK_LENGTH; i++)
+	for (i = 0; i < NIB_TRACK_LENGTH; i++)
 	{
 		byte = cbm_handshaked_read(i & 1);
 

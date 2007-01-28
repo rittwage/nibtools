@@ -33,7 +33,7 @@ usage:
 dos:
 	${MAKE} DJGPP="${DJGPP_PATH}\djgpp.env" \
 		CC="${DJGPP_PATH}/bin/gcc" \
-		ARCH_OBJ="cbm.o kernel.o nibtools_rt.o" \
+		ARCH_OBJ="cbm.o kernel.o nibtls_rt.o" \
 		CFLAGS="-I include/DOS/ $(CFLAGS)" \
 		EXE=".exe" \
 		-f GNU/Makefile \
