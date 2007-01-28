@@ -665,8 +665,8 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (reduce_gaps) )
 		{
-			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 2, 0x55);
-			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 2, 0xaa);
+			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 1, 0x55);
+			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 1, 0xaa);
 
 			if (length < orglen)
 				printf("rgaps:%d ", orglen - length);
@@ -676,7 +676,7 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (badgcr > 0) && (reduce_weak) )
 		{
-			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 2, 0x00);
+			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 1, 0x00);
 
 			if (length < orglen)
 				printf("rweak:%d ", orglen - length);
