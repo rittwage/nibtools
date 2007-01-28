@@ -331,6 +331,11 @@ file2disk(CBM_FILE fd, char * filename)
 		if(!read_nib(filename, track_buffer, track_density, track_length))
 			return 0;
 	}
+	else if (compare_extension(filename, "NB2"))
+	{
+		if(!read_nb2(filename, track_buffer, track_density, track_length))
+			return 0;
+	}
 	else
 	{
 		printf("\nUnknown image type");

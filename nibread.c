@@ -239,6 +239,10 @@ int disk2file(CBM_FILE fd, char *filename)
 		printf("Some track cycle information is lost.\n");
 		printf("It is suggested you use the NIB format for archival.\n");
 	}
+	else if (compare_extension(filename, "NB2"))
+	{
+		write_nb2(filename, track_buffer, track_density, track_length);
+	}
 	else
 	{
 		read_floppy(fd, track_buffer, track_density, track_length);
