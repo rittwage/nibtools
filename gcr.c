@@ -898,9 +898,9 @@ strip_runs(BYTE * buffer, int length, int minrun, BYTE target)
 		if (*source == target)
 		{
 			// fixed to only remove bytes before minimum amount of sync
-			if ( run == minrun && target == 0xff )
+			if ( (run == minrun) && (target == 0xff) )
 				skipped++;
-			else if ( run == minrun &&  *(source+2) == 0xff )
+			else if ( (run >= minrun) &&  (target != 0xff) && (*(source+2) == 0xff) )
 				skipped++;
 			else
 				*buffer++ = target;
@@ -918,8 +918,7 @@ strip_runs(BYTE * buffer, int length, int minrun, BYTE target)
 
 /* try to shorten inert data until length <= length_max */
 int
-reduce_runs(BYTE * buffer, int length, int length_max, int minrun,
-  BYTE target)
+reduce_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 {
 	int skipped;
 

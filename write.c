@@ -103,7 +103,8 @@ write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_lengt
 			fclose(trkin);
 
 			memcpy(track_buffer + (track * NIB_TRACK_LENGTH), trackbuf, length);
-			process_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+			track_density[track] = density;
+			track_length[track] = process_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], length);
 		}
 	}
 	master_disk(fd, track_buffer, track_density, track_length);
@@ -214,6 +215,7 @@ init_aligned_disk(CBM_FILE fd)
 	set_bitrate(fd, 2);
 
 	/* write all 0x55 */
+	printf("\nWiping/Unformatting disk\n");
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		send_mnib_cmd(fd, FL_STEPTO);
@@ -227,6 +229,7 @@ init_aligned_disk(CBM_FILE fd)
 	}
 
 	/* write short syncs */
+	printf("Aligning syncs\n");
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		send_mnib_cmd(fd, FL_STEPTO);

@@ -94,7 +94,6 @@ int write_dword(FILE * fd, DWORD * buf, int num);
 
 /* read.c */
 BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_density);
-int read_d64_old(CBM_FILE fd, char * filename);
 int read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length);
 void write_nb2(CBM_FILE fd, char * filename);
 void get_disk_id(CBM_FILE fd);

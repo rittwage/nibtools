@@ -38,7 +38,9 @@ int rapidlok_tracks[MAX_HALFTRACKS_1541];
 int badgcr_tracks[MAX_HALFTRACKS_1541];
 
 int fix_gcr;
-int reduce_syncs, reduce_weak, reduce_gaps;
+int reduce_syncs;
+int reduce_weak;
+int reduce_gaps;
 int waitkey = 1;
 int advanced_info;
 int gap_match_length;
@@ -64,6 +66,9 @@ main(int argc, char *argv[])
 	fix_gcr = 1;
 	gap_match_length = 7;
 	mode = 0;
+	reduce_syncs = 1;
+	reduce_weak = 0;
+	reduce_gaps = 0;
 
 	fprintf(stdout,
 	  "\nnibscan - Commodore disk image scanner / comparator\n"
@@ -89,6 +94,21 @@ main(int argc, char *argv[])
 	{
 		switch ((*argv)[1])
 		{
+
+		case 'r':
+			printf("* Reduce syncs disabled\n");
+			reduce_syncs = 0;
+			break;
+
+		case '0':
+			printf("* Reduce weak GCR enabled\n");
+			reduce_weak = 1;
+			break;
+
+		case 'g':
+			printf("* Reduce gaps enabled\n");
+			reduce_gaps = 1;
+			break;
 
 		case 'w':
 			printf("ARG: Wait for keypress disabled\n");
@@ -378,6 +398,7 @@ scandisk(void)
 	int empty = 0, temp_empty = 0;
 	int errors = 0, temp_errors = 0;
 	int defdensity;
+	int length;
 	char errorstring[0x1000];
 	char testfilename[16];
 	FILE *trkout;
@@ -494,11 +515,14 @@ scandisk(void)
 			printf("\n");
 		}
 
-		// dump to disk for manual compare
+		// process and dump to disk for manual compare
+		length = track_length[track];
+		//length = process_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+
 		sprintf(testfilename, "raw/tr%dd%d", track / 2, (track_density[track] & 3));
 		if(NULL != (trkout = fopen(testfilename, "w")))
 		{
-			fwrite(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track], 1, trkout);
+			fwrite(track_buffer + (track * NIB_TRACK_LENGTH), length, 1, trkout);
 			fclose(trkout);
 		}
 	}

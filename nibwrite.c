@@ -120,7 +120,7 @@ main(int argc, char *argv[])
 
 		case 'R':
 			// hidden secret raw track file writing mode
-			printf("* Raw pscan track dump\n");
+			printf("* Raw track dump write mode\n");
 			mode = MODE_WRITE_RAW;
 			break;
 

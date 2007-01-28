@@ -651,7 +651,7 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 		// If our track contains sync, we reduce to a minimum of 16
 		// (only 10 are required, technically)
 		orglen = length;
-		if (length > (capacity[density & 3] - CAPACITY_MARGIN) && !(density & BM_NO_SYNC) && reduce_syncs)
+		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN) && !(density & BM_NO_SYNC)) && (reduce_syncs) )
 		{
 			// then try to reduce sync within the track
 			if (length > capacity[density & 3] - CAPACITY_MARGIN)
@@ -663,7 +663,7 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 
 		// We could reduce gap bytes ($55 and $AA) here too,
 		orglen = length;
-		if (length > (capacity[density & 3] - CAPACITY_MARGIN) && reduce_gaps)
+		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (reduce_gaps) )
 		{
 			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 2, 0x55);
 			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 2, 0xaa);
@@ -674,7 +674,7 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 
 		// reduce weak bit runs (experimental)
 		orglen = length;
-		if (length > (capacity[density & 3] - CAPACITY_MARGIN) && badgcr > 0 && reduce_weak)
+		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (badgcr > 0) && (reduce_weak) )
 		{
 			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 2, 0x00);
 
