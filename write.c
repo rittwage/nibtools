@@ -207,12 +207,26 @@ init_aligned_disk(CBM_FILE fd)
 {
 	int track;
 	BYTE sync[2];
+	BYTE pattern[0x2000];
 
-	unformat_disk(fd);
-
+	memset(pattern, 0x55, 0x2000);
 	sync[0] = sync[1] = 0xff;
 	set_bitrate(fd, 2);
 
+	/* write all 0x55 */
+	for (track = start_track; track <= end_track; track += track_inc)
+	{
+		send_mnib_cmd(fd, FL_STEPTO);
+		cbm_parallel_burst_write(fd, (BYTE)track);
+		cbm_parallel_burst_read(fd);
+
+		send_mnib_cmd(fd, FL_WRITENOSYNC);
+		cbm_parallel_burst_write(fd, 0);
+		cbm_parallel_burst_write_track(fd, pattern, 0x2000);
+		cbm_parallel_burst_read(fd);
+	}
+
+	/* write short syncs */
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		send_mnib_cmd(fd, FL_STEPTO);
@@ -223,7 +237,6 @@ init_aligned_disk(CBM_FILE fd)
 
 		send_mnib_cmd(fd, FL_WRITENOSYNC);
 		cbm_parallel_burst_write(fd, 0);
-
 		cbm_parallel_burst_write_track(fd, sync, sizeof(sync));
 		cbm_parallel_burst_read(fd);
 	}
