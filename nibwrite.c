@@ -233,8 +233,11 @@ main(int argc, char *argv[])
 		case 's':
 			if (!(*argv)[2])
 				usage();
+			align_disk = 1;
+			printf("* Attempt soft track alignment\n");
 			skew = atoi((char *) (&(*argv)[2]));
 			printf("* Skew set to %dus\n",skew);
+
 			break;
 
 		default:
@@ -350,6 +353,7 @@ usage(void)
 	     " -D[n[: Use drive #[n]\n"
 	     " -a[x]: Force alternative track alignments (advanced users only)\n"
 	     " -p[x]: Custom protection handlers (advanced users only)\n"
+	     " -s[n]: Manual track skew (in microseconds)\n"
 	     " -t: Enable timer-based track alignment\n"
 	     " -g: Enable gap reduction\n"
 	     " -0: Enable weak-bit run reduction\n"
