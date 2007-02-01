@@ -748,7 +748,7 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 		// If our track contains sync, we reduce to a minimum of 16 bits
 		// (only 10 nits are required, technically)
 		orglen = length;
-		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN) && !(density & BM_NO_SYNC)) && (reduce_syncs) )
+		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (!(density & BM_NO_SYNC)) && (reduce_syncs) )
 		{
 			// then try to reduce sync within the track
 			if (length > capacity[density & 3] - CAPACITY_MARGIN)

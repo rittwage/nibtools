@@ -147,8 +147,10 @@ main(int argc, char *argv[])
 			else if ((*argv)[2] == 'r')
 			{
 				printf("RAPIDLOK\n");
-				reduce_syncs = 1;
+				reduce_syncs = 0;
 				reduce_weak = 1;
+				reduce_gaps = 1;
+				align_disk = 1;
 			}
 			else
 				printf("Unknown protection handler\n");
