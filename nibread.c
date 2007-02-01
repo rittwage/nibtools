@@ -33,11 +33,12 @@ int error_retries;
 int drivetype;
 int imagetype;
 int mode;
-int default_density;
+int force_density;
 int track_match;
 int gap_match_length;
 int interactive_mode;
 int verbose;
+int density_map;
 float motor_speed;
 
 CBM_FILE fd;
@@ -79,7 +80,7 @@ main(int argc, char *argv[])
 	fix_gcr = 1;
 	read_killer = 1;
 	error_retries = 10;
-	default_density = 0;
+	force_density = 0;
 	track_match = 0;
 	interactive_mode = 0;
 	verbose = 0;
@@ -87,6 +88,7 @@ main(int argc, char *argv[])
 	force_align = ALIGN_NONE;
 	gap_match_length = 7;
 	mode = MODE_READ_DISK;
+	density_map = DENSITY_STANDARD;
 
 	// cache our arguments for logfile generation
 	strcpy(argcache, "");
@@ -119,7 +121,8 @@ main(int argc, char *argv[])
 			break;
 
 		case 'd':
-			default_density = 1;
+			force_density = 1;
+			density_map = DENSITY_STANDARD;
 			printf("* Force default density\n");
 			break;
 
@@ -129,22 +132,19 @@ main(int argc, char *argv[])
 			break;
 
 		case 'l':
-			if (!(*argv)[2])
-				usage();
+			if (!(*argv)[2]) usage();
 			end_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
 			printf("* Limiting functions to %d tracks\n", end_track/2);
 			break;
 
 		case 'D':
-			if (!(*argv)[2])
-				usage();
+			if (!(*argv)[2]) usage();
 			drive = (BYTE) atoi((char *) (&(*argv)[2]));
 			printf("* Use Device %d\n", drive);
 			break;
 
 		case 'G':
-			if (!(*argv)[2])
-				usage();
+			if (!(*argv)[2]) usage();
 			gap_match_length = atoi((char *) (&(*argv)[2]));
 			printf("* Gap match length set to %d\n", gap_match_length);
 			break;
@@ -155,10 +155,23 @@ main(int argc, char *argv[])
 			break;
 
 		case 'e':	// change read retries
-			if (!(*argv)[2])
-				usage();
+			if (!(*argv)[2]) usage();
 			error_retries = atoi((char *) (&(*argv)[2]));
 			printf("* Read retries set to %d\n", error_retries);
+			break;
+
+		case 'p':
+			// custom protection handling
+			printf("* Custom copy protection handler: ");
+			if ((*argv)[2] == 'r')
+			{
+				printf("RAPIDLOK\n");
+				force_density = 1;
+				density_map = DENSITY_RAPIDLOK;
+				error_retries = 1;
+			}
+			else
+				printf("Unknown protection handler\n");
 			break;
 
 		default:

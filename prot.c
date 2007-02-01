@@ -1,6 +1,6 @@
 /*
  * Protection handlers for MNIB
- * Copyright 2004-2005 Pete Rittwage <peter(at)rittwage(dot)com>
+ * Copyright 2004Pete Rittwage <peter(at)rittwage(dot)com>
  */
 
 #include <stdio.h>
@@ -8,6 +8,14 @@
 #include <string.h>
 #include "gcr.h"
 #include "prot.h"
+
+BYTE density_map_rapidlok[MAX_TRACKS_1541] = {
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,	/*  1 - 10 */
+	3, 3, 3, 3, 3, 3, 3, 2, 2, 2,	/* 11 - 20 */
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2,	/* 21 - 30 */
+	2, 2, 2, 2, 2,					/* 31 - 35 */
+	0, 0, 0, 0, 0, 0, 0				/* 36 - 42  */
+};
 
 void
 shift_buffer(BYTE * buffer, int length, int n)

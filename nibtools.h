@@ -35,6 +35,10 @@
 #define BM_NO_SYNC     0x40
 #define BM_FF_TRACK    0x80
 
+/* custom density maps for reading */
+#define DENSITY_STANDARD 0
+#define DENSITY_RAPIDLOK	1
+
 // tested extensively with Pete's Newtronics mech-based 1541.
 //#define CAPACITY_MARGIN 11	// works with FL_WRITENOSYNC
 //#define CAPACITY_MARGIN 13	// works with both FL_WRITESYNC and FL_WRITENOSYNC
@@ -46,6 +50,7 @@
 #define MODE_WRITE_RAW	   	3
 #define MODE_TEST_ALIGNMENT 4
 
+
 #ifndef DJGPP
 #include <opencbm.h>
 #endif
@@ -54,6 +59,8 @@
 extern char bitrate_range[4];
 extern char bitrate_value[4];
 extern char density_branch[4];
+extern BYTE density_map_rapidlok[];
+extern int density_map;
 extern int mode;
 extern FILE * fplog;
 extern int read_killer;
@@ -61,13 +68,14 @@ extern int error_retries;
 extern int align;
 extern int force_align;
 extern int align_disk;
-extern int default_density;
+extern int force_density;
 extern int track_match;
 extern int interactive_mode;
 extern int gap_match_length;
 extern int verbose;
 extern float motor_speed;
 extern int skew;
+extern int density_map;
 extern int start_track, end_track, track_inc;
 extern int fix_gcr, reduce_syncs, reduce_gaps, reduce_weak;
 extern int imagetype, auto_capacity_adjust;
