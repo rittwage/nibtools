@@ -290,6 +290,12 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 			printf("error reading G64 file\n");
 			return 0;
 		}
+
+		/* output some specs */
+		printf("%4.1f: (",(float) track / 2);
+		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
 	}
 	fclose(fpin);
 	printf("Successfully loaded G64 file\n");
@@ -450,6 +456,12 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *trac
 			return 0;
 		}
 		fflush(fpout);
+
+		/* output some specs */
+		printf("%4.1f: (",(float) track / 2);
+		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
 	}
 
 	/* fill NIB-header */
@@ -515,13 +527,13 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		{
 			gcr_track_p[track] = 12 + MAX_TRACKS_1541 * 16 + (track/2) * (G64_TRACK_MAXLEN + 2);
 			gcr_track_p[track+1] = 0;	/* no halftracks */
-			gcr_speed_p[track] = track_density[track+2];
+			gcr_speed_p[track] = track_density[track+2] & 3;
 			gcr_speed_p[track+1] = 0;
 		}
 		else
 		{
 			gcr_track_p[track] = 12 + MAX_TRACKS_1541 * 16 + track * (G64_TRACK_MAXLEN + 2);
-			gcr_speed_p[track] = track_density[track+2];
+			gcr_speed_p[track] = track_density[track+2] & 3;
 		}
 
 	}
@@ -576,6 +588,12 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 			fprintf(stderr, "Cannot write track data.\n");
 			return 0;
 		}
+
+		/* output some specs */
+		printf("%4.1f: (",(float) track / 2);
+		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
 	}
 	fclose(fpout);
 	printf("\nSuccessfully saved G64 file\n");

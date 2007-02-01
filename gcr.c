@@ -40,7 +40,7 @@ BYTE speed_map_1541[MAX_TRACKS_1541] = {
 	3, 3, 3, 3, 3, 3, 3, 2, 2, 2,	/* 11 - 20 */
 	2, 2, 2, 2, 1, 1, 1, 1, 1, 1,	/* 21 - 30 */
 	0, 0, 0, 0, 0,					/* 31 - 35 */
-	0 | BM_NO_SYNC, 0 | BM_NO_SYNC, 0 | BM_NO_SYNC, 0 | BM_NO_SYNC, 0 | BM_NO_SYNC, 0 | BM_NO_SYNC, 0 | BM_NO_SYNC	/* 36 - 42 (non-standard) */
+	0, 0, 0, 0, 0, 0, 0	/* 36 - 42 (non-standard) */
 };
 
 

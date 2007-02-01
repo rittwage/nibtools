@@ -39,12 +39,12 @@ read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_density)
 		printf("%4.1f: ", (float) halftrack / 2);
 		fprintf(fplog, "%4.1f: ", (float) halftrack / 2);
 
-		if(force_density && halftrack <= 70 && density_map == DENSITY_STANDARD) // still scans density for all tracks > 35
+		if(force_density && halftrack <= (35*2) && density_map == DENSITY_STANDARD)
 		{
 			lastdensity = density = speed_map_1541[(halftrack / 2) - 1];
 			printf("{DEFAULT }");
 		}
-		else if(force_density && density_map == DENSITY_RAPIDLOK)
+		else if(force_density && halftrack <= (36*2) && density_map == DENSITY_RAPIDLOK)
 		{
 			lastdensity = density = density_map_rapidlok[(halftrack / 2) - 1];
 			printf("{RAPIDLOK}");
