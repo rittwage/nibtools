@@ -122,8 +122,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	if(argc < 1)
-		usage();
+	if(argc < 1)	usage();
 
 	strcpy(inname, argv[0]);
 
@@ -131,10 +130,13 @@ main(int argc, char **argv)
 	{
 		strcpy(outname, inname);
 		dotpos = strrchr(outname, '.');
-		if (dotpos != NULL)
-			*dotpos = '\0';
+		if (dotpos != NULL) *dotpos = '\0';
 		strcat(outname, ".g64");
 	}
+	else
+		strcpy(outname, argv[1]);
+
+	printf("%s -> %s\n",inname, outname);
 
 	/* convert */
 	if (compare_extension(inname, "D64"))
