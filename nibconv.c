@@ -28,7 +28,7 @@ int skip_halftracks;
 int ARCH_MAINDECL
 main(int argc, char **argv)
 {
-	char inname[256], outname[256];
+	char inname[256], outname[256], *dotpos;
 
 	start_track = 1 * 2;
 	end_track = 41 * 2;
@@ -122,9 +122,19 @@ main(int argc, char **argv)
 		}
 	}
 
-	if(argc < 2) usage();
+	if(argc < 1)
+		usage();
+
 	strcpy(inname, argv[0]);
-	strcpy(outname, argv[1]);
+
+	if(argc < 2)
+	{
+		strcpy(outname, inname);
+		dotpos = strrchr(outname, '.');
+		if (dotpos != NULL)
+			*dotpos = '\0';
+		strcat(outname, ".g64");
+	}
 
 	/* convert */
 	if (compare_extension(inname, "D64"))
