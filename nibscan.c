@@ -209,13 +209,11 @@ main(int argc, char *argv[])
 
 	if (argc < 0)	usage();
 	strcpy(file1, argv[0]);
-	printf("1: %s\n", file1);
 
 	if (argc > 1)
 	{
 		mode = 1;	//compare
 		strcpy(file2, argv[1]);
-		printf("2: %s\n", file2);
 	}
 	printf("\n");
 
@@ -226,6 +224,9 @@ main(int argc, char *argv[])
 		if(!load_image(file2,  track_buffer2, track_density2, track_length2))
 			exit(0);
 
+		printf("\n1: %s\n", file1);
+		printf("2: %s\n", file2);
+
 		compare_disks();
 	}
 	else 	// just scan for errors, etc.
@@ -233,6 +234,7 @@ main(int argc, char *argv[])
 		if(!load_image(file1, track_buffer, track_density, track_length))
 			exit(0);
 
+		printf("\n1: %s\n", file1);
 		scandisk();
 	}
 

@@ -35,7 +35,7 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		return 0;
 	}
 
-	/* Determine number of tracks in image (crudely estimated by filesize) */
+	/* Determine number of tracks in image (estimated by filesize) */
 	fseek(fpin, 0, SEEK_END);
 	nibsize = ftell(fpin);
 	numtracks = (nibsize - NIB_HEADER_SIZE) / NIB_TRACK_LENGTH;
@@ -112,7 +112,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		return 0;
 	}
 
-	/* Determine number of tracks in image (crudely estimated by filesize) */
+	/* Determine number of tracks in image (estimated by filesize) */
 	fseek(fpin, 0, SEEK_END);
 	nibsize = ftell(fpin);
 	numtracks = (nibsize - NIB_HEADER_SIZE) / (NIB_TRACK_LENGTH * 16);
@@ -245,7 +245,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 	g64tracks = (char) header[0x9];
 	g64maxtrack = (BYTE)header[0xb] << 8 | (BYTE)header[0xa];
 
-	/* Determine number of tracks in image (crudely estimated by filesize) */
+	/* Determine number of tracks in image (estimated by filesize) */
 	fseek(fpin, 0, SEEK_END);
 	g64size = ftell(fpin);
 	numtracks = (g64size - sizeof(header)) / g64maxtrack;
@@ -287,8 +287,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		/* get track from file */
 		if(fread(track_buffer + (track * NIB_TRACK_LENGTH), g64maxtrack, 1, fpin) !=1)
 		{
-			printf("error reading G64 file\n");
-			return 0;
+			printf("error: track %4.1f missing from from file\n", (float) track/2);  /* a lot of G64 images are missing track 42 */
 		}
 
 		/* output some specs */
