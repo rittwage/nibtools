@@ -268,9 +268,9 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		return 0;
 	}
 
-	printf("\nG64: %d tracks, %d bytes each\n", g64tracks, g64maxtrack);
+	printf("\nG64: %d (%d) tracks, %d bytes each\n", g64tracks, end_track, g64maxtrack);
 
-	for (track = start_track; track <= g64tracks; track += track_inc)
+	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		/* get density from header */
 		track_density[track] = header[0x9 + 0x153 + dens_pointer];
@@ -287,7 +287,10 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		/* get track from file */
 		if(fread(track_buffer + (track * NIB_TRACK_LENGTH), g64maxtrack, 1, fpin) !=1)
 		{
-			printf("error: track %4.1f missing from from file\n", (float) track/2);  /* a lot of G64 images are missing track 42 */
+			printf("error: track %4.1f missing from from file\n", (float) track/2);
+			/* a lot of G64 images are missing track 42 */
+			end_track -= 2;
+			break;
 		}
 
 		/* output some specs */
