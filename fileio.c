@@ -574,7 +574,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		{
 			/* track doesn't exist: write blank track */
 			track_len = raw_track_size[speed_map_1541[track/2]];
-			memset(&gcr_track[2], 0, track_len);
+			memset(buffer, 0, track_len);
 		}
 		else if (track_len > G64_TRACK_MAXLEN)
 			track_len = process_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
