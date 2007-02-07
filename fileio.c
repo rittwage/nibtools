@@ -63,7 +63,6 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-
 		/* get density from header or use default */
 		track_density[track] = (BYTE)(header[0x10 + (header_entry * 2) + 1]);
 		header_entry++;
@@ -592,10 +591,10 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		}
 
 		/* output some specs */
-		printf("%4.1f: (",(float) track / 2);
+		printf("%4.1f: (",(float) (track+2)/2 );
 		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
+		printf("%d:%d)\n", track_density[track+2]&3, track_length[track+2]  );
 	}
 	fclose(fpout);
 	printf("\nSuccessfully saved G64 file\n");
