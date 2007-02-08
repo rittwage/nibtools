@@ -41,7 +41,7 @@ int fix_gcr;
 int reduce_syncs;
 int reduce_weak;
 int reduce_gaps;
-int waitkey = 1;
+int waitkey = 0;
 int advanced_info;
 int gap_match_length;
 
@@ -60,7 +60,7 @@ usage(void)
 		" -g: Enable gap reduction\n"
 		" -r: Disable automatic sync reduction\n"
 		" -G: Manual gap match length\n"
-		" -w: Disable waiting for a keypress upon errors or compare differences\n"
+		" -w: Wait for a keypress upon errors or compare differences\n"
 		" -v: Verbose (output more detailed track data)\n");
 	exit(1);
 }
@@ -125,7 +125,7 @@ main(int argc, char *argv[])
 
 		case 'w':
 			printf("* Wait for keypress disabled\n");
-			waitkey = 0;
+			waitkey = 1;
 			break;
 
 		case 'v':
@@ -506,10 +506,9 @@ scandisk(void)
 			// "second half" of fat track will always have header
 			// errors since it's encoded for the wrong track number.
 			// rapidlok tracks are not standard gcr
-			if (!fat_tracks[track - 2] && !rapidlok_tracks[track])
-				temp_errors = check_errors(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track], track, id, errorstring);
+			temp_errors = check_errors(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track], track, id, errorstring);
 
-			if (temp_errors)
+			if ( (temp_errors) && (track <= (35*2)) ) /* everything is an error above track 35 */
 			{
 				errors += temp_errors;
 				printf("\n%s", errorstring);

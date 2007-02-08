@@ -806,7 +806,7 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 		}
 	}
 
-	// if track is empty (unformatted) overfill with '0' bytes to simulate
+	// if track is empty (unformatted) fill with '0' bytes to simulate
 	if ( (!length) && (density & BM_NO_SYNC))
 	{
 		memset(gcrdata, 0, NIB_TRACK_LENGTH);
