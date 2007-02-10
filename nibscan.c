@@ -224,10 +224,13 @@ main(int argc, char *argv[])
 		if(!load_image(file2,  track_buffer2, track_density2, track_length2))
 			exit(0);
 
-		printf("\n1: %s\n", file1);
-		printf("2: %s\n", file2);
+		printf("\nfile #1: %s\n", file1);
+		printf("file #2: %s\n", file2);
 
 		compare_disks();
+
+		printf("\nfile #1: %s\n", file1);
+		printf("file #2: %s\n", file2);
 	}
 	else 	// just scan for errors, etc.
 	{
@@ -270,15 +273,17 @@ compare_disks(void)
 	BYTE id[3];
 	BYTE id2[3];
 	char errorstring[0x1000];
-	int gcr_match, sec_match;
+	int gcr_match = 0;
+	int sec_match = 0;
+	int dens_mismatch = 0;
 	int gcr_total = 0;
 	int sec_total = 0;
 	int trk_total = 0;
-	int dens_mismatches = 0;
 	char gcr_mismatches[256];
 	char sec_mismatches[256];
 	char gcr_matches[256];
 	char sec_matches[256];
+	char dens_mismatches[256];
 	char tmpstr[16];
 
 	start_track = (1 * 2);
@@ -288,6 +293,7 @@ compare_disks(void)
 	sec_mismatches[0] = '\0';
 	gcr_matches[0] = '\0';
 	sec_matches[0] = '\0';
+	dens_mismatches[0] = '\0';
 
 	// extract disk id's from track 18
 	memset(id, 0, 3);
@@ -297,9 +303,6 @@ compare_disks(void)
 
 	printf("\ndisk ID #1: %s\n", id);
 	printf("disk ID #2: %s\n", id2);
-
-	if(!(id[0]==id2[0] && id[1]==id2[1]))
-		printf("[Disk ID's do not match]\n");
 
 	if(waitkey) getchar();
 
@@ -379,7 +382,9 @@ compare_disks(void)
 			if(track_density[track] != track_density2[track])
 			{
 				printf("[Densities do not match: %d != %d]\n", track_density[track], track_density2[track]);
-				dens_mismatches++;
+				dens_mismatch++;
+				sprintf(tmpstr, "%d,", track / 2);
+				strcat(dens_mismatches, tmpstr);
 			}
 			printf("\n");
 
@@ -388,17 +393,17 @@ compare_disks(void)
 		}
 	}
 
-	printf("\n");
+	printf("\n---------------------------------------------------------------------\n");
 	printf("%d/%d tracks had a perfect GCR match\n", gcr_total, numtracks);
 	//printf("Matches (%s)\n", gcr_matches);
 	//printf("Mismatches (%s)\n", gcr_mismatches);
 	//printf("\n");
-	printf("%d/%d tracks matched all sector data\n", trk_total, numtracks);
+	printf("%d/%d of likely formatted tracks matched all sector data\n", trk_total, numtracks);
 	//printf("Matches (%s)\n", sec_matches);
 	//printf("Mismatches (%s)\n", sec_mismatches);
 	//printf("\n");
 	printf("%d/%d total sectors matched\n", sec_total, numsecs);
-	printf("%d tracks had mismatched densities\n", dens_mismatches);
+	printf("%d tracks had mismatched densities (%s)\n", dens_mismatch, dens_mismatches);
 
 	if(!(id[0]==id2[0] && id[1]==id2[1]))
 		printf("disk ID's do not match - (%s != %s)\n", id, id2);
@@ -546,8 +551,8 @@ scandisk(void)
 			fclose(trkout);
 		}
 	}
-
-	printf("\n\n%d disk errors detected.\n", errors);
+	printf("\n---------------------------------------------------------------------\n");
+	printf("%d disk errors detected.\n", errors);
 	printf("%d empty sectors detected.\n", empty);
 	printf("%d bad/weak gcr bytes detected.\n", totalgcr);
 	printf("%d fat tracks detected.\n", totalfat);
