@@ -359,7 +359,8 @@ compare_disks(void)
 			printf("%s", errorstring);
 
 			sec_total += sec_match;
-			numsecs += sector_map_1541[track / 2];
+			if(track <= 35*2) /* don't count > t35 in total */
+				numsecs += sector_map_1541[track / 2];
 
 			if (sec_match)
 			{
@@ -389,15 +390,20 @@ compare_disks(void)
 
 	printf("\n");
 	printf("%d/%d tracks had a perfect GCR match\n", gcr_total, numtracks);
-	printf("Matches (%s)\n", gcr_matches);
-	printf("Mismatches (%s)\n", gcr_mismatches);
-	printf("\n");
+	//printf("Matches (%s)\n", gcr_matches);
+	//printf("Mismatches (%s)\n", gcr_mismatches);
+	//printf("\n");
 	printf("%d/%d tracks matched all sector data\n", trk_total, numtracks);
-	printf("Matches (%s)\n", sec_matches);
-	printf("Mismatches (%s)\n", sec_mismatches);
-	printf("\n");
+	//printf("Matches (%s)\n", sec_matches);
+	//printf("Mismatches (%s)\n", sec_mismatches);
+	//printf("\n");
 	printf("%d/%d total sectors matched\n", sec_total, numsecs);
 	printf("%d tracks had mismatched densities\n", dens_mismatches);
+
+	if(!(id[0]==id2[0] && id[1]==id2[1]))
+		printf("disk ID's do not match - (%s != %s)\n", id, id2);
+	else
+		printf("disk ID's matched - (%s = %s)\n", id, id2);
 
 	return 1;
 }
