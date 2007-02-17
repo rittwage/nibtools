@@ -21,8 +21,8 @@ char bitrate_value[4] = { 0x00, 0x20, 0x40, 0x60 };
 char density_branch[4] = { 0xb1, 0xb5, 0xb7, 0xb9 };
 
 BYTE *track_buffer;
-BYTE track_density[MAX_HALFTRACKS_1541];
-int track_length[MAX_HALFTRACKS_1541];
+BYTE track_density[MAX_HALFTRACKS_1541 + 1];
+int track_length[MAX_HALFTRACKS_1541 + 1];
 
 int reduce_syncs, reduce_weak, reduce_gaps;
 int fix_gcr, aggressive_gcr;
@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
 
-	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541, NIB_TRACK_LENGTH)))
+	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH)))
 	{
 		printf("could not allocate memory for buffers.\n");
 		exit(0);
@@ -70,8 +70,8 @@ main(int argc, char *argv[])
 #endif
 	bump = reset = 1;	// by default, use reset, bump
 
-	start_track = 2;
-	end_track = 82;
+	start_track = 1 * 2;
+	end_track = 41 * 2;
 	track_inc = 2;
 
 	reduce_syncs = 1;

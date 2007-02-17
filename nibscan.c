@@ -28,14 +28,14 @@ int check_rapidlok(int track);
 
 BYTE *track_buffer;
 BYTE *track_buffer2;
-int track_length[MAX_HALFTRACKS_1541];
-int track_length2[MAX_HALFTRACKS_1541];
-BYTE track_density[MAX_HALFTRACKS_1541];
-BYTE track_density2[MAX_HALFTRACKS_1541];
+int track_length[MAX_HALFTRACKS_1541 + 1];
+int track_length2[MAX_HALFTRACKS_1541 + 1];
+BYTE track_density[MAX_HALFTRACKS_1541 + 1];
+BYTE track_density2[MAX_HALFTRACKS_1541 + 1];
 
-int fat_tracks[MAX_HALFTRACKS_1541];
-int rapidlok_tracks[MAX_HALFTRACKS_1541];
-int badgcr_tracks[MAX_HALFTRACKS_1541];
+int fat_tracks[MAX_HALFTRACKS_1541 + 1];
+int rapidlok_tracks[MAX_HALFTRACKS_1541 + 1];
+int badgcr_tracks[MAX_HALFTRACKS_1541 + 1];
 
 int fix_gcr;
 int reduce_syncs;
@@ -44,6 +44,7 @@ int reduce_gaps;
 int waitkey = 0;
 int advanced_info;
 int gap_match_length;
+int verbose = 0;
 
 void
 usage(void)
@@ -72,7 +73,7 @@ main(int argc, char *argv[])
 	char file2[256];
 
 	start_track = 1 * 2;
-	end_track = 41 * 2;
+	end_track = 42 * 2;
 	track_inc = 2;
 	align = ALIGN_NONE;
 	force_align = ALIGN_NONE;
@@ -90,13 +91,13 @@ main(int argc, char *argv[])
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
 
-	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541, NIB_TRACK_LENGTH)))
+	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH)))
 	{
 		printf("could not allocate buffer memory\n");
 		exit(0);
 	}
 
-	if(!(track_buffer2 = calloc(MAX_HALFTRACKS_1541, NIB_TRACK_LENGTH)))
+	if(!(track_buffer2 = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH)))
 	{
 		printf("could not allocate buffer memory\n");
 		free(track_buffer);
@@ -131,6 +132,7 @@ main(int argc, char *argv[])
 		case 'v':
 			printf("* Verbose mode (more detailed track info)\n");
 			advanced_info = 1;
+			verbose = 1;
 			break;
 
 		case 'G':
@@ -286,9 +288,6 @@ compare_disks(void)
 	char dens_mismatches[256];
 	char tmpstr[16];
 
-	start_track = (1 * 2);
-	end_track = (41 * 2);
-
 	gcr_mismatches[0] = '\0';
 	sec_mismatches[0] = '\0';
 	gcr_matches[0] = '\0';
@@ -306,6 +305,8 @@ compare_disks(void)
 
 	if(waitkey) getchar();
 
+	printf("start: %d - end: %d\n", start_track, end_track);
+
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		// discard old BM_MATCH mark
@@ -317,6 +318,19 @@ compare_disks(void)
 
 		printf("Track %4.1f, Disk 2: (%d) %d\n",
 		 	(float) track / 2, (track_density2[track] & 3), track_length2[track]);
+
+		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH)))
+		{
+			track_length[track] = 0;
+			printf("1 - UNFORMATTED!\n");
+			continue;
+		}
+		if(!check_formatted(track_buffer2 + (track * NIB_TRACK_LENGTH)))
+		{
+			track_length2[track] = 0;
+			printf("2 - UNFORMATTED!\n");
+			continue;
+		}
 
 		if( ((track_length[track] > 0) && (track_length2[track] == 0)) ||
 			((track_length[track] == 0) && (track_length2[track] > 0)) )
@@ -449,18 +463,28 @@ scandisk(void)
 
 	printf("Scanning...\n");
 
+	printf("start: %d - end: %d\n", start_track, end_track);
+
 	// check each track for various things
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		printf("-------------------------------------------------\nTrack %4.1f: %d ", (float) track / 2,
-		  track_length[track]);
+		printf("-------------------------------------------------\n");
+		printf("Track %4.1f: ", (float) track/2);
+
+		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH)))
+		{
+			track_length[track] = 0;
+			printf("UNFORMATTED!\n");
+		}
+		else
+			printf("%d", track_length[track]);
 
 		if (track_length[track] > 0)
 		{
-			track_density[track] =
-			  (BYTE)check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH), track_density[track] & 3, track_length[track]);
+			track_density[track] = check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH),
+				track_density[track]&3, track_length[track]);
 
-			printf("(%d", track_density[track] & 3);
+			printf("(%d", track_density[track]&3);
 
 			if (track_density[track] & BM_NO_SYNC)
 				printf(":NOSYNC");
@@ -482,44 +506,44 @@ scandisk(void)
 			if (fix_gcr)
 			{
 				badgcr_tracks[track] =
-				  check_bad_gcr(track_buffer + (NIB_TRACK_LENGTH * track),
-					track_length[track], 1);
+				  check_bad_gcr(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track], 1);
 
 				if (badgcr_tracks[track])
 				{
-					printf("weak:%d ",
-					  badgcr_tracks[track]);
+					printf("weak:%d ", badgcr_tracks[track]);
 					totalgcr += badgcr_tracks[track];
 				}
 			}
 
-			// check for rapidlok tracks
+			/* check for rapidlok track */
 			rapidlok_tracks[track] = check_rapidlok(track);
 
-			if (rapidlok_tracks[track])
-				totalrl++;
-
+			if (rapidlok_tracks[track]) totalrl++;
 			if ((totalrl) && (track == 72))
 			{
 				printf("RAPIDLOK KEYTRACK ");
 				rapidlok_tracks[track] = 1;
 			}
 
-			// check for FAT track
+			/* check for FAT track */
 			if (track < end_track - track_inc)
 			{
 				fat_tracks[track] = check_fat(track);
-				if (fat_tracks[track])
-					totalfat++;
+				if (fat_tracks[track]) totalfat++;
 			}
 
-			// check for regular disk errors
-			// "second half" of fat track will always have header
-			// errors since it's encoded for the wrong track number.
-			// rapidlok tracks are not standard gcr
-			temp_errors = check_errors(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track], track, id, errorstring);
+			/* check for regular disk errors
+				"second half" of fat track will always have header
+				errors since it's encoded for the wrong track number.
+				rapidlok tracks are not standard gcr
+				tracks above 35 are always CBM errors
+			*/
+			if(track/2 <= 35)
+				temp_errors = check_errors(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track], track, id, errorstring);
+			else /* everything is a CBM error above track 35 */
+				temp_errors = 0;
 
-			if ( (temp_errors) && (track <= (35*2)) ) /* everything is an error above track 35 */
+			if (temp_errors)
 			{
 				errors += temp_errors;
 				printf("\n%s", errorstring);
@@ -544,7 +568,7 @@ scandisk(void)
 		length = track_length[track];
 		//length = process_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
 
-		sprintf(testfilename, "raw/tr%dd%d", track / 2, (track_density[track] & 3));
+		sprintf(testfilename, "raw/tr%dd%d", track/2, (track_density[track] & 3));
 		if(NULL != (trkout = fopen(testfilename, "w")))
 		{
 			fwrite(track_buffer + (track * NIB_TRACK_LENGTH), length, 1, trkout);
@@ -554,7 +578,7 @@ scandisk(void)
 	printf("\n---------------------------------------------------------------------\n");
 	printf("%d disk errors detected.\n", errors);
 	printf("%d empty sectors detected.\n", empty);
-	printf("%d bad/weak gcr bytes detected.\n", totalgcr);
+	printf("%d bad/weak GCR bytes detected.\n", totalgcr);
 	printf("%d fat tracks detected.\n", totalfat);
 	printf("%d rapidlok tracks detected.\n", totalrl);
 
@@ -649,29 +673,25 @@ raw_track_info(BYTE * gcrdata, int length, char *outputstring)
 	return 1;
 }
 
- int
-check_fat(int track)
+int check_fat(int track)
 {
 	int fat = 0;
 	char errorstring[0x1000];
 
-	if (track_length[track] > 0 && track_length[track + 2] > 0)
+	if (track_length[track] > 0 && track_length[track+2] > 0)
 	{
 		fat = compare_tracks(track_buffer + (track * NIB_TRACK_LENGTH),
-		  track_buffer + ((track + 2) * NIB_TRACK_LENGTH), track_length[track],
-		  track_length[track + 2], 1, errorstring);
+		  track_buffer + ((track+2) * NIB_TRACK_LENGTH), track_length[track],
+		  track_length[track+2], 1, errorstring);
 	}
 
-	if (fat)
-		printf("*FAT* ");
-
+	if (fat) printf("*FAT* ");
 	return fat;
 }
 
 // tries to detect and fixup rapidlok track, as the gcr routines
 // don't assemble them quite right.
- int
-check_rapidlok(int track)
+int check_rapidlok(int track)
 {
 	int i;
 	int end_key = 0;

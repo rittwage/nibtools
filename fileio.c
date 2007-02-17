@@ -18,6 +18,7 @@
 #include "nibtools.h"
 
 extern int skip_halftracks;
+extern int verbose;
 
 int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
@@ -35,6 +36,17 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		return 0;
 	}
 
+	if (fread(header, sizeof(header), 1, fpin) != 1) {
+		printf("unable to read NIB header\n");
+		return 0;
+	}
+
+	if (memcmp(header, "MNIB-1541-RAW", 13) != 0)
+	{
+		printf("input file %s isn't an NIB data file!\n", filename);
+		return 0;
+	}
+
 	/* Determine number of tracks in image (estimated by filesize) */
 	fseek(fpin, 0, SEEK_END);
 	nibsize = ftell(fpin);
@@ -42,20 +54,19 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 	if(numtracks <= 42)
 	{
-		end_track = (numtracks * 2) + 1;
+		end_track = (numtracks * 2);
 		track_inc = 2;
 	}
 	else
 	{
 		printf("\nImage contains halftracks!\n");
-		end_track = numtracks + 1;
+		end_track = numtracks;
 		track_inc = 1;
 	}
 
 	printf("\n%d track image (filesize = %d bytes)\n", numtracks, nibsize);
-	rewind(fpin);
 
-	/* gather mem and read header */
+	rewind(fpin);
 	if (fread(header, sizeof(header), 1, fpin) != 1) {
 		printf("unable to read NIB header\n");
 		return 0;
@@ -68,21 +79,20 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		header_entry++;
 
 		/* get track from file */
-		if(fread(nibdata, NIB_TRACK_LENGTH, 1, fpin) !=1)
-		{
-			printf("error reading NIB file\n");
-			return 0;
-		}
+		fread(nibdata, NIB_TRACK_LENGTH, 1, fpin);
 
 		/* process track cycle */
 		track_length[track] = extract_GCR_track(track_buffer + (track * NIB_TRACK_LENGTH), nibdata,
 			&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
 
 		/* output some specs */
-		printf("%4.1f: (",(float) track / 2);
-		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
+		if(verbose)
+		{
+			printf("%4.1f: (",(float) track / 2);
+			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+			printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
+		}
 	}
 	fclose(fpin);
 	printf("Successfully loaded NIB file\n");
@@ -111,6 +121,18 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		return 0;
 	}
 
+	if (fread(header, sizeof(header), 1, fpin) != 1)
+	{
+		printf("unable to read NIB header\n");
+		return 0;
+	}
+
+	if (memcmp(header, "MNIB-1541-RAW", 13) != 0)
+	{
+		printf("input file %s isn't an NB2 data file!\n", filename);
+		return 0;
+	}
+
 	/* Determine number of tracks in image (estimated by filesize) */
 	fseek(fpin, 0, SEEK_END);
 	nibsize = ftell(fpin);
@@ -118,13 +140,13 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 	if(numtracks <= 42)
 	{
-		end_track = (numtracks * 2) + 1;
+		end_track = (numtracks * 2);
 		track_inc = 2;
 	}
 	else
 	{
 		printf("\nImage contains halftracks!\n");
-		end_track = numtracks + 1;
+		end_track = numtracks;
 		track_inc = 1;
 	}
 	printf("\n%d track image (filesize = %d bytes)\n", numtracks, nibsize);
@@ -136,11 +158,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 	else
 		fseek(fpin, sizeof(header) + (17 * 2 * NIB_TRACK_LENGTH * 16) + (8 * NIB_TRACK_LENGTH), SEEK_SET);
 
-	if(fread(tmpdata, NIB_TRACK_LENGTH, 1, fpin) !=1)
-	{
-		printf("error reading NB2 file\n");
-		return 0;
-	}
+	fread(tmpdata, NIB_TRACK_LENGTH, 1, fpin);
 
 	if (!extract_id(tmpdata, diskid))
 	{
@@ -149,7 +167,6 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 	}
 	printf("\ndiskid: %s\n", diskid);
 
-	/* gather mem and read header */
 	rewind(fpin);
 	if (fread(header, sizeof(header), 1, fpin) != 1) {
 		printf("unable to read NIB header\n");
@@ -177,11 +194,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 				/* get track from file */
 				if( (pass_density == track_density[track]) )
 				{
-					if(fread(nibdata, NIB_TRACK_LENGTH, 1, fpin) !=1)
-					{
-						printf("error reading NB2 file\n");
-						return 0;
-					}
+					fread(nibdata, NIB_TRACK_LENGTH, 1, fpin);
 
 					length = extract_GCR_track(tmpdata, nibdata,
 						&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
@@ -197,13 +210,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 					}
 				}
 				else
-				{
-					if(fread(tmpdata, NIB_TRACK_LENGTH, 1, fpin) !=1)
-					{
-						printf("error reading NB2 file\n");
-						return 0;
-					}
-				}
+					fread(tmpdata, NIB_TRACK_LENGTH, 1, fpin);
 			}
 		}
 
@@ -222,7 +229,6 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
     /*	reads contents of a G64 file */
-
 	int track, g64maxtrack;
 	int dens_pointer = 0;
 	int g64tracks, g64size, numtracks;
@@ -241,23 +247,29 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		return 0;
 	}
 
+	if (memcmp(header, "GCR-1541", 8) != 0)
+	{
+		printf("input file %s isn't an G64 data file!\n", filename);
+		return 0;
+	}
+
 	g64tracks = (char) header[0x9];
 	g64maxtrack = (BYTE)header[0xb] << 8 | (BYTE)header[0xa];
 
 	/* Determine number of tracks in image (estimated by filesize) */
 	fseek(fpin, 0, SEEK_END);
 	g64size = ftell(fpin);
-	numtracks = (g64size - sizeof(header)) / g64maxtrack;
+	numtracks = (g64size - sizeof(header)) / (g64maxtrack + 2);
 
 	if(numtracks <= 42)
 	{
-		end_track = (numtracks * 2) + 1;
+		end_track = (numtracks * 2);
 		track_inc = 2;
 	}
 	else
 	{
 		printf("Image contains halftracks!\n");
-		end_track = numtracks + 1;
+		end_track = numtracks;
 		track_inc = 1;
 	}
 
@@ -267,7 +279,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		return 0;
 	}
 
-	printf("\nG64: %d (%d) tracks, %d bytes each\n", g64tracks, end_track, g64maxtrack);
+	printf("\nG64: %d total bytes = %d tracks of %d bytes each\n", g64size, numtracks, g64maxtrack);
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
@@ -276,27 +288,21 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		dens_pointer += (4 * track_inc);
 
 		/* get length */
-		if(fread(length_record, 2, 1, fpin) != 1)
-		{
-			printf("unable to read G64 track length\n");
-			return 0;
-		}
+		fread(length_record, 2, 1, fpin);
+
 		track_length[track] = length_record[1] << 8 | length_record[0];
 
 		/* get track from file */
-		if(fread(track_buffer + (track * NIB_TRACK_LENGTH), g64maxtrack, 1, fpin) !=1)
-		{
-			printf("error: track %4.1f missing from from file\n", (float) track/2);
-			/* a lot of G64 images are missing track 42 */
-			end_track -= 2;
-			break;
-		}
+		fread(track_buffer + (track * NIB_TRACK_LENGTH), g64maxtrack, 1, fpin);
 
 		/* output some specs */
-		printf("%4.1f: (",(float) track / 2);
-		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
+		if(verbose)
+		{
+			printf("%4.1f: (",(float) track / 2);
+			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+			printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
+		}
 	}
 	fclose(fpin);
 	printf("Successfully loaded G64 file\n");
@@ -732,7 +738,7 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	memcpy(gcrdata, track_buffer, NIB_TRACK_LENGTH);
 
 	/* double-check our sync-flag assumptions */
-	density = (BYTE) check_sync_flags(gcrdata, density, length);
+	density = check_sync_flags(gcrdata, density, length);
 
 	/* user display */
 	printf("\n%4.1f: (", (float) halftrack / 2);

@@ -716,7 +716,6 @@ check_formatted(BYTE *gcrdata)
 
 		if (run >= GCR_MIN_FORMATTED)
 			return 1;
-
 	}
 	return 0;
 }
@@ -934,7 +933,7 @@ reduce_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 
 // this routine checks the track data and makes simple decisions
 // about the special cases of being all sync or having no sync
-int
+BYTE
 check_sync_flags(BYTE *gcrdata, int density, int length)
 {
 	int i, syncs = 0;

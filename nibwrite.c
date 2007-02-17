@@ -21,8 +21,8 @@ char bitrate_value[4] = { 0x00, 0x20, 0x40, 0x60 };
 char density_branch[4] = { 0xb1, 0xb5, 0xb7, 0xb9 };
 
 BYTE *track_buffer;
-BYTE track_density[MAX_HALFTRACKS_1541];
-int track_length[MAX_HALFTRACKS_1541];
+BYTE track_density[MAX_HALFTRACKS_1541 + 1];
+int track_length[MAX_HALFTRACKS_1541 + 1];
 
 int start_track, end_track, track_inc;
 int reduce_syncs, reduce_weak, reduce_gaps;
@@ -38,7 +38,7 @@ int verify;
 int auto_capacity_adjust;
 int align_disk;
 int gap_match_length;
-int verbose;
+int verbose = 0;
 float motor_speed;
 int skew = 0;
 
@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
 
-	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541, NIB_TRACK_LENGTH)))
+	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH)))
 	{
 		printf("could not allocate memory for buffers.\n");
 		exit(0);

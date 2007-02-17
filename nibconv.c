@@ -16,14 +16,15 @@
 #include "version.h"
 
 BYTE *track_buffer;
-BYTE track_density[MAX_HALFTRACKS_1541];
-int track_length[MAX_HALFTRACKS_1541];
+BYTE track_density[MAX_HALFTRACKS_1541 + 1];
+int track_length[MAX_HALFTRACKS_1541 + 1];
 
 int start_track, end_track, track_inc;
 int reduce_syncs, reduce_weak, reduce_gaps;
 int fix_gcr, align, force_align;
 int gap_match_length;
 int skip_halftracks;
+int verbose = 0;
 
 int ARCH_MAINDECL
 main(int argc, char **argv)
@@ -31,7 +32,7 @@ main(int argc, char **argv)
 	char inname[256], outname[256], *dotpos;
 
 	start_track = 1 * 2;
-	end_track = 41 * 2;
+	end_track = 42 * 2;
 	track_inc = 2;
 	fix_gcr = 0;
 	reduce_syncs = 1;
@@ -48,7 +49,7 @@ main(int argc, char **argv)
 	  "(C) Pete Rittwage, Dr. Markus Brenner, and friends.\n"
 	  "Version " VERSION "\n\n");
 
-	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541, NIB_TRACK_LENGTH)))
+	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH)))
 	{
 		printf("could not allocate memory for buffers.\n");
 		exit(0);

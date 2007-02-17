@@ -16,7 +16,7 @@
 
 #define BYTE unsigned char
 #define DWORD unsigned int
-#define MAX_TRACKS_1541 42
+#define MAX_TRACKS_1541 42 /* tracks are referenced 1-42 instead of 0-41 */
 #define MAX_TRACKS_1571 (MAX_TRACKS_1541 * 2)
 #define MAX_HALFTRACKS_1541 (MAX_TRACKS_1541 * 2)
 #define MAX_HALFTRACKS_1571 (MAX_TRACKS_1571 * 2)
@@ -137,7 +137,7 @@ int extract_GCR_track(BYTE * destination, BYTE * source, int * align,
   int force_align, size_t cap_min, size_t cap_max);
 int replace_bytes(BYTE * buffer, int length, BYTE srcbyte, BYTE dstbyte);
 int check_bad_gcr(BYTE * gcrdata, int length, int fix);
-int check_sync_flags(BYTE * gcrdata, int density, int length);
+BYTE check_sync_flags(BYTE * gcrdata, int density, int length);
 void bitshift(BYTE * gcrdata, int length, int bits);
 int check_errors(BYTE * gcrdata, int length, int track, BYTE * id,
   char * errorstring);
