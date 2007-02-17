@@ -305,8 +305,6 @@ compare_disks(void)
 
 	if(waitkey) getchar();
 
-	printf("start: %d - end: %d\n", start_track, end_track);
-
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		// discard old BM_MATCH mark
@@ -435,6 +433,7 @@ scandisk(void)
 	int totalfat = 0;
 	int totalrl = 0;
 	int totalgcr = 0;
+	int total_wrong_density = 0;
 	int empty = 0, temp_empty = 0;
 	int errors = 0, temp_errors = 0;
 	int defdensity;
@@ -462,8 +461,6 @@ scandisk(void)
 	if(waitkey) getchar();
 
 	printf("Scanning...\n");
-
-	printf("start: %d - end: %d\n", start_track, end_track);
 
 	// check each track for various things
 	for (track = start_track; track <= end_track; track += track_inc)
@@ -497,6 +494,7 @@ scandisk(void)
 			if ((track_density[track] & 3) != defdensity)
 			{
 				printf("!=%d?) ", defdensity);
+				if(track < 36*2) total_wrong_density++;
 				if(waitkey) getchar();
 			}
 			else
@@ -581,6 +579,7 @@ scandisk(void)
 	printf("%d bad/weak GCR bytes detected.\n", totalgcr);
 	printf("%d fat tracks detected.\n", totalfat);
 	printf("%d rapidlok tracks detected.\n", totalrl);
+	printf("%d tracks with non-standard density.\n", total_wrong_density);
 
 	return 1;
 }
