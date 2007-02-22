@@ -364,31 +364,33 @@ compare_disks(void)
 				strcat(gcr_mismatches, tmpstr);
 			}
 
-			// check for sector matches
-			sec_match =
-			  compare_sectors(
-				track_buffer + (track * NIB_TRACK_LENGTH),
-				track_buffer2 + (track * NIB_TRACK_LENGTH),
-				track_length[track], track_length2[track], id, id2, track, errorstring);
-
-			printf("%s", errorstring);
-
-			sec_total += sec_match;
-			if(track <= 35*2) /* don't count > t35 in total */
-				numsecs += sector_map_1541[track / 2];
-
-			if (sec_match)
+			/* check for DOS sector matches */
+			if(track/2 <= 35)
 			{
-				trk_total++;
-				printf("[*DATA MATCH*]\n");
-				sprintf(tmpstr, "%d,", track / 2);
-				strcat(sec_matches, tmpstr);
-			}
-			else
-			{
-				printf("[*NO DATA MATCH*]\n");
-				sprintf(tmpstr, "%d,", track / 2);
-				strcat(sec_mismatches, tmpstr);
+				sec_match =
+					compare_sectors(
+					track_buffer + (track * NIB_TRACK_LENGTH),
+					track_buffer2 + (track * NIB_TRACK_LENGTH),
+					track_length[track], track_length2[track], id, id2, track, errorstring);
+
+				printf("%s", errorstring);
+
+				sec_total += sec_match;
+				numsecs += sector_map_1541[track/2];
+
+				if (sec_match)
+				{
+					trk_total++;
+					printf("[*DATA MATCH*]\n");
+					sprintf(tmpstr, "%d,", track / 2);
+					strcat(sec_matches, tmpstr);
+				}
+				else
+				{
+					printf("[*NO DATA MATCH*]\n");
+					sprintf(tmpstr, "%d,", track / 2);
+					strcat(sec_mismatches, tmpstr);
+				}
 			}
 
 			if(track_density[track] != track_density2[track])
@@ -414,7 +416,7 @@ compare_disks(void)
 	//printf("Matches (%s)\n", sec_matches);
 	//printf("Mismatches (%s)\n", sec_mismatches);
 	//printf("\n");
-	printf("%d/%d total sectors matched\n", sec_total, numsecs);
+	printf("%d/%d total standard CBM DOS sectors matched\n", sec_total, numsecs);
 	printf("%d tracks had mismatched densities (%s)\n", dens_mismatch, dens_mismatches);
 
 	if(!(id[0]==id2[0] && id[1]==id2[1]))

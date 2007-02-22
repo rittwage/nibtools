@@ -1161,11 +1161,7 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 		strcat(outputstring, tmpstr);
 	}
 
-	if (sec_match == sector_map_1541[track / 2])
-		return sec_match;
-	else
-		return 0;
-
+	return sec_match;
 }
 
 // check for CBM DOS errors
