@@ -39,6 +39,7 @@ int gap_match_length;
 int interactive_mode;
 int verbose;
 int density_map;
+int extended_parallel_test;
 float motor_speed;
 
 CBM_FILE fd;
@@ -84,6 +85,7 @@ main(int argc, char *argv[])
 	track_match = 0;
 	interactive_mode = 0;
 	verbose = 0;
+	extended_parallel_test = 0;
 	align = ALIGN_NONE;
 	force_align = ALIGN_NONE;
 	gap_match_length = 7;
@@ -105,7 +107,6 @@ main(int argc, char *argv[])
 		{
 		case 'h':
 			track_inc = 1;
-			//start_track = 1;  /* my drive knocks on this track - PJR */
 			end_track = 83;
 			printf("* Using halftracks\n");
 			break;
@@ -113,6 +114,11 @@ main(int argc, char *argv[])
 		case 'm':
 			track_match = 1;
 			printf("* Simple track match\n");
+			break;
+
+		case 't':
+			extended_parallel_test = 1;
+			printf("* Extended parallel port testing\n");
 			break;
 
 		case 'i':
@@ -219,15 +225,28 @@ main(int argc, char *argv[])
 		exit(0);
 	}
 
-	if(strrchr(filename, '.') == NULL)  strcat(filename, ".nib");
+	if(extended_parallel_test)
+	{
+		printf("Performing advanced parallel port test\n");
+		for(i=0; i<100; i++)
+		{
+			if(!verify_floppy(fd))
+			{
+				printf("Parallel port failed extended testing.  Check wiring and sheilding.\n");
+				exit(0);
+			}
+			printf(".");
+		}
+		printf("\nPassed advanced parallel port test\n");
+	}
 
+	if(strrchr(filename, '.') == NULL)  strcat(filename, ".nib");
 	disk2file(fd, filename);
 
 	motor_on(fd);
 	step_to_halftrack(fd, 18 * 2);
 
 	if(fplog) fclose(fplog);
-
 	exit(0);
 }
 
@@ -281,6 +300,7 @@ usage(void)
 	     " -i: Interactive imaging mode\n"
 	     " -V: Verbose (output more detailed track data)\n"
 	     " -h: Read halftracks\n"
+	     " -t: Extended parallel port tests\n"
 	     );
 	exit(1);
 }

@@ -35,7 +35,7 @@ main(int argc, char **argv)
 	end_track = 42 * 2;
 	track_inc = 2;
 	fix_gcr = 0;
-	reduce_syncs = 1;
+	reduce_syncs = 0;
 	reduce_weak = 0;
 	reduce_gaps = 0;
 	skip_halftracks = 0;
@@ -65,8 +65,8 @@ main(int argc, char **argv)
 			break;
 
 		case 'r':
-			printf("* Reduce syncs disabled\n");
-			reduce_syncs = 0;
+			printf("* Reduce syncs enabled\n");
+			reduce_syncs = 1;
 			break;
 
 		case '0':
@@ -218,7 +218,7 @@ usage(void)
 	" -p[x]: Custom protection handlers (advanced users only)\n"
      " -g: Enable gap reduction\n"
      " -0: Enable weak-bit run reduction\n"
-     " -r: Disable automatic sync reduction\n"
+     " -r: Enable automatic sync reduction\n"
      " -G: Manual gap match length\n");
 	exit(1);
 }
