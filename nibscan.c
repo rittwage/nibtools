@@ -378,7 +378,7 @@ compare_disks(void)
 				sec_total += sec_match;
 				numsecs += sector_map_1541[track/2];
 
-				if (sec_match)
+				if (sec_match == sector_map_1541[track/2])
 				{
 					trk_total++;
 					printf("[*DATA MATCH*]\n");
