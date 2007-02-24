@@ -256,8 +256,8 @@ paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_de
 				fprintf(fplog, "%s", errorstring);
 
 			// compare sector data
-			if (compare_sectors(cbufo, cbufn, leno, lenn, diskid, diskid,
-			  halftrack, errorstring))
+			if (compare_sectors(cbufo, cbufn, leno, lenn, diskid, diskid, halftrack, errorstring) ==
+				sector_map_1541[halftrack/2])
 			{
 				printf("[SEC MATCH] ");
 				fprintf(fplog, "[SEC MATCH] ");

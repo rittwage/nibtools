@@ -550,17 +550,16 @@ scandisk(void)
 				if(waitkey) getchar();
 			}
 
-			if (advanced_info)
+			temp_empty = check_empty(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track], track, id, errorstring);
+			if (temp_empty)
 			{
-				raw_track_info(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track], errorstring);
-
-				temp_empty = check_empty(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track], track, id, errorstring);
-				if (temp_empty)
-				{
-					empty += temp_empty;
-					printf("\n%s", errorstring);
-				}
+				empty += temp_empty;
+				if(verbose) printf("\n%s", errorstring);
 			}
+
+			if (advanced_info)
+					raw_track_info(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track], errorstring);
+
 			printf("\n");
 		}
 
@@ -582,7 +581,6 @@ scandisk(void)
 	printf("%d fat tracks detected.\n", totalfat);
 	printf("%d rapidlok tracks detected.\n", totalrl);
 	printf("%d tracks with non-standard density.\n", total_wrong_density);
-
 	return 1;
 }
 
