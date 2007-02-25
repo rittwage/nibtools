@@ -416,7 +416,7 @@ compare_disks(void)
 	//printf("Matches (%s)\n", sec_matches);
 	//printf("Mismatches (%s)\n", sec_mismatches);
 	//printf("\n");
-	printf("%d/%d total standard CBM DOS sectors matched\n", sec_total, numsecs);
+	printf("%d/%d total standard CBM DOS sectors matched (%d mismatched)\n", sec_total, numsecs, numsecs-sec_total);
 	printf("%d tracks had mismatched densities (%s)\n", dens_mismatch, dens_mismatches);
 
 	if(!(id[0]==id2[0] && id[1]==id2[1]))

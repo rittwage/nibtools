@@ -483,7 +483,7 @@ scan_track(CBM_FILE fd, int track)
 
 	// if the default density flagged a good detect, just return it now
 	if ((density_major[density] > 0) && (!killer_info))
-		return (density | killer_info);
+		goto rescan;
 
 	// calculate
 	iMajorMax = iStatsMax = 0;
@@ -500,6 +500,7 @@ scan_track(CBM_FILE fd, int track)
 	else if (density_stats[iStatsMax] > density_stats[density])
 		density = iStatsMax;
 
+rescan:
 	/* Set bitrate to the discovered density and scan again for NOSYNC/KILLER */
 	set_bitrate(fd, density);
 
@@ -515,6 +516,7 @@ scan_track(CBM_FILE fd, int track)
 				printf(" NOSYNC!");
 				fprintf(fplog, " NOSYNC!");
 			}
+			return (density | killer_info);
 		}
 	}
 	return (density | killer_info);
