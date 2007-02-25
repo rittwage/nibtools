@@ -40,6 +40,7 @@ int interactive_mode;
 int verbose;
 int density_map;
 int extended_parallel_test;
+int force_nosync;
 float motor_speed;
 
 CBM_FILE fd;
@@ -86,6 +87,7 @@ main(int argc, char *argv[])
 	interactive_mode = 0;
 	verbose = 0;
 	extended_parallel_test = 0;
+	force_nosync = 0;
 	align = ALIGN_NONE;
 	force_align = ALIGN_NONE;
 	gap_match_length = 7;
@@ -114,6 +116,11 @@ main(int argc, char *argv[])
 		case 'm':
 			track_match = 1;
 			printf("* Simple track match\n");
+			break;
+
+		case 's':
+			force_nosync = 1;
+			printf("* Force reading without regard to sync\n");
 			break;
 
 		case 't':

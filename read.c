@@ -75,7 +75,7 @@ read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_density)
 	for (i = 0; i < 10; i++)
 	{
 		// read track
-		if ((density & BM_NO_SYNC) || (density & BM_FF_TRACK))
+		if ((density & BM_NO_SYNC) || (density & BM_FF_TRACK) || (halftrack >= (35*2)) || (force_nosync))
 			send_mnib_cmd(fd, FL_READWOSYNC);
 		else
 			send_mnib_cmd(fd, FL_READNORMAL);
@@ -91,6 +91,7 @@ read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_density)
 			cbm_parallel_burst_read(fd);
 			delay(500);
 			printf("%c ", test_par_port(fd)? '+' : '-');
+			cbm_parallel_burst_read(fd);
 		}
 		else
 			break;
@@ -142,8 +143,7 @@ paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_de
 		if((denso & BM_FF_TRACK) && (!read_killer))
 			break;
 
-		// If we get nothing (except t18), we are on an empty
-		// track (unformatted)
+		// If we get nothing we are on an empty track (unformatted)
 		if (!leno)
 		{
 			printf("[UNFORMATTED]\n");
@@ -154,7 +154,7 @@ paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_de
 
 		// if we get less than what a track holds,
 		// try again, probably bad read or a weak match
-		if (leno < capacity_min[denso & 3] - 155)
+		if (leno < capacity_min[denso & 3] - 0x100)
 		{
 			printf("<! ");
 			fprintf(fplog, "[%d<%d!] ", leno,
@@ -167,7 +167,7 @@ paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_de
 
 		// if we get more than capacity
 		// try again to make sure it's intentional
-		if (leno > capacity_max[denso & 3] + 255)
+		if (leno > capacity_max[denso & 3] + 0x100)
 		{
 			printf("!> ");
 			fprintf(fplog, "[%d>%d!] ", leno,
@@ -190,8 +190,8 @@ paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_de
 			break;
 
 		// if all bad sectors (protection) we only retry once
-		//if (errors == sector_map_1541[halftrack/2])
-		//	l = error_retries - 1;
+		if (errors == sector_map_1541[halftrack/2])
+			l = error_retries - 1;
 	}
 
 	// Give some indication of disk errors, unless it's all errors
@@ -502,14 +502,20 @@ scan_track(CBM_FILE fd, int track)
 
 	/* Set bitrate to the discovered density and scan again for NOSYNC/KILLER */
 	set_bitrate(fd, density);
-	send_mnib_cmd(fd, FL_SCANKILLER);
-	killer_info = cbm_parallel_burst_read(fd);
 
-	if (killer_info & BM_NO_SYNC)
+	for(i=0; i<3; i++)
 	{
-		printf(" NOSYNC!");
-		fprintf(fplog, " NOSYNC!");
-	}
+		send_mnib_cmd(fd, FL_SCANKILLER);
+		killer_info = cbm_parallel_burst_read(fd);
 
+		if (killer_info & BM_NO_SYNC)
+		{
+			if(!i)
+			{
+				printf(" NOSYNC!");
+				fprintf(fplog, " NOSYNC!");
+			}
+		}
+	}
 	return (density | killer_info);
 }
