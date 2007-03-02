@@ -478,10 +478,9 @@ scan_track(CBM_FILE fd, int track)
 		fprintf(fplog,"{%d:%3d/%2d}",i,density_stats[i],density_major[i]);
 	}
 
-	if(!dens_detected)
-		printf("{ NONGCR }");
+	if(!dens_detected) printf("{ NOGCR? }");
 
-	// if the default density flagged a good detect, just return it now
+	// if the default density flagged a good detect, skip calculations
 	if ((density_major[density] > 0) && (!killer_info))
 		goto rescan;
 
