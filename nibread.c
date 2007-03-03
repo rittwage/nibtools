@@ -259,6 +259,10 @@ main(int argc, char *argv[])
 
 int disk2file(CBM_FILE fd, char *filename)
 {
+	int count = 0;
+	char newfilename[256];
+	char filenum[4], *dotpos;
+
 	/* read data from drive to file */
 	motor_on(fd);
 
@@ -287,6 +291,25 @@ int disk2file(CBM_FILE fd, char *filename)
 	{
 		read_floppy(fd, track_buffer, track_density, track_length);
 		write_nib(filename, track_buffer, track_density, track_length);
+
+		if(interactive_mode)
+		{
+			for(;;)
+			{
+				printf("Swap disk and press a key for next image, or CTRL-C to quit.\n");
+				getchar();
+
+				/* create new filename */
+				sprintf(filenum, "%d", ++count);
+				strcpy(newfilename, filename);
+				dotpos = strrchr(newfilename, '.');
+				if (dotpos != NULL) *dotpos = '\0';
+				strcat(newfilename, filenum);
+				strcat(newfilename, ".nib");
+				read_floppy(fd, track_buffer, track_density, track_length);
+				write_nib(newfilename, track_buffer, track_density, track_length);
+			}
+		}
 	}
 
 	cbm_parallel_burst_read(fd);
