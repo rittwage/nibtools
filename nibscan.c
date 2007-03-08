@@ -281,6 +281,7 @@ compare_disks(void)
 	int gcr_total = 0;
 	int sec_total = 0;
 	int trk_total = 0;
+	int errors_d1 = 0, errors_d2 = 0;
 	char gcr_mismatches[256];
 	char sec_mismatches[256];
 	char gcr_matches[256];
@@ -364,6 +365,12 @@ compare_disks(void)
 				strcat(gcr_mismatches, tmpstr);
 			}
 
+			if(track/2 <= 35)
+			{
+				errors_d1 += check_errors(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track], track, id, errorstring);
+				errors_d2 += check_errors(track_buffer2 + (NIB_TRACK_LENGTH * track), track_length2[track], track, id2, errorstring);
+			}
+
 			/* check for DOS sector matches */
 			if(track/2 <= 35)
 			{
@@ -417,6 +424,7 @@ compare_disks(void)
 	//printf("Mismatches (%s)\n", sec_mismatches);
 	//printf("\n");
 	printf("%d/%d total standard CBM DOS sectors matched (%d mismatched)\n", sec_total, numsecs, numsecs-sec_total);
+	printf("CBM DOS errors (d1/%d - d2/%d)\n",errors_d1, errors_d2);
 	printf("%d tracks had mismatched densities (%s)\n", dens_mismatch, dens_mismatches);
 
 	if(!(id[0]==id2[0] && id[1]==id2[1]))
