@@ -117,6 +117,9 @@ extern int capacity_min[];
 extern int capacity_max[];\
 extern int gap_match_length;
 
+/* enums */
+extern char alignments[][20];
+
 /* prototypes */
 int find_sync(BYTE ** gcr_pptr, BYTE * gcr_end);
 void convert_4bytes_to_GCR(BYTE * buffer, BYTE * ptr);

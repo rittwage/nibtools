@@ -50,9 +50,9 @@ align_vmax(BYTE * work_buffer, int tracklen)
 
 	/* Try to find V-MAX track marker bytes
 	    0x4b (cinemaware track 20)
+	    0x5a (three stooges)
+	    0x49 (dotc)
 	    0xa5 (cinemaware other tracks)
-	    0x5a (misc)
-	    0x49 (misc)
 	*/
 
 	while (pos < buffer_end)

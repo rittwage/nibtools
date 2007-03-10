@@ -43,6 +43,7 @@ BYTE speed_map_1541[MAX_TRACKS_1541] = {
 	0, 0, 0, 0, 0, 0, 0	/* 36 - 42 (non-standard) */
 };
 
+char alignments[][20] = { "NONE", "GAP", "SEC0", "SYNC", "WEAK", "VMAX", "AUTO" };
 
 /* Burst Nibbler defaults
 int capacity_min[] = 		{ 6183, 6598, 7073, 7616 };

@@ -19,7 +19,6 @@
 
 extern int skip_halftracks;
 extern int verbose;
-extern int fix_gcr;
 
 int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
@@ -93,7 +92,8 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 			printf("%4.1f: (",(float) track / 2);
 			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-			printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
+			printf("%d:%d) ", track_density[track]&3, track_length[track]);
+			printf("[align=%s]\n",alignments[align]);
 		}
 	}
 	fclose(fpin);
