@@ -797,15 +797,6 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 			else
 				printf("\nHad to truncate track %d by %d bytes.", halftrack / 2, orglen - length);
 		}
-
-		// handle short tracks
-		orglen = length;
-		if(length < capacity[density & 3] - CAPACITY_MARGIN)
-		{
-			memset(gcrdata + length, 0x55, capacity[density & 3] - CAPACITY_MARGIN - length);
-			length = capacity[density & 3] - CAPACITY_MARGIN;
-			printf("pad:%d ", length - orglen);
-		}
 	}
 
 	// if track is empty (unformatted) fill with '0' bytes to simulate
