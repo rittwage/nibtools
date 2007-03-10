@@ -41,7 +41,8 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		}
 
 		// add filler so track is completely erased, then append track data
-		memset(rawtrack, ((track_density[track] & BM_NO_SYNC) ? 0x55 : 0xff), sizeof(rawtrack));
+		//memset(rawtrack, ((track_density[track] & BM_NO_SYNC) ? 0x55 : 0xff), sizeof(rawtrack));
+		memset(rawtrack, 0x55, sizeof(rawtrack));
 		memcpy(rawtrack + 0x100, track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
 
 		// step to destination track and set density

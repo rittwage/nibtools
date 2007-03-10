@@ -635,12 +635,9 @@ find_sector0(BYTE * work_buffer, int tracklen, size_t * p_sectorlen)
 	} while (*pos == 0xff);
 
 	/* move to first sync byte */
-	pos += 1;
-	while (pos >= work_buffer + tracklen)
-		pos -= tracklen;
-
-	/* make sure sync is long enough or else shift back */
-	//if(*(pos+1) != 0xff) pos -= 1;
+	//pos += 1;
+	//while (pos >= work_buffer + tracklen)
+	//	pos -= tracklen;
 
 	return pos;
 }
@@ -691,12 +688,9 @@ find_sector_gap(BYTE * work_buffer, int tracklen, size_t * p_sectorlen)
 	} while (*pos == 0xff);
 
 	/* move to first sync GCR byte */
-	pos += 1;
-	while (pos >= work_buffer + tracklen)
-		pos -= tracklen;
-
-	/* make sure sync is long enough or else shift back */
-	//if(*(pos+1) != 0xff) pos -= 1;
+	//pos += 1;
+	//while (pos >= work_buffer + tracklen)
+	//	pos -= tracklen;
 
 	return pos;
 }
