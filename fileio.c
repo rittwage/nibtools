@@ -486,127 +486,12 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *trac
 	return 1;
 }
 
-int
-write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, int extract)
-{
-	/* writes contents of buffers into G64 file, with header and density information
-		extract: set to 1 to extract the track cycle, 0 to if it's already done
-	*/
-
-	BYTE header[12];
-	DWORD gcr_track_p[MAX_HALFTRACKS_1541];
-	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
-	BYTE gcr_track[G64_TRACK_MAXLEN + 2];
-	int track;
-	FILE * fpout;
-	int track_len;
-	BYTE buffer[NIB_TRACK_LENGTH];
-
-	/* when writing a G64 file, we don't care about the limitations of drive hardware */
-	capacity[0] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
-	capacity[1] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
-	capacity[2] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
-	capacity[3] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;;
-
-	fpout = fopen(filename, "wb");
-	if (fpout == NULL)
-	{
-		fprintf(stderr, "Cannot open G64 image %s.\n", filename);
-		return 0;
-	}
-
-	/* Create G64 header */
-	strcpy((char *) header, "GCR-1541");
-	header[8] = 0;	/* G64 version */
-	header[9] = (BYTE) end_track;	/* Number of Halftracks */
-	header[10] = (BYTE) (G64_TRACK_MAXLEN % 256);	/* Size of each stored track */
-	header[11] = (BYTE) (G64_TRACK_MAXLEN / 256);
-
-	if (fwrite(header, sizeof(header), 1, fpout) != 1)
-	{
-		fprintf(stderr, "Cannot write G64 header.\n");
-		return 0;
-	}
-
-	/* Create index and speed tables */
-	for (track = 0; track < MAX_HALFTRACKS_1541; track += track_inc)
-	{
-		/* calculate track positions and speed zone data */
-		if(track_inc == 2)
-		{
-			gcr_track_p[track] = 12 + MAX_TRACKS_1541 * 16 + (track/2) * (G64_TRACK_MAXLEN + 2);
-			gcr_track_p[track+1] = 0;	/* no halftracks */
-			gcr_speed_p[track] = track_density[track+2] & 3;
-			gcr_speed_p[track+1] = 0;
-		}
-		else
-		{
-			gcr_track_p[track] = 12 + MAX_TRACKS_1541 * 16 + track * (G64_TRACK_MAXLEN + 2);
-			gcr_speed_p[track] = track_density[track+2] & 3;
-		}
-
-	}
-
-	/* write headers */
-	if (write_dword(fpout, gcr_track_p, sizeof(gcr_track_p)) < 0)
-	{
-		fprintf(stderr, "Cannot write track header.\n");
-		return 0;
-	}
-	if (write_dword(fpout, gcr_speed_p, sizeof(gcr_speed_p)) < 0)
-	{
-		fprintf(stderr, "Cannot write speed header.\n");
-		return 0;
-	}
-
-	/* shuffle raw GCR between formats */
-	for (track = 0; track < 84 /*end_track*/; track += track_inc)
-	{
-		int raw_track_size[4] = { 6250, 6666, 7142, 7692 };
-
-		memset(&gcr_track[2], 0, G64_TRACK_MAXLEN);
-
-		gcr_track[0] = raw_track_size[speed_map_1541[track/2]] % 256;
-		gcr_track[1] = raw_track_size[speed_map_1541[track/2]] / 256;
-
-		if(extract)
-			track_length[track+2] = extract_GCR_track(buffer, track_buffer + ((track+2) * NIB_TRACK_LENGTH),
-				&align, force_align, capacity_min[track_density[track+2]&3], capacity_max[track_density[track+2]&3]);
-		else
-			memcpy(buffer, track_buffer + ((track+2) * NIB_TRACK_LENGTH), track_length[track+2]);
-
-		track_len = track_length[track+2];
-
-		if(track_len == 0)
-		{
-			/* track doesn't exist: write blank track */
-			track_len = raw_track_size[speed_map_1541[track/2]];
-			memset(buffer, 0, track_len);
-		}
-		else
-			track_len = process_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
-
-		gcr_track[0] = track_len % 256;
-		gcr_track[1] = track_len / 256;
-
-		// copy back our realigned track
-		memcpy(gcr_track+2, buffer, track_len);
-
-		if (fwrite(gcr_track, (G64_TRACK_MAXLEN + 2), 1, fpout) != 1)
-		{
-			fprintf(stderr, "Cannot write track data.\n");
-			return 0;
-		}
-	}
-	fclose(fpout);
-	printf("\nSuccessfully saved G64 file\n");
-	return 1;
-}
 
 int
-write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, int extract)
+write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
     /*	writes contents of buffers into D64 file, with errorblock information (if detected) */
+
 	FILE *fpout;
 	int track, sector;
 	int save_errorinfo = 0;
@@ -698,29 +583,115 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	return 1;
 }
 
+
 int
-write_dword(FILE *fd, DWORD * buf, int num)
+write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
-	int i;
-	BYTE *tmpbuf;
+	/* writes contents of buffers into G64 file, with header and density information */
 
-	tmpbuf = malloc(num);
+	BYTE header[12];
+	DWORD gcr_track_p[MAX_HALFTRACKS_1541];
+	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
+	BYTE gcr_track[G64_TRACK_MAXLEN + 2];
+	int track;
+	FILE * fpout;
+	int track_len;
+	BYTE buffer[NIB_TRACK_LENGTH];
 
-	for (i = 0; i < (num / 4); i++)
+	/* when writing a G64 file, we don't care about the limitations of drive hardware */
+	capacity[0] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+	capacity[1] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+	capacity[2] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+	capacity[3] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+
+	fpout = fopen(filename, "wb");
+	if (fpout == NULL)
 	{
-		tmpbuf[i * 4] = buf[i] & 0xff;
-		tmpbuf[i * 4 + 1] = (buf[i] >> 8) & 0xff;
-		tmpbuf[i * 4 + 2] = (buf[i] >> 16) & 0xff;
-		tmpbuf[i * 4 + 3] = (buf[i] >> 24) & 0xff;
+		fprintf(stderr, "Cannot open G64 image %s.\n", filename);
+		return 0;
 	}
 
-	if (fwrite(tmpbuf, num, 1, fd) < 1)
+	/* Create G64 header */
+	strcpy((char *) header, "GCR-1541");
+	header[8] = 0;	/* G64 version */
+	header[9] = (BYTE) end_track;	/* Number of Halftracks */
+	header[10] = (BYTE) (G64_TRACK_MAXLEN % 256);	/* Size of each stored track */
+	header[11] = (BYTE) (G64_TRACK_MAXLEN / 256);
+
+	if (fwrite(header, sizeof(header), 1, fpout) != 1)
 	{
-		free(tmpbuf);
-		return -1;
+		fprintf(stderr, "Cannot write G64 header.\n");
+		return 0;
 	}
-	free(tmpbuf);
-	return 0;
+
+	/* Create index and speed tables */
+	for (track = 0; track < MAX_HALFTRACKS_1541; track += track_inc)
+	{
+		/* calculate track positions and speed zone data */
+		if(track_inc == 2)
+		{
+			gcr_track_p[track] = 12 + MAX_TRACKS_1541 * 16 + (track/2) * (G64_TRACK_MAXLEN + 2);
+			gcr_track_p[track+1] = 0;	/* no halftracks */
+			gcr_speed_p[track] = track_density[track+2] & 3;
+			gcr_speed_p[track+1] = 0;
+		}
+		else
+		{
+			gcr_track_p[track] = 12 + MAX_TRACKS_1541 * 16 + track * (G64_TRACK_MAXLEN + 2);
+			gcr_speed_p[track] = track_density[track+2] & 3;
+		}
+
+	}
+
+	/* write headers */
+	if (write_dword(fpout, gcr_track_p, sizeof(gcr_track_p)) < 0)
+	{
+		fprintf(stderr, "Cannot write track header.\n");
+		return 0;
+	}
+	if (write_dword(fpout, gcr_speed_p, sizeof(gcr_speed_p)) < 0)
+	{
+		fprintf(stderr, "Cannot write speed header.\n");
+		return 0;
+	}
+
+	/* shuffle raw GCR between formats */
+	for (track = 0; track < 84 /*end_track*/; track += track_inc)
+	{
+		int raw_track_size[4] = { 6250, 6666, 7142, 7692 };
+
+		memset(&gcr_track[2], 0x00, G64_TRACK_MAXLEN);
+
+		gcr_track[0] = raw_track_size[speed_map_1541[track/2]] % 256;
+		gcr_track[1] = raw_track_size[speed_map_1541[track/2]] / 256;
+
+		memcpy(buffer, track_buffer + ((track+2) * NIB_TRACK_LENGTH), track_length[track+2]);
+		track_len = track_length[track+2];
+
+		if(track_len == 0)
+		{
+			/* track doesn't exist: write blank track */
+			track_len = raw_track_size[speed_map_1541[track/2]];
+			memset(buffer, 0, track_len);
+		}
+		else //if (track_len > G64_TRACK_MAXLEN)
+			track_len = process_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
+
+		gcr_track[0] = track_len % 256;
+		gcr_track[1] = track_len / 256;
+
+		// copy back our realigned track
+		memcpy(gcr_track+2, buffer, track_len);
+
+		if (fwrite(gcr_track, (G64_TRACK_MAXLEN + 2), 1, fpout) != 1)
+		{
+			fprintf(stderr, "Cannot write track data.\n");
+			return 0;
+		}
+	}
+	fclose(fpout);
+	printf("\nSuccessfully saved G64 file\n");
+	return 1;
 }
 
 int
@@ -831,5 +802,30 @@ compare_extension(char * filename, char * extension)
 		return (1);
 	else
 		return (0);
+}
+
+int
+write_dword(FILE *fd, DWORD * buf, int num)
+{
+	int i;
+	BYTE *tmpbuf;
+
+	tmpbuf = malloc(num);
+
+	for (i = 0; i < (num / 4); i++)
+	{
+		tmpbuf[i * 4] = buf[i] & 0xff;
+		tmpbuf[i * 4 + 1] = (buf[i] >> 8) & 0xff;
+		tmpbuf[i * 4 + 2] = (buf[i] >> 16) & 0xff;
+		tmpbuf[i * 4 + 3] = (buf[i] >> 24) & 0xff;
+	}
+
+	if (fwrite(tmpbuf, num, 1, fd) < 1)
+	{
+		free(tmpbuf);
+		return -1;
+	}
+	free(tmpbuf);
+	return 0;
 }
 

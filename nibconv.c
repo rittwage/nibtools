@@ -117,6 +117,11 @@ main(int argc, char **argv)
 			skip_halftracks = 1;
 			break;
 
+		case 'v':
+			printf("* Verbose mode (more detailed track info)\n");
+			verbose = 1;
+			break;
+
 		default:
 			usage();
 			break;
@@ -168,7 +173,7 @@ main(int argc, char **argv)
 
 	if (compare_extension(outname, "D64"))
 	{
-		write_d64(outname, track_buffer, track_density, track_length, 0);
+		write_d64(outname, track_buffer, track_density, track_length);
 		printf("\nWARNING!\nConverting to D64 is a lossy conversion.\n");
 		printf("All individual sector header and gap information is lost.\n");
 		printf("It is suggested you use the G64 format for most disks.\n");
@@ -177,7 +182,7 @@ main(int argc, char **argv)
 	{
 		if(skip_halftracks) track_inc = 2;
 
-		write_g64(outname, track_buffer, track_density, track_length, 0);
+		write_g64(outname, track_buffer, track_density, track_length);
 		if (compare_extension(inname, "G64"))
 		{
 			printf("\nWARNING!\nConverting from D64 to G64 is not entirely useful.\n");

@@ -97,8 +97,8 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
 int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
 int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
-int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, int extract);
-int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, int extract);
+int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
+int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
 int process_halftrack(int halftrack, BYTE *track_buffer, BYTE track_density, int track_length);
 int write_dword(FILE * fd, DWORD * buf, int num);
 
