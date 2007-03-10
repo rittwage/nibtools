@@ -19,6 +19,7 @@
 
 extern int skip_halftracks;
 extern int verbose;
+extern int fix_gcr;
 
 int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
@@ -76,6 +77,7 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 	{
 		/* get density from header or use default */
 		track_density[track] = (BYTE)(header[0x10 + (header_entry * 2) + 1]);
+		track_density[track] %= BM_MATCH;  	 /* discard unused BM_MATCH mark */
 		header_entry++;
 
 		/* get track from file */
@@ -501,10 +503,10 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	BYTE buffer[NIB_TRACK_LENGTH];
 
 	/* when writing a G64 file, we don't care about the limitations of drive hardware */
-	capacity[0] = G64_TRACK_MAXLEN;
-	capacity[1] = G64_TRACK_MAXLEN;
-	capacity[2] = G64_TRACK_MAXLEN;
-	capacity[3] = G64_TRACK_MAXLEN;
+	capacity_max[0] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+	capacity_max[1] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+	capacity_max[2] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+	capacity_max[3] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;;
 
 	fpout = fopen(filename, "wb");
 	if (fpout == NULL)
@@ -581,8 +583,8 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 			track_len = raw_track_size[speed_map_1541[track/2]];
 			memset(buffer, 0, track_len);
 		}
-		else if (track_len > G64_TRACK_MAXLEN)
-			track_len = process_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
+		//else if (track_len > G64_TRACK_MAXLEN)
+		track_len = process_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
 
 		gcr_track[0] = track_len % 256;
 		gcr_track[1] = track_len / 256;
@@ -595,12 +597,6 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 			fprintf(stderr, "Cannot write track data.\n");
 			return 0;
 		}
-
-		/* output some specs */
-		printf("%4.1f: (",(float) (track+2)/2 );
-		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-		printf("%d:%d)\n", track_density[track+2]&3, track_length[track+2]  );
 	}
 	fclose(fpout);
 	printf("\nSuccessfully saved G64 file\n");

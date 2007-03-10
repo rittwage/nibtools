@@ -308,10 +308,6 @@ compare_disks(void)
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		// discard old BM_MATCH mark
-		track_density[track] %= BM_MATCH;
-		track_density2[track] %= BM_MATCH;
-
 		printf("Track %4.1f, Disk 1: (%d) %d\n",
 		 	(float) track / 2, (track_density[track] & 3), track_length[track]);
 
