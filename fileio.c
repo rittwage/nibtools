@@ -503,10 +503,10 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	BYTE buffer[NIB_TRACK_LENGTH];
 
 	/* when writing a G64 file, we don't care about the limitations of drive hardware */
-	capacity[0] = capacity_max[0]; //G64_TRACK_MAXLEN + CAPACITY_MARGIN;
-	capacity[1] = capacity_max[1]; //G64_TRACK_MAXLEN + CAPACITY_MARGIN;
-	capacity[2] = capacity_max[2]; //G64_TRACK_MAXLEN + CAPACITY_MARGIN;
-	capacity[3] = capacity_max[3]; //G64_TRACK_MAXLEN + CAPACITY_MARGIN;;
+	capacity[0] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+	capacity[1] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+	capacity[2] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+	capacity[3] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;;
 
 	fpout = fopen(filename, "wb");
 	if (fpout == NULL)
@@ -741,9 +741,9 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	printf("%d", density & 3);
 	if ( (density&3) != speed_map_1541[(halftrack / 2) - 1]) printf("!");
 	printf(":%d) ", length);
-	if (density & BM_NO_SYNC) printf("{NOSYNC!}");
-	else if (density & BM_FF_TRACK) printf("{KILLER!}");
-	printf(" [");
+	if (density & BM_NO_SYNC) printf(" NOSYNC ");
+	else if (density & BM_FF_TRACK) printf(" KILLER ");
+	printf("[");
 
 	/* compress / expand track */
 	if (length > 0)

@@ -130,7 +130,8 @@ main(int argc, char *argv[])
 			if ((*argv)[2] == 'x')
 			{
 				printf("V-MAX!\n");
-				force_align = ALIGN_VMAX;
+				//force_align = ALIGN_VMAX;
+				force_align = ALIGN_AUTOGAP;
 				fix_gcr = 0;
 			}
 			else if ((*argv)[2] == 'g')
