@@ -503,10 +503,10 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	BYTE buffer[NIB_TRACK_LENGTH];
 
 	/* when writing a G64 file, we don't care about the limitations of drive hardware */
-	capacity_max[0] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
-	capacity_max[1] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
-	capacity_max[2] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
-	capacity_max[3] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;;
+	capacity[0] = capacity_max[0]; //G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+	capacity[1] = capacity_max[1]; //G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+	capacity[2] = capacity_max[2]; //G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+	capacity[3] = capacity_max[3]; //G64_TRACK_MAXLEN + CAPACITY_MARGIN;;
 
 	fpout = fopen(filename, "wb");
 	if (fpout == NULL)
@@ -583,8 +583,8 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 			track_len = raw_track_size[speed_map_1541[track/2]];
 			memset(buffer, 0, track_len);
 		}
-		//else if (track_len > G64_TRACK_MAXLEN)
-		track_len = process_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
+		else
+			track_len = process_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
 
 		gcr_track[0] = track_len % 256;
 		gcr_track[1] = track_len / 256;
