@@ -21,17 +21,23 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		length = process_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
-
-		// replace 0x00 bytes by 0x01, as 0x00 indicates end of track
-		replace_bytes(track_buffer + (track * NIB_TRACK_LENGTH), length, 0x00, 0x01);
-
-		/* skip empty tracks (raw mode) */
-		if ((mode == MODE_WRITE_RAW) && (length == 0))
+		if(mode == MODE_WRITE_RAW)
 		{
-			printf(".");
-			continue;
+			length = track_length[track];
+			printf("\n%4.1f: (", (float) track / 2);
+			printf("%d", track_density[track] & 3);
+			if ( (track_density[track]&3) != speed_map_1541[(track / 2) - 1]) printf("!");
+			printf(":%d) ", length);
+			if (track_density[track] & BM_NO_SYNC) printf(" NOSYNC ");
+			else if (track_density[track] & BM_FF_TRACK) printf(" KILLER ");
+			if(track_length[track] == 0)
+			{
+				printf(" [missing - skipped]\n");
+				continue;
+			}
 		}
+		else
+			length = process_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
 
 		/* zero out empty tracks entirely */
 		if( (length == NIB_TRACK_LENGTH) && (track_density[track] & BM_NO_SYNC) )
@@ -40,16 +46,19 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 				continue;
 		}
 
-		// add filler so track is completely erased, then append track data
+		/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
+		replace_bytes(track_buffer + (track * NIB_TRACK_LENGTH), length, 0x00, 0x01);
+
+		/* add filler so track is completely erased, then append track data */
 		//memset(rawtrack, ((track_density[track] & BM_NO_SYNC) ? 0x55 : 0xff), sizeof(rawtrack));
 		memset(rawtrack, 0x55, sizeof(rawtrack));
 		memcpy(rawtrack + 0x100, track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
 
-		// step to destination track and set density
+		/* step to destination track and set density */
 		step_to_halftrack(fd, track);
 		set_density(fd, track_density[track]&3);
 
-		// send track
+		/* burst send track */
 		for (i = 0; i < 10; i ++)
 		{
 			send_mnib_cmd(fd, FL_WRITENOSYNC);
@@ -81,8 +90,7 @@ write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_lengt
 	int length;
 
 	motor_on(fd);
-	if (auto_capacity_adjust)
-		adjust_target(fd);
+	if (auto_capacity_adjust) adjust_target(fd);
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
@@ -90,8 +98,7 @@ write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_lengt
 		for (density = 0; density <= 3; density++)
 		{
 			sprintf(testfilename, "raw/tr%dd%d", track / 2, density);
-			if ((trkin = fopen(testfilename, "rb")))
-				break;
+			if ((trkin = fopen(testfilename, "rb"))) break;
 		}
 
 		if (trkin)
