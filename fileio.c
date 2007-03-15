@@ -722,9 +722,9 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	printf(":%d) ", length);
 
 	if (density & BM_NO_SYNC)
-		printf(" NOSYNC ");
+		printf("NOSYNC ");
 	else if (density & BM_FF_TRACK)
-		printf(" KILLER ");
+		printf("KILLER ");
 
 	printf("[");
 
