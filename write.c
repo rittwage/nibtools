@@ -16,8 +16,10 @@
 void
 master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
+	#define LEADER  0x100
+
 	int track, length, i;
-	BYTE rawtrack[NIB_TRACK_LENGTH + 0x100];
+	BYTE rawtrack[NIB_TRACK_LENGTH + LEADER];
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
@@ -52,7 +54,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		/* add filler so track is completely erased, then append track data */
 		//memset(rawtrack, ((track_density[track] & BM_NO_SYNC) ? 0x55 : 0xff), sizeof(rawtrack));
 		memset(rawtrack, 0x55, sizeof(rawtrack));
-		memcpy(rawtrack + 0x100, track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
+		memcpy(rawtrack + LEADER, track_buffer + (track * NIB_TRACK_LENGTH), length);
 
 		/* step to destination track and set density */
 		step_to_halftrack(fd, track);
@@ -64,7 +66,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 			send_mnib_cmd(fd, FL_WRITENOSYNC);
 			cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
 
-			if (!cbm_parallel_burst_write_track(fd, rawtrack, 0x100 + length))
+			if (!cbm_parallel_burst_write_track(fd, rawtrack, length + LEADER))
 			{
 				//putchar('?');
 				fflush(stdin);
