@@ -28,11 +28,17 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 			length = track_length[track];
 			printf("\n%4.1f: (", (float) track / 2);
 			printf("%d", track_density[track] & 3);
-			if ( (track_density[track]&3) != speed_map_1541[(track / 2) - 1]) printf("!");
+
+			if ( (track_density[track]&3) != speed_map_1541[(track / 2) - 1])
+				printf("!");
 			printf(":%d) ", length);
-			if (track_density[track] & BM_NO_SYNC) printf(" NOSYNC ");
-			else if (track_density[track] & BM_FF_TRACK) printf(" KILLER ");
-			if(track_length[track] == 0)
+
+			if (track_density[track] & BM_NO_SYNC)
+				printf("NOSYNC ");
+			else if (track_density[track] & BM_FF_TRACK)
+				printf("KILLER ");
+
+		if(track_length[track] == 0)
 			{
 				printf(" [missing - skipped]");
 				continue;
