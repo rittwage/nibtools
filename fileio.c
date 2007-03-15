@@ -317,7 +317,8 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 	/* reads contents of a D64 file */
 
 	int track, sector, sector_ref;
-	BYTE buffer[256], gcrdata[NIB_TRACK_LENGTH];
+	BYTE buffer[256];
+	BYTE gcrdata[NIB_TRACK_LENGTH];
 	BYTE errorinfo[MAXBLOCKSONDISK];
 	BYTE id[3] = { 0, 0, 0 };
 	int error, d64size, last_track;
@@ -504,6 +505,8 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	BYTE errorinfo[MAXBLOCKSONDISK], errorcode;
 	int blocks_to_save;
 
+	memset(errorinfo, 0,sizeof(errorinfo));
+
 	/* create output file */
 	if ((fpout = fopen(filename, "wb")) == NULL)
 	{
@@ -526,6 +529,8 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		for (sector = 0; sector < sector_map_1541[track/2]; sector++)
 		{
 			printf("%d", sector);
+
+			memset(rawdata, 0,sizeof(rawdata));
 
 			errorcode = convert_GCR_sector(track_buffer + (track * NIB_TRACK_LENGTH),
 				track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
