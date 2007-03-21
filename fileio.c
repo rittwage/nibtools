@@ -468,10 +468,13 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *trac
 		fflush(fpout);
 
 		/* output some specs */
-		printf("%4.1f: (",(float) track / 2);
-		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
+		if(verbose)
+		{
+			printf("%4.1f: (",(float) track / 2);
+			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+			printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
+		}
 	}
 
 	/* fill NIB-header */

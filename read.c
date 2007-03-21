@@ -56,8 +56,24 @@ read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_density)
 		}
 
 		/* output current density */
-		printf(" (%d) ",density&3);
-		fprintf(fplog," (%d) ",density&3);
+		printf("(%d",density&3);
+		fprintf(fplog,"(%d",density&3);
+
+		if ( (density&3) != speed_map_1541[(halftrack / 2) - 1])
+			printf("!=%d", speed_map_1541[(halftrack / 2) - 1]);
+
+		if(density & BM_FF_TRACK)
+		{
+			printf(" KILLER");
+			fprintf(fplog, " KILLER");
+		}
+		if(density & BM_NO_SYNC)
+		{
+			printf(" NOSYNC");
+			fprintf(fplog," NOSYNC");
+		}
+		printf(") ");
+		fprintf(fplog,") ");
 	}
 	else
 			density = lastdensity;
@@ -141,13 +157,18 @@ paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_de
 
 		// if we have a killer track and are ignoring them, exit processing
 		if((denso & BM_FF_TRACK) && (!read_killer))
-			break;
+		{
+			printf("[KILLER]\n");
+			fprintf(fplog, "KILLER - %s (%d)\n", errorstring, leno);
+			memcpy(buffer, bufo, NIB_TRACK_LENGTH);
+			return (denso);
+		}
 
 		// If we get nothing we are on an empty track (unformatted)
 		if (!leno)
 		{
 			printf("[UNFORMATTED]\n");
-			fprintf(fplog, "%s (%d)\n", errorstring, leno);
+			fprintf(fplog, "UNFORMATTED - %s (%d)\n", errorstring, leno);
 			memcpy(buffer, bufo, NIB_TRACK_LENGTH);
 			return (denso);
 		}
@@ -392,7 +413,7 @@ void get_disk_id(CBM_FILE fd)
 		BYTE buffer[NIB_TRACK_LENGTH];
 
 		/* read track 18 for ID checks*/
-		density = read_halftrack(fd, 18 * 2, buffer, 0xff);
+		density = read_halftrack(fd, 18 * 2, buffer, 2);
 
 		/* print cosmetic disk id */
 		memset(diskid, 0, sizeof(diskid));
@@ -438,11 +459,7 @@ scan_track(CBM_FILE fd, int track)
 	killer_info = cbm_parallel_burst_read(fd);
 
 	if (killer_info & BM_FF_TRACK)
-	{
-			printf("KILLER! ");
-			fprintf(fplog, "KILLER! ");
 			return (density | killer_info);
-	}
 
 	for (bin = 0; bin < 4; bin++)
 		density_major[bin] = density_stats[bin] = 0;
@@ -471,14 +488,15 @@ scan_track(CBM_FILE fd, int track)
 	{
 		if(density_major[i] > 1)
 		{
-			printf("{%d:%3d/%2d}",i,density_stats[i],density_major[i]);
+			if(verbose) printf("{%d:%3d/%2d}",i,density_stats[i],density_major[i]);
 			dens_detected = 1;
 		}
 
 		fprintf(fplog,"{%d:%3d/%2d}",i,density_stats[i],density_major[i]);
 	}
 
-	if(!dens_detected) printf("{ NOGCR? }");
+	if((!dens_detected) && (verbose))
+		printf("{ NOGCR? }");
 
 	// if the default density flagged a good detect, skip calculations
 	if ((density_major[density] > 0) && (!killer_info))
@@ -509,14 +527,7 @@ rescan:
 		killer_info = cbm_parallel_burst_read(fd);
 
 		if (killer_info & BM_NO_SYNC)
-		{
-			if(!i)
-			{
-				printf(" NOSYNC!");
-				fprintf(fplog, " NOSYNC!");
-			}
 			return (density | killer_info);
-		}
 	}
 	return (density | killer_info);
 }

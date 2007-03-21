@@ -9,8 +9,8 @@
 ;    ! But, a new SYNC mark is written, one for the whole track
 ;
 ; (From Pete)
-; It's writing 7424 bytes after the sync mark, so it should not overwrite
-; the sync at density 3 unless the drive motor is really, really fast..
+; It's writing 7696 bytes total at density 3, so it should not overwrite
+; the sync unless the drive motor is really, really fast.  This is standard for 300RPM
 
 ; $c2: current track
 ; $c3-$c8: density statistic bins
@@ -125,7 +125,7 @@ _read_gcr_2:
         CLV                       ;
         STX  PP_BASE              ; PA, port A (8 bit parallel data)
         STA  $1800                ; send handshake
-        INY                       ;
+	INY                       ;
 _rtp2:
         BNE  _read_gcr_loop
         DEC  $c0                  ; total byte counter hb
@@ -572,7 +572,7 @@ _format_track:
 _ftL1:
         BVC  _ftL1                ;
         CLV                       ;
-        INY                       ; write $0200 times
+        INY                       ; write $0200 times (no, Y is always 0, so $100 times)
         BNE  _ftL1                ; makes a clean start of track
         DEX                       ;
         BNE  _ftL1                ;
