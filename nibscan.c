@@ -156,6 +156,12 @@ main(int argc, char *argv[])
 				force_align = ALIGN_VMAX;
 				fix_gcr= 0;
 			}
+			else if ((*argv)[2] == 'c')
+			{
+				printf("V-MAX! (CINEMAWARE)\n");
+				force_align = ALIGN_VMAX_CW;
+				fix_gcr = 0;
+			}
 			else if ((*argv)[2] == 'g')
 			{
 				printf("GMA/SecuriSpeed\n");

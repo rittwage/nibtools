@@ -48,17 +48,12 @@ align_vmax(BYTE * work_buffer, int tracklen)
 	start_pos = work_buffer;
 	buffer_end = work_buffer + tracklen;
 
-	/* Try to find V-MAX track marker bytes
-	    0x4b (cinemaware track 20)
-	    0x5a (three stooges)
-	    0x49 (dotc)
-	    0xa5 (cinemaware other tracks)
-	*/
+	/* Try to find V-MAX track marker bytes	*/
 
 	while (pos < buffer_end)
 	{
 		// duplicator's markers
-		if ((*pos == 0x4b) || (*pos == 0x5a) || (*pos == 0x49)  || (*pos == 0xa5))
+		if ( (*pos == 0x4b) || (*pos == 0x5a) || (*pos == 0x49)  || (*pos == 0xa5))
 		{
 			if(!run) start_pos = pos;  // mark first byte
 			if (run > 5) return (start_pos); // assume this is it
@@ -72,6 +67,32 @@ align_vmax(BYTE * work_buffer, int tracklen)
 
 	return (0);
 }
+
+BYTE *
+align_vmax_cw(BYTE * work_buffer, int tracklen)
+{
+	BYTE *pos, *buffer_end, *start_pos;
+	int run;
+
+	run = 0;
+	pos = work_buffer;
+	start_pos = work_buffer;
+	buffer_end = work_buffer + tracklen;
+
+	/* Cinemaware titles have a marker $64 $a5 $a5 $a5 */
+
+	while (pos < buffer_end - 3)
+	{
+		// duplicator's markers
+		if ( (*pos == 0x64) && (*(pos+1) == 0xa5) && (*(pos+2) == 0xa5) && (*(pos+3) == 0xa5) )
+			return (pos); // assume this is it
+		else
+			pos++;
+	}
+
+	return (0);
+}
+
 
 // Line up the track cycle to the start of the longest gap mark
 // this helps some custom protection tracks master properly

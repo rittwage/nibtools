@@ -43,7 +43,7 @@ BYTE speed_map_1541[MAX_TRACKS_1541] = {
 	0, 0, 0, 0, 0, 0, 0	/* 36 - 42 (non-standard) */
 };
 
-char alignments[][20] = { "NONE", "GAP", "SEC0", "SYNC", "WEAK", "VMAX", "AUTO" };
+char alignments[][20] = { "NONE", "GAP", "SEC0", "SYNC", "WEAK", "VMAX", "AUTO", "VMAX-CW"};
 
 /* Burst Nibbler defaults
 int capacity_min[] = 		{ 6183, 6598, 7073, 7616 };
@@ -774,6 +774,16 @@ extract_GCR_track(BYTE *destination, BYTE *source, int *align,
 	// forced track alignments
 	if (force_align != ALIGN_NONE)
 	{
+		if (force_align == ALIGN_VMAX_CW)
+		{
+			*align = ALIGN_VMAX_CW;
+			marker_pos = align_vmax_cw(work_buffer, track_len);
+
+			/* for the tracks without the mark, align to the weak gap */
+			if(!marker_pos)
+				force_align = ALIGN_VMAX;
+		}
+
 		if (force_align == ALIGN_VMAX)
 		{
 			*align = ALIGN_VMAX;

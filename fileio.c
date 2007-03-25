@@ -792,15 +792,6 @@ process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 		length = NIB_TRACK_LENGTH;
 	}
 
-	// handle short tracks
-	orglen = length;
-	if(length < capacity[density & 3] - CAPACITY_MARGIN)
-	{
-		memset(gcrdata + length, 0x55, capacity[density & 3] - CAPACITY_MARGIN - length);
-		length = capacity[density & 3] - CAPACITY_MARGIN;
-		printf("pad:%d ", length - orglen);
-	}
-
 	// write processed track buffer
 	memcpy(track_buffer, gcrdata, length);
 

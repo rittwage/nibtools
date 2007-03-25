@@ -63,6 +63,14 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		//memset(rawtrack, 0x55, sizeof(rawtrack));
 		memcpy(rawtrack + LEADER, track_buffer + (track * NIB_TRACK_LENGTH), length);
 
+		/* handle short tracks that won't 'loop overwrite' existing data */
+		if(length + LEADER < capacity[track_density[track] & 3] - CAPACITY_MARGIN)
+		{
+				memset(rawtrack + length + LEADER, 0x55, (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - length);
+				printf("[PAD:%d]", (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - length);
+				length = capacity[track_density[track] & 3] - CAPACITY_MARGIN;
+		}
+
 		/* step to destination track and set density */
 		step_to_halftrack(fd, track);
 		set_density(fd, track_density[track]&3);
