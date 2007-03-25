@@ -59,8 +59,8 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		replace_bytes(track_buffer + (track * NIB_TRACK_LENGTH), length, 0x00, 0x01);
 
 		/* add filler so track is completely erased, then append track data */
-		//memset(rawtrack, ((track_density[track] & BM_NO_SYNC) ? 0x55 : 0xff), sizeof(rawtrack));
-		memset(rawtrack, 0x55, sizeof(rawtrack));
+		memset(rawtrack, ((track_density[track] & BM_NO_SYNC) ? 0x55 : 0xff), sizeof(rawtrack));
+		//memset(rawtrack, 0x55, sizeof(rawtrack));
 		memcpy(rawtrack + LEADER, track_buffer + (track * NIB_TRACK_LENGTH), length);
 
 		/* step to destination track and set density */
@@ -185,29 +185,12 @@ adjust_target(CBM_FILE fd)
 		printf("Density %d: %d (min:%d, max:%d)", i,  capacity[i],
 		        capacity_min[i], capacity_max[i]);
 
-		if (capacity[i] < capacity_min[i] || capacity[i] > capacity_max[i])
+		switch(i)
 		{
-			printf(" [OUT OF RANGE]\n");
-		}
-		else if (capacity[i] < capacity_min[i] || capacity[i] > capacity_max[i])
-		{
-			printf("\nMotor speed is too far out of range.\n\n");
-			printf("Possible problems:\n");
-			printf("1) No disk in drive.\n");
-			printf("2) Write protect is on.\n");
-			printf("3) Disk is damaged.\n");
-			printf("4) Drive needs adjusted, cleaned, or repaired.\n");
-			exit(2);
-		}
-		else
-		{
-			switch(i)
-			{
-				case 0: printf(" [%.2f RPM]\n",DENSITY0 / capacity[0]); break;
-				case 1: printf(" [%.2f RPM]\n",DENSITY1 / capacity[1]); break;
-				case 2: printf(" [%.2f RPM]\n",DENSITY2 / capacity[2]); break;
-				case 3: printf(" [%.2f RPM]\n",DENSITY3 / capacity[3]); break;
-			}
+			case 0: printf(" [%.2f RPM]\n",DENSITY0 / capacity[0]); break;
+			case 1: printf(" [%.2f RPM]\n",DENSITY1 / capacity[1]); break;
+			case 2: printf(" [%.2f RPM]\n",DENSITY2 / capacity[2]); break;
+			case 3: printf(" [%.2f RPM]\n",DENSITY3 / capacity[3]); break;
 		}
 	}
 
