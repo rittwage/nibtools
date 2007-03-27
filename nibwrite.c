@@ -113,6 +113,7 @@ main(int argc, char *argv[])
 			break;
 
 		case 'B':
+		case 'S':
 			if (!(*argv)[2]) usage();
 			start_track_override = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
 			printf("* Start track set to %d\n", start_track_override/2);
@@ -120,6 +121,7 @@ main(int argc, char *argv[])
 			auto_capacity_adjust = 0;
 			break;
 
+		case 'l':
 		case 'E':
 			if (!(*argv)[2]) usage();
 			end_track_override = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
@@ -386,6 +388,8 @@ usage(void)
 {
 	fprintf(stderr, "usage: nibwrite [options] <filename>\n\n"
 	     " -D[n[: Use drive #[n]\n"
+	     " -S[n]: Override starting track\n"
+	     " -E[n]: Override ending track\n"
 	     " -a[x]: Force alternative track alignments (advanced users only)\n"
 	     " -p[x]: Custom protection handlers (advanced users only)\n"
 	     " -s[n]: Manual track skew (in microseconds)\n"

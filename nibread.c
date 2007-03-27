@@ -144,18 +144,14 @@ main(int argc, char *argv[])
 			printf("* Disable reading of 'killer' tracks\n");
 			break;
 
-		case 'l':
-			if (!(*argv)[2]) usage();
-			end_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
-			printf("* Limiting functions to %d tracks\n", end_track/2);
-			break;
-
+		case 'S':
 		case 'B':
 			if (!(*argv)[2]) usage();
 			start_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
 			printf("* Start track set to %d\n", start_track/2);
 			break;
 
+		case 'l':
 		case 'E':
 			if (!(*argv)[2]) usage();
 			end_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
@@ -334,7 +330,8 @@ usage(void)
 	fprintf(stderr, "usage: nibread [options] <filename>\n\n"
 	     " -D[n]: Use drive #[n]\n"
 	     " -e[n]: Retry reading tracks with errors [n] times\n"
-	     " -l[n]: Limit functions to [n] tracks. (advanced users only)\n"
+	     " -S[n]: Override starting track\n"
+	     " -E[n]: Override ending track\n"
 	     " -G[n]: Match track gap by [n] number of bytes (advanced users only)\n"
 	     " -k: Disable reading of 'killer' tracks\n"
 	     " -d: Force default densities\n"
