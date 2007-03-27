@@ -117,8 +117,6 @@ main(int argc, char *argv[])
 			if (!(*argv)[2]) usage();
 			start_track_override = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
 			printf("* Start track set to %d\n", start_track_override/2);
-			/* we have to disable this so we don't overwrite other tracks */
-			auto_capacity_adjust = 0;
 			break;
 
 		case 'l':
@@ -126,8 +124,6 @@ main(int argc, char *argv[])
 			if (!(*argv)[2]) usage();
 			end_track_override = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
 			printf("* End track set to %d\n", end_track_override/2);
-			/* we have to disable this so we don't overwrite other tracks */
-			auto_capacity_adjust = 0;
 			break;
 
 		case 't':

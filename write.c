@@ -179,14 +179,15 @@ adjust_target(CBM_FILE fd)
 {
 	int i;
 	unsigned int cap1, cap2;
-	BYTE track_dens[4] = { 35*2, 30*2, 24*2, 17*2 };
+	//BYTE track_dens[4] = { 35*2, 30*2, 24*2, 17*2 };
 
 	printf("\nTesting track capacity at each density\n");
 	printf("--------------------------------------------------\n");
 
 	for (i = 0; i <= 3; i++)
 	{
-		step_to_halftrack(fd, track_dens[i]);
+		//step_to_halftrack(fd, track_dens[i]);
+		step_to_halftrack(fd, start_track);
 
 		set_bitrate(fd, i);
 
