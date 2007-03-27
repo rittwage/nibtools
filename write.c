@@ -39,7 +39,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 			else if (track_density[track] & BM_FF_TRACK)
 				printf(" KILLER ");
 
-		if(track_length[track] == 0)
+			if(track_length[track] == 0)
 			{
 				printf(" [missing - skipped]");
 				continue;
@@ -58,9 +58,14 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
 		replace_bytes(track_buffer + (track * NIB_TRACK_LENGTH), length, 0x00, 0x01);
 
-		/* add filler so track is completely erased, then append track data */
-		memset(rawtrack, ((track_density[track] & BM_NO_SYNC) ? 0x55 : 0xff), sizeof(rawtrack));
-		//memset(rawtrack, 0x55, sizeof(rawtrack));
+		/* add filler so track is completely erased */
+		memset(rawtrack, 0x55, sizeof(rawtrack));
+
+		/* insert one very short sync */
+		if(! (track_density[track] & BM_NO_SYNC))
+			memset(rawtrack + LEADER - 2, 0xff, 2);
+
+		/* append real track data */
 		memcpy(rawtrack + LEADER, track_buffer + (track * NIB_TRACK_LENGTH), length);
 
 		/* handle short tracks that won't 'loop overwrite' existing data */

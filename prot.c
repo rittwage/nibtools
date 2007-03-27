@@ -43,12 +43,12 @@ align_vmax(BYTE * work_buffer, int tracklen)
 	BYTE *pos, *buffer_end, *start_pos;
 	int run;
 
+	/* Try to find V-MAX track marker bytes	*/
+
 	run = 0;
 	pos = work_buffer;
 	start_pos = work_buffer;
 	buffer_end = work_buffer + tracklen;
-
-	/* Try to find V-MAX track marker bytes	*/
 
 	while (pos < buffer_end)
 	{
@@ -64,8 +64,43 @@ align_vmax(BYTE * work_buffer, int tracklen)
 
 		pos++;
 	}
-
 	return (0);
+}
+
+BYTE *
+align_vmax_new(BYTE * work_buffer, int tracklen)
+{
+	BYTE *pos, *buffer_end, *key_temp, *key;
+	int run, longest;
+
+	run = 0;
+	longest = 0;
+	pos = work_buffer;
+	buffer_end = work_buffer + tracklen;
+	key = key_temp = NULL;
+
+	/* try to find longest good gcr run */
+	while (pos < buffer_end - 2)
+	{
+		if ( (*pos == 0x4b) || (*pos == 0x5a) || (*pos == 0x49)  || (*pos == 0xa5) )
+		{
+			if(run > 5) key_temp = pos - run;
+			run++;
+		}
+		else
+		{
+			if (run > longest)
+			{
+				key = key_temp;
+				longest = run;
+				//gapbyte = *pos;
+			}
+			run = 0;
+		}
+		pos++;
+	}
+
+	return(key);
 }
 
 BYTE *
@@ -92,7 +127,6 @@ align_vmax_cw(BYTE * work_buffer, int tracklen)
 
 	return (0);
 }
-
 
 // Line up the track cycle to the start of the longest gap mark
 // this helps some custom protection tracks master properly

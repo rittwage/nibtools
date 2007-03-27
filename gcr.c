@@ -779,7 +779,6 @@ extract_GCR_track(BYTE *destination, BYTE *source, int *align,
 			*align = ALIGN_VMAX_CW;
 			marker_pos = align_vmax_cw(work_buffer, track_len);
 
-			/* for the tracks without the mark, align to the weak gap */
 			if(!marker_pos)
 				force_align = ALIGN_VMAX;
 		}
@@ -960,8 +959,8 @@ check_sync_flags(BYTE *gcrdata, int density, int length)
 	{
 		density |= BM_FF_TRACK;
 	}
-	// else do nothing
 
+	// else do nothing
 	return ( density & 0xFF );
 }
 

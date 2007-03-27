@@ -25,6 +25,7 @@ BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 int track_length[MAX_HALFTRACKS_1541 + 1];
 
 int start_track, end_track, track_inc;
+int start_track_override, end_track_override;
 int reduce_syncs, reduce_weak, reduce_gaps;
 int fix_gcr, aggressive_gcr;
 int align, force_align;
@@ -71,8 +72,10 @@ main(int argc, char *argv[])
 #endif
 	bump = reset = 1;	// by default, use reset, bump
 
-	start_track = 2;
+	start_track =  2;
 	end_track = 82;
+	start_track_override = 0;
+	end_track_override = 0;
 	track_inc = 2;
 
 	reduce_syncs = 1;
@@ -107,6 +110,22 @@ main(int argc, char *argv[])
 			//start_track = 1;  /* my drive knocks on this track - PJR */
 			end_track = 83;
 			printf("* Using halftracks\n");
+			break;
+
+		case 'B':
+			if (!(*argv)[2]) usage();
+			start_track_override = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
+			printf("* Start track set to %d\n", start_track_override/2);
+			/* we have to disable this so we don't overwrite other tracks */
+			auto_capacity_adjust = 0;
+			break;
+
+		case 'E':
+			if (!(*argv)[2]) usage();
+			end_track_override = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
+			printf("* End track set to %d\n", end_track_override/2);
+			/* we have to disable this so we don't overwrite other tracks */
+			auto_capacity_adjust = 0;
 			break;
 
 		case 't':
@@ -351,6 +370,9 @@ file2disk(CBM_FILE fd, char * filename)
 	}
 
 	track_inc = 2;  /* 15x1 can't write halftracks */
+	if(start_track_override) start_track = start_track_override;
+	if(end_track_override) end_track = end_track_override;
+
 	master_disk(fd, track_buffer, track_density, track_length);
 	step_to_halftrack(fd, 18 * 2);
 	cbm_parallel_burst_read(fd);

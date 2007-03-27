@@ -150,6 +150,18 @@ main(int argc, char *argv[])
 			printf("* Limiting functions to %d tracks\n", end_track/2);
 			break;
 
+		case 'B':
+			if (!(*argv)[2]) usage();
+			start_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
+			printf("* Start track set to %d\n", start_track/2);
+			break;
+
+		case 'E':
+			if (!(*argv)[2]) usage();
+			end_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
+			printf("* End track set to %d\n", end_track/2);
+			break;
+
 		case 'D':
 			if (!(*argv)[2]) usage();
 			drive = (BYTE) atoi((char *) (&(*argv)[2]));
