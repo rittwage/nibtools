@@ -945,9 +945,10 @@ check_sync_flags(BYTE *gcrdata, int density, int length)
 	int i, syncs = 0;
 
 	// check manually for SYNCKILL
-	for (i = 0; i < length; i++)
+	for (i = 0; i < length - 1; i++)
 	{
-		if (gcrdata[i] == 0xff)
+		/* NOTE: This is not flagging true sync marks, only the last 8 bits of it */
+		if ( ((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i+1] == 0xff) )
 			syncs++;
 	}
 
@@ -955,7 +956,7 @@ check_sync_flags(BYTE *gcrdata, int density, int length)
 	{
 		density |= BM_NO_SYNC;
 	}
-	else if (syncs == length)
+	else if (syncs == length - 1)
 	{
 		density |= BM_FF_TRACK;
 	}

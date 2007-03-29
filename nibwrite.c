@@ -333,13 +333,6 @@ file2disk(CBM_FILE fd, char * filename)
 	memset(track_buffer, 0, sizeof(track_buffer));
 	memset(track_density, 0, sizeof(track_density));
 
-	/* turn on motor and measure speed */
-	motor_on(fd);
-
-	/* prepare fisk for writing */
-	if(auto_capacity_adjust) adjust_target(fd);
-	if(align_disk) init_aligned_disk(fd);
-
 	/* read and remaster disk */
 	if (compare_extension(filename, "D64"))
 	{
@@ -370,6 +363,13 @@ file2disk(CBM_FILE fd, char * filename)
 	track_inc = 2;  /* 15x1 can't write halftracks */
 	if(start_track_override) start_track = start_track_override;
 	if(end_track_override) end_track = end_track_override;
+
+	/* turn on motor and measure speed */
+	motor_on(fd);
+
+	/* prepare fisk for writing */
+	if(auto_capacity_adjust) adjust_target(fd);
+	if(align_disk) init_aligned_disk(fd);
 
 	master_disk(fd, track_buffer, track_density, track_length);
 	step_to_halftrack(fd, 18 * 2);
