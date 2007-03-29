@@ -557,7 +557,7 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 			if (errorcode == SECTOR_OK)
 				printf(" ");
 			else
-				printf("%d", errorcode);
+				printf("%.1x", errorcode);
 
 			/* dump to buffer */
 			memcpy(d64ptr, rawdata+1 , 256);
