@@ -85,6 +85,43 @@ main(int argc, char **argv)
 			printf("* Gap match length set to %d\n", gap_match_length);
 			break;
 
+		case 'p':
+			// custom protection handling
+			printf("* Custom copy protection handler: ");
+			if ((*argv)[2] == 'x')
+			{
+				printf("V-MAX!\n");
+				force_align = ALIGN_VMAX;
+				fix_gcr = 0;
+			}
+			else if ((*argv)[2] == 'c')
+			{
+				printf("V-MAX! (CINEMAWARE)\n");
+				force_align = ALIGN_VMAX_CW;
+				fix_gcr = 0;
+			}
+			else if ((*argv)[2] == 'g')
+			{
+				printf("GMA/SecuriSpeed\n");
+				reduce_syncs = 0;
+				reduce_weak = 1;
+			}
+			else if ((*argv)[2] == 'v')
+			{
+				printf("VORPAL (NEWER)\n");
+				force_align = ALIGN_AUTOGAP;
+			}
+			else if ((*argv)[2] == 'r')
+			{
+				printf("RAPIDLOK\n");
+				reduce_syncs = 0;
+				reduce_weak = 1;
+				reduce_gaps = 1;
+			}
+			else
+				printf("Unknown protection handler\n");
+			break;
+
 		case 'a':
 			// custom alignment handling
 			printf("ARG: Custom alignment = ");

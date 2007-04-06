@@ -251,3 +251,48 @@ find_long_sync(BYTE * work_buffer, int tracklen)
 	/* first byte of longest sync run */
 	return (key);
 }
+
+#include <assert.h>
+
+void fix_first_gcr(BYTE *gcrdata, int length, int pos)
+{
+    // fix first bad byte in a row
+    unsigned int lastbyte, mask, data;
+    BYTE dstmask;
+
+    lastbyte = (pos == 0) ? gcrdata[length-1] : gcrdata[pos-1];
+    data = ((lastbyte & 0x03) << 8) | gcrdata[pos];
+
+    dstmask = 0x80;
+    for (mask = (7 << 7); mask >= 7; mask >>= 1)
+    {
+        if ((data & mask) == 0)
+            break;
+        else
+            dstmask = (dstmask >> 1) | 0x80;
+    }
+    assert(mask >= 7);
+    gcrdata[pos] &= dstmask;
+}
+
+
+void fix_last_gcr(BYTE *gcrdata, int length, int pos)
+{
+    // fix last bad byte in a row
+    unsigned int lastbyte, mask, data;
+    BYTE dstmask;
+
+    lastbyte = (pos == 0) ? gcrdata[length-1] : gcrdata[pos-1];
+    data = ((lastbyte & 0x03) << 8) | gcrdata[pos];
+
+    dstmask = 0x00;
+    for (mask = 7; mask <= (7 << 7); mask = mask << 1)
+    {
+        if ((data & mask) == 0)
+            break;
+        else
+            dstmask = (dstmask << 1) | 0x01;
+    }
+    assert(mask <= (7 << 7));
+    gcrdata[pos] &= dstmask;
+}

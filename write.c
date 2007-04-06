@@ -177,8 +177,9 @@ unformat_track(CBM_FILE fd, int track)
 void
 adjust_target(CBM_FILE fd)
 {
-	int i;
-	unsigned int cap1, cap2;
+	int i, j;
+	unsigned int cap[DENSITY_SAMPLES];
+	int run_total;
 	//BYTE track_dens[4] = { 35*2, 30*2, 24*2, 17*2 };
 
 	printf("\nTesting track capacity at each density\n");
@@ -191,13 +192,18 @@ adjust_target(CBM_FILE fd)
 
 		set_bitrate(fd, i);
 
-		cap1 = track_capacity(fd);
-		cap2 = track_capacity(fd);
+		printf("Density %d: ", i);
 
-		capacity[i] = (cap1 + cap2) / 2;
+		for(j = 0, run_total = 0; j < DENSITY_SAMPLES; j++)
+		{
+			cap[j] = track_capacity(fd);
+			printf("%d ", cap[j]);
+			run_total += cap[j];
+		}
 
-		printf("Density %d: %d (min:%d, max:%d)", i,  capacity[i],
-		        capacity_min[i], capacity_max[i]);
+		capacity[i] = run_total / DENSITY_SAMPLES;
+
+		//printf("(min:%d, max:%d)", capacity_min[i], capacity_max[i]);
 
 		switch(i)
 		{

@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include "gcr.h"
 #include "prot.h"
 
@@ -948,8 +947,8 @@ check_sync_flags(BYTE *gcrdata, int density, int length)
 	for (i = 0; i < length - 1; i++)
 	{
 		/* NOTE: This is not flagging true sync marks, only the last 8 bits of it */
-		if ( ((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i+1] == 0xff) )
-			syncs++;
+		//if ( ((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i+1] == 0xff) )  syncs++;
+		if (gcrdata[i] == 0xff) syncs++;
 	}
 
 	if(!syncs)
@@ -1330,8 +1329,7 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 			{
 				sbadgcr = S_BADGCR_LOST;
 				//if(fix) fix_first_gcr(gcrdata, length, lastpos);
-				if (fix)
-					gcrdata[lastpos] = 0x00;
+				if (fix) gcrdata[lastpos] = 0x00;
 				total++;
 			}
 			else
@@ -1348,8 +1346,7 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 			{
 				sbadgcr = S_BADGCR_OK;
 				//if(fix) fix_last_gcr(gcrdata, length, lastpos);
-				if (fix)
-					gcrdata[lastpos] = 0x00;
+				if (fix) gcrdata[lastpos] = 0x00;
 			}
 			total++;
 			break;
@@ -1369,8 +1366,7 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 		if (b_badgcr || n_badgcr)
 		{
 			//if(fix) fix_first_gcr(gcrdata, length, lastpos);
-			if (fix)
-				gcrdata[lastpos] = 0x00;
+			if (fix) gcrdata[lastpos] = 0x00;
 			total++;
 		}
 		break;
@@ -1381,8 +1377,7 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 		else
 		{
 			//if(fix) fix_last_gcr(gcrdata, length, lastpos);
-			if (fix)
-				gcrdata[lastpos] = 0x00;
+			if (fix) gcrdata[lastpos] = 0x00;
 		}
 		total++;
 		break;
