@@ -119,7 +119,7 @@ write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_lengt
 		// read in raw track at density (in filename)
 		for (density = 0; density <= 3; density++)
 		{
-			sprintf(testfilename, "raw/tr%dd%d", track / 2, density);
+			sprintf(testfilename, "raw/tr%.1fd%d", (float) track/2, density);
 			if ((trkin = fopen(testfilename, "rb"))) break;
 		}
 
@@ -207,10 +207,10 @@ adjust_target(CBM_FILE fd)
 
 		switch(i)
 		{
-			case 0: printf(" [%.2f RPM]\n",DENSITY0 / capacity[0]); break;
-			case 1: printf(" [%.2f RPM]\n",DENSITY1 / capacity[1]); break;
-			case 2: printf(" [%.2f RPM]\n",DENSITY2 / capacity[2]); break;
-			case 3: printf(" [%.2f RPM]\n",DENSITY3 / capacity[3]); break;
+			case 0: printf("[%.2f RPM]\n",DENSITY0 / capacity[0]); break;
+			case 1: printf("[%.2f RPM]\n",DENSITY1 / capacity[1]); break;
+			case 2: printf("[%.2f RPM]\n",DENSITY2 / capacity[2]); break;
+			case 3: printf("[%.2f RPM]\n",DENSITY3 / capacity[3]); break;
 		}
 	}
 

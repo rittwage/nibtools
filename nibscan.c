@@ -577,7 +577,7 @@ scandisk(void)
 		length = track_length[track];
 		//length = process_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
 
-		sprintf(testfilename, "raw/tr%dd%d", track/2, (track_density[track] & 3));
+		sprintf(testfilename, "raw/tr%.1fd%d", (float) track/2, (track_density[track] & 3));
 		if(NULL != (trkout = fopen(testfilename, "w")))
 		{
 			fwrite(track_buffer + (track * NIB_TRACK_LENGTH), length, 1, trkout);
