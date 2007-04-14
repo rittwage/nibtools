@@ -899,7 +899,8 @@ strip_runs(BYTE * buffer, int length, int minrun, BYTE target)
 	for (source = buffer; source < end - 2; source++)
 	{
 		/* only remove bytes just before minimum amount of sync */
-		if ( (*source == target) && (*(source+2) == 0xff) )
+		//if ( (*source == target) && (*(source+2) == 0xff) )
+		if(*source == target)
 		{
 			run++;
 
@@ -947,8 +948,8 @@ check_sync_flags(BYTE *gcrdata, int density, int length)
 	for (i = 0; i < length - 1; i++)
 	{
 		/* NOTE: This is not flagging true sync marks, only the last 8 bits of it */
-		//if ( ((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i+1] == 0xff) )  syncs++;
 		if (gcrdata[i] == 0xff) syncs++;
+		//if ( ((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i+1] == 0xff) )  syncs++;
 	}
 
 	if(!syncs)

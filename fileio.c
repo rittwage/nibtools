@@ -423,7 +423,7 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
     /*	writes contents of buffers into NIB file, with header and density information
-    	this is only called by nibread, so it does not extract/process the track
+    	this is only called by nibread, so it does not extract/compress the track
     */
 
   int track;
@@ -683,7 +683,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 			memset(buffer, 0, track_len);
 		}
 		else //if (track_len > G64_TRACK_MAXLEN)
-			track_len = process_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
+			track_len = compress_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
 
 		gcr_track[0] = track_len % 256;
 		gcr_track[1] = track_len / 256;
@@ -703,7 +703,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 }
 
 int
-process_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
+compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 {
 	int orglen;
 	int badgcr = 0;

@@ -46,7 +46,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 			}
 		}
 		else
-			length = process_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+			length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
 
 		/* zero out empty tracks entirely */
 		if( (length == NIB_TRACK_LENGTH) && (track_density[track] & BM_NO_SYNC) )
@@ -88,7 +88,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 
 			if (!cbm_parallel_burst_write_track(fd, rawtrack, length + LEADER))
 			{
-				//putchar('?');
+				putchar('?');
 				fflush(stdin);
 				cbm_parallel_burst_read(fd);
 				msleep(500);
@@ -134,7 +134,7 @@ write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_lengt
 
 			memcpy(track_buffer + (track * NIB_TRACK_LENGTH), trackbuf, length);
 			track_density[track] = density;
-			track_length[track] = process_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], length);
+			track_length[track] = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], length);
 		}
 	}
 	master_disk(fd, track_buffer, track_density, track_length);
@@ -200,7 +200,6 @@ adjust_target(CBM_FILE fd)
 			printf("%d ", cap[j]);
 			run_total += cap[j];
 		}
-
 		capacity[i] = run_total / DENSITY_SAMPLES;
 
 		//printf("(min:%d, max:%d)", capacity_min[i], capacity_max[i]);

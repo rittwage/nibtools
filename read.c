@@ -19,11 +19,10 @@ BYTE
 read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_density)
 {
 	BYTE density;
-    int i, timeout, newtrack;
+    int i, newtrack;
 	static int lasttrack = -1;
     static BYTE lastdensity;
 
-	timeout = 0;
 	newtrack = (lasttrack == halftrack) ? 0 : 1;
 	lasttrack = halftrack;
 
@@ -97,16 +96,15 @@ read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_density)
 			send_mnib_cmd(fd, FL_READNORMAL);
 
 		cbm_parallel_burst_read(fd);
-		timeout = cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH);
 
-		// If we got a timeout, reset the port before retrying.
-		if (!timeout)
+		if (!cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
 		{
+			// If we got a timeout, reset the port before retrying.
 			putchar('?');
 			fflush(stdout);
 			cbm_parallel_burst_read(fd);
 			delay(500);
-			printf("%c ", test_par_port(fd)? '+' : '-');
+			//printf("%c ", test_par_port(fd)? '+' : '-');
 			cbm_parallel_burst_read(fd);
 		}
 		else
