@@ -601,16 +601,17 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	DWORD gcr_track_p[MAX_HALFTRACKS_1541];
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
 	BYTE gcr_track[G64_TRACK_MAXLEN + 2];
-	int track;
+	int track, track_len, i;
 	FILE * fpout;
-	int track_len;
 	BYTE buffer[NIB_TRACK_LENGTH];
 
-	/* when writing a G64 file, we don't care about the limitations of drive hardware */
-	capacity[0] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
-	capacity[1] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
-	capacity[2] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
-	capacity[3] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+	/* when writing a G64 file, we don't care about the limitations of drive hardware
+		However, VICE currently ignores G64 header and hardcodes 7928 as the largest track size */
+	for(i =  0; i < 4; i++)
+	{
+		capacity[i] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+		//capacity[i] = capacity_max[i];
+	}
 
 	fpout = fopen(filename, "wb");
 	if (fpout == NULL)
@@ -747,7 +748,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 				printf("rsync:%d ", orglen - length);
 		}
 
-		// We could reduce gap bytes ($55 and $AA) here too,
+		// reduce gap bytes ($55 and $AA)
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (reduce_gaps) )
 		{
@@ -762,7 +763,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 		badgcr = check_bad_gcr(gcrdata, length, fix_gcr);
 		if (badgcr > 0) printf("weak:%d ", badgcr);
 
-		// reduce weak bit runs (experimental)
+		// reduce weak bit runs
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (badgcr > 0) && (reduce_weak) )
 		{

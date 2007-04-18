@@ -902,12 +902,12 @@ strip_runs(BYTE * buffer, int length, int minrun, BYTE target)
 		//if ( (*source == target) && (*(source+2) == 0xff) )
 		if(*source == target)
 		{
-			run++;
-
 			if (run == minrun)
 				skipped++;
 			else
 				*buffer++ = target;
+
+			run++;
 		}
 		else
 		{

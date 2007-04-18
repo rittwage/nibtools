@@ -65,7 +65,7 @@ main(int argc, char **argv)
 			break;
 
 		case 'r':
-			printf("* Reduce syncs enabled\n");
+			printf("* Reduce syncs disabled\n");
 			reduce_syncs = 1;
 			break;
 
