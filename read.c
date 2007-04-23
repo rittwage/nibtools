@@ -461,8 +461,9 @@ scan_track(CBM_FILE fd, int track)
 	/* Use medium bitrate for scan */
 	set_bitrate(fd, 2);
 
-	/* we have to sample density 2 tracks more because they are sometimes on the edge of 1 and 2 by this routine. */
-	for (i = 0; i < ((density == 2) ? 20 : 10); i++)
+	/* we have to sample density 2 tracks more because they are sometimes on the edge of 1 and 2 by this routine.
+		also tracks > 35 should be scrutinized more */
+	for (i = 0; i < ( ((density == 2) || (track > 35 * 2)) ? 20 : 10); i++)
 	{
 		send_mnib_cmd(fd, FL_SCANDENSITY);
 
