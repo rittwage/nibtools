@@ -27,11 +27,7 @@ read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_density)
 	lasttrack = halftrack;
 
 	// we only do all this for a new track, not for retries
-	if(forced_density != 0xff)
-	{
-		density = forced_density & 0xFF;
-	}
-	else if (newtrack)
+	if (newtrack)
 	{
 		step_to_halftrack(fd, halftrack);
 
