@@ -15,8 +15,7 @@
 
 static BYTE diskid[3];
 
-BYTE
-read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_density)
+BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 {
 	BYTE density;
     int i, newtrack;
@@ -110,8 +109,7 @@ read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_density)
 	return (density);
 }
 
-static BYTE
-paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_density)
+BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 {
 	BYTE buffer1[NIB_TRACK_LENGTH];
 	BYTE buffer2[NIB_TRACK_LENGTH];
@@ -142,7 +140,7 @@ paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_de
 	for (l = 0; l < error_retries; l++)
 	{
 		memset(bufo, 0, NIB_TRACK_LENGTH);
-		denso = read_halftrack(fd, halftrack, bufo, forced_density);
+		denso = read_halftrack(fd, halftrack, bufo);
 
 		// Find track cycle and length
 		memset(cbufo, 0, NIB_TRACK_LENGTH);
@@ -248,7 +246,7 @@ paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int forced_de
 		for (i = 0; i < retries; i++)
 		{
 			memset(bufn, 0, NIB_TRACK_LENGTH);
-			densn = read_halftrack(fd, halftrack, bufn, forced_density);
+			densn = read_halftrack(fd, halftrack, bufn);
 
 			memset(cbufn, 0, NIB_TRACK_LENGTH);
 			lenn = extract_GCR_track(cbufn, bufn, &align, force_align,
@@ -308,8 +306,8 @@ read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		// track_density[track] = read_halftrack(fd, track, track_ buffer + (track * NIB_TRACK_LENGTH), 0xff);
-		track_density[track] = paranoia_read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH), 0xff);
+		// track_density[track] = read_halftrack(fd, track, track_ buffer + (track * NIB_TRACK_LENGTH));
+		track_density[track] = paranoia_read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH));
 
 		track_length[track] = extract_GCR_track(dummy, track_buffer + (track * NIB_TRACK_LENGTH),
 			&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
@@ -323,10 +321,9 @@ read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 void
 write_nb2(CBM_FILE fd, char * filename)
 {
-	int track;
 	BYTE density;
 	FILE * fpout;
-	int header_entry, pass, pass_density;
+	int track, i, header_entry, pass, pass_density;
 	BYTE buffer[NIB_TRACK_LENGTH];
 	char header[0x100];
 
@@ -356,11 +353,15 @@ write_nb2(CBM_FILE fd, char * filename)
 	{
 		memset(buffer, 0, sizeof(buffer));
 
-		// density = read_halftrack(fd, track, buffer, 0xff);
-		density = paranoia_read_halftrack(fd, track, buffer, 0xff);
-		header[0x10 + (header_entry * 2)] = (BYTE)track;
+		density = read_halftrack(fd, track, buffer);
+		//density = paranoia_read_halftrack(fd, track, buffer);
+		printf("\n");
+
+		header[0x10 + (header_entry * 2)] = (BYTE) track;
 		header[0x10 + (header_entry * 2) + 1] = density;
 		header_entry++;
+
+		step_to_halftrack(fd, track);
 
 		/* make 16 passes of track, four for each density */
 		for(pass_density = 0; pass_density < 4; pass_density ++)
@@ -370,9 +371,28 @@ write_nb2(CBM_FILE fd, char * filename)
 
 			for(pass = 0; pass < 4; pass ++)
 			{
-				density = read_halftrack(fd, track, buffer, pass_density | BM_NO_SYNC);
+				set_density(fd, pass_density);
 
-				/* process and save track to disk */
+				for (i = 0; i < 10; i++)
+				{
+					send_mnib_cmd(fd, FL_READWOSYNC);
+					cbm_parallel_burst_read(fd);
+
+					if (!cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
+					{
+						// If we got a timeout, reset the port before retrying.
+						putchar('?');
+						fflush(stdout);
+						cbm_parallel_burst_read(fd);
+						delay(500);
+						//printf("%c ", test_par_port(fd)? '+' : '-');
+						cbm_parallel_burst_read(fd);
+					}
+					else
+						break;
+				}
+
+				/* save track to disk */
 				if (fwrite(buffer, sizeof(buffer), 1, fpout) != 1)
 				{
 					printf("unable to rewrite NIB track data\n");
@@ -407,7 +427,7 @@ void get_disk_id(CBM_FILE fd)
 		BYTE buffer[NIB_TRACK_LENGTH];
 
 		/* read track 18 for ID checks*/
-		density = read_halftrack(fd, 18 * 2, buffer, 2);
+		density = read_halftrack(fd, 18 * 2, buffer);
 
 		/* print cosmetic disk id */
 		memset(diskid, 0, sizeof(diskid));
