@@ -70,7 +70,9 @@ main(int argc, char *argv[])
 #ifdef DJGPP
 	fd = 1;
 #endif
-	bump = reset = 1;	// by default, use reset, bump
+
+	bump = 1;  /* failing to bump sometimes give us wrong tracks on heavily protected disks */
+	reset = 1;
 
 	start_track = 1 * 2;
 	end_track = 41 * 2;
@@ -242,7 +244,7 @@ main(int argc, char *argv[])
 
 	if(extended_parallel_test)
 	{
-		printf("Performing advanced parallel port test\n");
+		printf("Performing extended parallel port test\n");
 		for(i=0; i<100; i++)
 		{
 			if(!verify_floppy(fd))

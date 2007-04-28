@@ -70,7 +70,9 @@ main(int argc, char *argv[])
 #ifdef DJGPP
 	fd = 1;
 #endif
-	bump = reset = 1;	// by default, use reset, bump
+
+	bump = 1;  /* failing to bump sometimes give us wrong tracks on heavily protected disks */
+	reset = 1;
 
 	start_track =  2;
 	end_track = 82;

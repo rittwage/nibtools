@@ -136,64 +136,6 @@ find_par_port(CBM_FILE fd)
 }
 #endif // DJGPP
 
-void
-send_mnib_cmd(CBM_FILE fd, unsigned char cmd)
-{
-	cbm_parallel_burst_write(fd, 0x00);
-	cbm_parallel_burst_write(fd, 0x55);
-	cbm_parallel_burst_write(fd, 0xaa);
-	cbm_parallel_burst_write(fd, 0xff);
-	cbm_parallel_burst_write(fd, cmd);
-}
-
-void
-set_full_track(CBM_FILE fd)
-{
-	send_mnib_cmd(fd, FL_MOTOR);
-	cbm_parallel_burst_write(fd, 0xfc);	/* $1c00 CLEAR mask (clear stepper bits) */
-	cbm_parallel_burst_write(fd, 0x02);	/* $1c00 SET mask (stepper bits = %10) */
-	cbm_parallel_burst_read(fd);
-	delay(500);			/* wait for motor to step */
-}
-
-void
-motor_on(CBM_FILE fd)
-{
-	send_mnib_cmd(fd, FL_MOTOR);
-	cbm_parallel_burst_write(fd, 0xf3);	/* $1c00 CLEAR mask */
-	cbm_parallel_burst_write(fd, 0x0c);	/* $1c00 SET mask (LED + motor ON) */
-	cbm_parallel_burst_read(fd);
-	delay(500);			/* wait for motor to turn on */
-}
-
-void
-motor_off(CBM_FILE fd)
-{
-	send_mnib_cmd(fd, FL_MOTOR);
-	cbm_parallel_burst_write(fd, 0xf3);	/* $1c00 CLEAR mask */
-	cbm_parallel_burst_write(fd, 0x00);	/* $1c00 SET mask (LED + motor OFF) */
-	cbm_parallel_burst_read(fd);
-	delay(500);			/* wait for motor to turn off */
-}
-
-void
-step_to_halftrack(CBM_FILE fd, int halftrack)
-{
-	send_mnib_cmd(fd, FL_STEPTO);
-	cbm_parallel_burst_write(fd, (__u_char) ((halftrack != 0) ? halftrack : 1));
-	cbm_parallel_burst_read(fd);
-}
-
-unsigned int
-track_capacity(CBM_FILE fd)
-{
-	unsigned int capacity;
-	send_mnib_cmd(fd, FL_CAPACITY);
-	capacity = (unsigned int) cbm_parallel_burst_read(fd);
-	capacity |= (unsigned int) cbm_parallel_burst_read(fd) << 8;
-	return (capacity);
-}
-
 int
 reset_floppy(CBM_FILE fd, BYTE drive)
 {
@@ -257,8 +199,7 @@ init_floppy(CBM_FILE fd, BYTE drive, int bump)
 
 	delay(1000);
 
-	if (bump)
-		perform_bump(fd,drive);
+	if (bump) perform_bump(fd,drive);
 
 	/*
 	 * Initialize media and switch drive to 1541 mode.
@@ -266,6 +207,7 @@ init_floppy(CBM_FILE fd, BYTE drive, int bump)
 	 * the bump above.
 	 * Changed to perform the 1541 mode select first, or else it breaks on a 1571 (PR)
 	 */
+
 	printf("Initializing\n");
 	cbm_exec_command(fd, drive, "U0>M0", 0);
 	cbm_exec_command(fd, drive, "I0", 0);
@@ -301,45 +243,6 @@ init_floppy(CBM_FILE fd, BYTE drive, int bump)
 
 	printf("Passed basic parallel port checks.\n");
 	return 1;
-}
-
-int
-set_density(CBM_FILE fd, int density)
-{
-	send_mnib_cmd(fd, FL_DENSITY);
-	cbm_parallel_burst_write(fd, density_branch[density]);
-	cbm_parallel_burst_write(fd, 0x9f);
-	cbm_parallel_burst_write(fd, bitrate_value[density]);
-	cbm_parallel_burst_read(fd);
-
-	return (density);
-}
-
-/* $13d6 */
-int
-set_bitrate(CBM_FILE fd, int density)
-{
-	send_mnib_cmd(fd, FL_MOTOR);
-	cbm_parallel_burst_write(fd, 0x9f);			/* $1c00 CLEAR mask */
-	cbm_parallel_burst_write(fd, bitrate_value[density]);	/* $1c00 SET mask */
-	cbm_parallel_burst_read(fd);
-	return (density);
-}
-
-/* $13bc */
-BYTE
-set_default_bitrate(CBM_FILE fd, int track)
-{
-	BYTE density;
-
-	density = speed_map_1541[(track / 2) - 1];
-
-	send_mnib_cmd(fd, FL_DENSITY);
-	cbm_parallel_burst_write(fd, density_branch[density]);
-	cbm_parallel_burst_write(fd, 0x9f);			/* $1c00 CLEAR mask */
-	cbm_parallel_burst_write(fd, bitrate_value[density]);	/* $1c00 SET mask */
-	cbm_parallel_burst_read(fd);
-	return (density);
 }
 
 void perform_bump(CBM_FILE fd, BYTE drive)
@@ -394,3 +297,102 @@ void perform_bump(CBM_FILE fd, BYTE drive)
 		exit(4);
 	}
 }
+
+
+int
+set_density(CBM_FILE fd, int density)
+{
+	send_mnib_cmd(fd, FL_DENSITY);
+	cbm_parallel_burst_write(fd, density_branch[density]);
+	cbm_parallel_burst_write(fd, 0x9f);
+	cbm_parallel_burst_write(fd, bitrate_value[density]);
+	cbm_parallel_burst_read(fd);
+
+	return (density);
+}
+
+/* $13d6 */
+int
+set_bitrate(CBM_FILE fd, int density)
+{
+	send_mnib_cmd(fd, FL_MOTOR);
+	cbm_parallel_burst_write(fd, 0x9f);			/* $1c00 CLEAR mask */
+	cbm_parallel_burst_write(fd, bitrate_value[density]);	/* $1c00 SET mask */
+	cbm_parallel_burst_read(fd);
+	return (density);
+}
+
+/* $13bc */
+BYTE
+set_default_bitrate(CBM_FILE fd, int track)
+{
+	BYTE density;
+
+	density = speed_map_1541[(track / 2) - 1];
+
+	send_mnib_cmd(fd, FL_DENSITY);
+	cbm_parallel_burst_write(fd, density_branch[density]);
+	cbm_parallel_burst_write(fd, 0x9f);			/* $1c00 CLEAR mask */
+	cbm_parallel_burst_write(fd, bitrate_value[density]);	/* $1c00 SET mask */
+	cbm_parallel_burst_read(fd);
+	return (density);
+}
+
+void
+send_mnib_cmd(CBM_FILE fd, unsigned char cmd)
+{
+	cbm_parallel_burst_write(fd, 0x00);
+	cbm_parallel_burst_write(fd, 0x55);
+	cbm_parallel_burst_write(fd, 0xaa);
+	cbm_parallel_burst_write(fd, 0xff);
+	cbm_parallel_burst_write(fd, cmd);
+}
+
+void
+set_full_track(CBM_FILE fd)
+{
+	send_mnib_cmd(fd, FL_MOTOR);
+	cbm_parallel_burst_write(fd, 0xfc);	/* $1c00 CLEAR mask (clear stepper bits) */
+	cbm_parallel_burst_write(fd, 0x02);	/* $1c00 SET mask (stepper bits = %10) */
+	cbm_parallel_burst_read(fd);
+	delay(500);			/* wait for motor to step */
+}
+
+void
+motor_on(CBM_FILE fd)
+{
+	send_mnib_cmd(fd, FL_MOTOR);
+	cbm_parallel_burst_write(fd, 0xf3);	/* $1c00 CLEAR mask */
+	cbm_parallel_burst_write(fd, 0x0c);	/* $1c00 SET mask (LED + motor ON) */
+	cbm_parallel_burst_read(fd);
+	delay(500);			/* wait for motor to turn on */
+}
+
+void
+motor_off(CBM_FILE fd)
+{
+	send_mnib_cmd(fd, FL_MOTOR);
+	cbm_parallel_burst_write(fd, 0xf3);	/* $1c00 CLEAR mask */
+	cbm_parallel_burst_write(fd, 0x00);	/* $1c00 SET mask (LED + motor OFF) */
+	cbm_parallel_burst_read(fd);
+	delay(500);			/* wait for motor to turn off */
+}
+
+void
+step_to_halftrack(CBM_FILE fd, int halftrack)
+{
+	send_mnib_cmd(fd, FL_STEPTO);
+	cbm_parallel_burst_write(fd, (__u_char) ((halftrack != 0) ? halftrack : 1));
+	cbm_parallel_burst_read(fd);
+}
+
+unsigned int
+track_capacity(CBM_FILE fd)
+{
+	unsigned int capacity;
+	send_mnib_cmd(fd, FL_CAPACITY);
+	capacity = (unsigned int) cbm_parallel_burst_read(fd);
+	capacity |= (unsigned int) cbm_parallel_burst_read(fd) << 8;
+	return (capacity);
+}
+
