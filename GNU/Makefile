@@ -86,7 +86,7 @@ nibscan:	${OBJ} nibscan.o
 	${CC} -o nibscan$(EXE) nibscan.o ${OBJ} $(LDFLAGS)
 
 clean:
-	${RM} *.o ${MNIB_BIN} *.bin
+	${RM} *.o ${MNIB_BIN} *.bin *.inc
 
 distclean: clean
 	${RM} ${PROG} *.exe
