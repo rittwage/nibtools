@@ -306,6 +306,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector,
 
 		//printf("%0.2d: t%0.2d s%0.2d id1:%0.1x id2:%0.1x\n",
 		//header[0],header[3],header[2],header[5],header[4]);
+
 	} while (header[0] != 0x08 || header[2] != sector ||
 	  header[3] != track || header[5] != id[0] || header[4] != id[1]);
 
@@ -340,19 +341,19 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector,
 
 	if (hdr_chksum != header[5])
 	{
-		//printf("(S%d HEAD_CHKSUM $%0.2x != $%0,2x) ",
-		//  sector, hdr_chksum, header[5]);
-		error_code = (error_code == SECTOR_OK) ?
-		  BAD_HEADER_CHECKSUM : error_code;
+		if(verbose)
+			printf("(S%d HEAD_CHKSUM $%.2x != $%.2x) ", sector, hdr_chksum, header[5]);
+
+		error_code = (error_code == SECTOR_OK) ? BAD_HEADER_CHECKSUM : error_code;
 	}
 
-	// verify that our header contains no bad GCR, since it can be false positive checksum match
+	/* verify that our header contains no bad GCR, since it can be false positive checksum match */
 	for(j = 0; j < 10; j++)
 	{
 		if (is_bad_gcr(gcr_ptr - 1, 10, j)) error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
 	}
 
-	// next look for data portion
+	/* check for data sector */
 	if (!find_sync(&gcr_ptr, gcr_end))
 		return (DATA_NOT_FOUND);
 
@@ -388,12 +389,13 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector,
 
 	if (blk_chksum != d64_sector[257])
 	{
-		//printf("(S%d DATA_CHKSUM $%0.2x != $%0.2x) ",
-		//  sector, blk_chksum, d64_sector[257]);
+		if(verbose)
+			printf("(S%d DATA_CHKSUM $%.2x != $%.2x) ", sector, blk_chksum, d64_sector[257]);
+
 		error_code = (error_code == SECTOR_OK) ? BAD_DATA_CHECKSUM : error_code;
 	}
 
-	// verify that our data contains no bad GCR, since it can be false positive checksum match
+	/* verify that our data contains no bad GCR, since it can be false positive checksum match */
 	for(j = 0; j < 320; j++)
 		if (is_bad_gcr(gcr_ptr - 325, 320, j)) error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
 
@@ -1210,8 +1212,7 @@ check_empty(BYTE * gcrdata, int length, int track, BYTE * id, char * errorstring
 
 	for (sector = 0; sector < sector_map_1541[track / 2]; sector++)
 	{
-		errorcode = convert_GCR_sector(gcrdata, gcrdata + length, secbuf,
-		  (track / 2), sector, id);
+		errorcode = convert_GCR_sector(gcrdata, gcrdata + length, secbuf, (track / 2), sector, id);
 
 		if (errorcode == SECTOR_OK)
 		{

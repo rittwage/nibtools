@@ -88,7 +88,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 
 			if (!cbm_parallel_burst_write_track(fd, rawtrack, length + LEADER))
 			{
-				putchar('?');
+				//putchar('?');
 				fflush(stdin);
 				cbm_parallel_burst_read(fd);
 				msleep(500);

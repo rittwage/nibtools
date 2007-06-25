@@ -525,7 +525,7 @@ scandisk(void)
 				}
 			}
 
-			/* check for rapidlok track */
+			/* check for rapidlok track
 			rapidlok_tracks[track] = check_rapidlok(track);
 
 			if (rapidlok_tracks[track]) totalrl++;
@@ -534,6 +534,7 @@ scandisk(void)
 				printf("RAPIDLOK KEYTRACK ");
 				rapidlok_tracks[track] = 1;
 			}
+			*/
 
 			/* check for FAT track */
 			if (track < end_track - track_inc)

@@ -117,6 +117,7 @@ extern int capacity[];
 extern int capacity_min[];
 extern int capacity_max[];\
 extern int gap_match_length;
+extern int verbose;
 
 /* enums */
 extern char alignments[][20];

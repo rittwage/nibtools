@@ -381,7 +381,7 @@ write_nb2(CBM_FILE fd, char * filename)
 					if (!cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
 					{
 						// If we got a timeout, reset the port before retrying.
-						putchar('?');
+						//putchar('?');
 						fflush(stdout);
 						cbm_parallel_burst_read(fd);
 						delay(500);
