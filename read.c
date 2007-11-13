@@ -203,7 +203,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			break;
 
 		// if all bad sectors (protection) we only retry once
-		if (errors == sector_map_1541[halftrack/2])
+		if ((errors == sector_map_1541[halftrack/2]) && ((halftrack/2) != 18))
 			l = error_retries - 1;
 	}
 
@@ -427,7 +427,7 @@ void get_disk_id(CBM_FILE fd)
 		BYTE buffer[NIB_TRACK_LENGTH];
 
 		/* read track 18 for ID checks*/
-		density = read_halftrack(fd, 18 * 2, buffer);
+		density = paranoia_read_halftrack(fd, 18 * 2, buffer);
 
 		/* print cosmetic disk id */
 		memset(diskid, 0, sizeof(diskid));
