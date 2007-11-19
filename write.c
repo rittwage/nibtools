@@ -23,6 +23,9 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
+		/* double-check our sync-flag assumptions */
+		track_density[track] = check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+
 		if(mode == MODE_WRITE_RAW)
 		{
 			length = track_length[track];
@@ -47,6 +50,13 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		}
 		else
 			length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+
+		/* engineer killer track */
+		if(track_density[track] & BM_FF_TRACK)
+		{
+				kill_track(fd, track);
+				continue;
+		}
 
 		/* zero out empty tracks entirely */
 		if( (length == NIB_TRACK_LENGTH) && (track_density[track] & BM_NO_SYNC) )
@@ -99,6 +109,24 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 				break;
 		}
 	}
+}
+
+void kill_track(CBM_FILE fd, int track)
+{
+	BYTE trackbuf[NIB_TRACK_LENGTH];
+
+	// step head
+	step_to_halftrack(fd, track);
+	set_density(fd, 2);
+
+	// write 0xFF $2000 times
+	memset(trackbuf, 0xff, NIB_TRACK_LENGTH);
+	send_mnib_cmd(fd, FL_WRITENOSYNC);
+	cbm_parallel_burst_write(fd, 0x00);
+	cbm_parallel_burst_write_track(fd, trackbuf, NIB_TRACK_LENGTH);
+
+	printf("KILLED!");
+
 }
 
 void

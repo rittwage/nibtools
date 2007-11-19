@@ -955,13 +955,9 @@ check_sync_flags(BYTE *gcrdata, int density, int length)
 	}
 
 	if(!syncs)
-	{
 		density |= BM_NO_SYNC;
-	}
 	else if (syncs == length - 1)
-	{
 		density |= BM_FF_TRACK;
-	}
 
 	// else do nothing
 	return ( density & 0xFF );

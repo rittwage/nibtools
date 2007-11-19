@@ -120,6 +120,7 @@ void unformat_track(CBM_FILE fd, int track);
 unsigned int track_capacity(CBM_FILE fd);
 void init_aligned_disk(CBM_FILE fd);
 void adjust_target(CBM_FILE fd);
+void kill_track(CBM_FILE fd, int track);
 
 /* drive.c  */
 int compare_extension(char * filename, char * extension);

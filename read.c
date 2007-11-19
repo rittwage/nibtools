@@ -427,7 +427,7 @@ void get_disk_id(CBM_FILE fd)
 		BYTE buffer[NIB_TRACK_LENGTH];
 
 		/* read track 18 for ID checks*/
-		density = paranoia_read_halftrack(fd, 18 * 2, buffer);
+		density = read_halftrack(fd, 18 * 2, buffer);
 
 		/* print cosmetic disk id */
 		memset(diskid, 0, sizeof(diskid));
