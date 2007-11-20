@@ -68,10 +68,10 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
 		replace_bytes(track_buffer + (track * NIB_TRACK_LENGTH), length, 0x00, 0x01);
 
-		/* add filler so track is completely erased */
-		memset(rawtrack, 0x55, sizeof(rawtrack));
+		/* unformat track */
+		memset(rawtrack, 0x01, sizeof(rawtrack));
 
-		/* insert one very short sync */
+		/* insert one very short sync at the beginning, if sync detected on track */
 		if(! (track_density[track] & BM_NO_SYNC))
 			memset(rawtrack + LEADER - 2, 0xff, 2);
 

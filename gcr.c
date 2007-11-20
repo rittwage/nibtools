@@ -889,7 +889,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, int *align,
  * for a proportional reduction.
  */
 int
-strip_runs(BYTE * buffer, int length, int minrun, BYTE target)
+strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 {
 	int run, skipped;
 	BYTE *source, *end;
@@ -900,9 +900,11 @@ strip_runs(BYTE * buffer, int length, int minrun, BYTE target)
 
 	for (source = buffer; source < end - 2; source++)
 	{
+		if(length - skipped <= length_max) break;
+
 		/* only remove bytes just before minimum amount of sync */
-		//if ( (*source == target) && (*(source+2) == 0xff) )
-		if(*source == target)
+		if ( (*source == target) && (*(source+2) == 0xff) )
+		//if(*source == target)
 		{
 			if (run == minrun)
 				skipped++;
@@ -931,7 +933,7 @@ reduce_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 		if (length <= length_max)
 			return (length);
 
-		skipped = strip_runs(buffer, length, minrun, target);
+		skipped = strip_runs(buffer, length, length_max, minrun, target);
 		length -= skipped;
 	}
 	while (skipped > 0 && length > length_max);

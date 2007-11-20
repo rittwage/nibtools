@@ -331,6 +331,8 @@ main(int argc, char *argv[])
 int
 file2disk(CBM_FILE fd, char * filename)
 {
+	printf("Writing filename: %s\n", filename);
+
 	/* clear our buffers */
 	memset(track_buffer, 0, sizeof(track_buffer));
 	memset(track_density, 0, sizeof(track_density));
