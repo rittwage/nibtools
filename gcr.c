@@ -900,12 +900,14 @@ strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 
 	for (source = buffer; source < end - 2; source++)
 	{
-		if(length - skipped <= length_max) break;
+		/* bail if we have enough bytes already */
+		if(length - skipped <= length_max)
+			break;
 
-		/* only remove bytes just before ~minimum amount of sync */
-		if ( (*source == target) && (*(source+2) == 0xff) )   /* 0x? 0xff 0xff */
+		if (*source == target)
 		{
-			if (run == minrun)
+			/* check that we are before sync */
+			if ((run == minrun) && (*(source+2) == 0xff) )   /* 0x? 0xff 0xff */
 				skipped++;
 			else
 				*buffer++ = target;

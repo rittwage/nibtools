@@ -740,7 +740,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 		{
 			// then try to reduce sync within the track
 			if (length > capacity[density & 3] - CAPACITY_MARGIN)
-				length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 2, 0xff);
+				length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 1, 0xff);
 
 			if (length < orglen)
 				printf("rsync:%d ", orglen - length);
