@@ -706,7 +706,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 int
 compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 {
-	int orglen;
+	int orglen, i;
 	int badgcr = 0;
 	BYTE gcrdata[NIB_TRACK_LENGTH];
 
@@ -746,12 +746,16 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 				printf("rsync:%d ", orglen - length);
 		}
 
-		// reduce gap bytes ($55 and $AA)
+		// reduce pre-sync gap bytes (experimental)
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (reduce_gaps) )
 		{
-			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 1, 0x55);
-			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 1, 0xaa);
+			for(i=0; i<0xf; i++)
+					length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 0, ((i<<4) | 0x0f));
+			/*
+			for(i=0; i<0x3f; i++)
+					length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 0, ((i<<2) | 0x03));
+			*/
 
 			if (length < orglen)
 				printf("rgaps:%d ", orglen - length);
@@ -765,7 +769,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (badgcr > 0) && (reduce_weak) )
 		{
-			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 1, 0x00);
+			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 0, 0x00);
 
 			if (length < orglen)
 				printf("rweak:%d ", orglen - length);

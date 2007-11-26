@@ -68,22 +68,32 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
 		replace_bytes(track_buffer + (track * NIB_TRACK_LENGTH), length, 0x00, 0x01);
 
-		/* unformat track -- some 1571's don't like a lot of 0x00 bytes, they see phantom sync, etc. */
-		memset(rawtrack, 0x55 /*0x01*/, sizeof(rawtrack));
+		/* unformat track with 01010101
+		    most of this is the leader which is overwritten
+		    some 1571's don't like a lot of 0x00 bytes, they see phantom sync, etc.
+		*/
+		memset(rawtrack, 0x55, sizeof(rawtrack));
 
-		/* insert one very short sync at the beginning, if sync detected on track */
+		/* insert one partial sync at the beginning, if sync detected on track
+			this is because we align to the first full sync byte and could miss a couple bits
+		*/
 		if(! (track_density[track] & BM_NO_SYNC))
-			memset(rawtrack + LEADER - 2, 0xff, 2);
+			memset(rawtrack + LEADER - 1, 0xff, 1);
 
 		/* append real track data */
 		memcpy(rawtrack + LEADER, track_buffer + (track * NIB_TRACK_LENGTH), length);
 
 		/* handle short tracks that won't 'loop overwrite' existing data */
-		if(length + LEADER < capacity[track_density[track] & 3] - CAPACITY_MARGIN)
+		if(length < capacity[track_density[track] & 3] - CAPACITY_MARGIN)
 		{
-				memset(rawtrack + length + LEADER, 0x55, (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - length);
-				printf("[PAD:%d]", (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - length);
-				length = capacity[track_density[track] & 3] - CAPACITY_MARGIN;
+				printf("[pad:%d]", (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - length);
+
+				/* we only pull the trigger on this if it's not long enough even with the leader */
+				if(length + LEADER < capacity[track_density[track] & 3] - CAPACITY_MARGIN)
+				{
+					memset(rawtrack + length + LEADER, 0x55, (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - length);
+					length = capacity[track_density[track] & 3] - CAPACITY_MARGIN;
+				}
 		}
 
 		/* step to destination track and set density */
