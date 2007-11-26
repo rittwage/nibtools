@@ -891,6 +891,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, int *align,
 int
 strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 {
+	/* minrun is number of bytes *before* minimum sync mark (16 bits) */
 	int run, skipped;
 	BYTE *source, *end;
 
@@ -927,6 +928,7 @@ strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 int
 reduce_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 {
+	/* minrun is number of bytes *before* minimum sync mark (16 bits) */
 	int skipped;
 
 	do

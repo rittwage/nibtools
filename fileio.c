@@ -733,8 +733,8 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	/* compress / expand track */
 	if (length > 0)
 	{
-		// If our track contains sync, we reduce to a minimum of 16 bits
-		// (only 10 nits are required, technically)
+		// If our track contains sync, we reduce to a minimum of 24 bits (16 too short for some floppy loaders)
+		// (only 10 bits are required, technically)
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (!(density & BM_NO_SYNC)) && (reduce_syncs) )
 		{
