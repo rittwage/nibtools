@@ -390,11 +390,11 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 
 			// convert to gcr
 			convert_sector_to_GCR(buffer,
-			  gcrdata + (sector * 361), track, sector, id, error);
+			  gcrdata + (sector * SECTOR_SIZE), track, sector, id, error);
 		}
 
 		// calculate track length
-		track_length[track*2] = sector_map_1541[track] * 361;
+		track_length[track*2] = sector_map_1541[track] * SECTOR_SIZE;
 
 		// use default densities for D64
 		track_density[track*2] = speed_map_1541[track-1];

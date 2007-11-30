@@ -27,6 +27,15 @@
 #define MAXBLOCKSONDISK (BLOCKSONDISK+BLOCKSEXTRA)
 #define MAX_TRACK_D64 40
 
+#define SYNC_LENGTH 	5
+#define HEADER_LENGTH 	10
+#define HEADER_GAP_LENGTH 	9
+#define DATA_LENGTH 	325 			// 65 * 5
+#define TAIL_GAP_LENGTH 		7
+
+#define SECTOR_SIZE ((SYNC_LENGTH) + (HEADER_LENGTH) + (HEADER_GAP_LENGTH) + \
+											(SYNC_LENGTH) + (DATA_LENGTH) + (TAIL_GAP_LENGTH))
+
 /* G64 constants (only needed for current VICE support */
 #define G64_TRACK_MAXLEN 7928
 #define G64_TRACK_LENGTH (G64_TRACK_MAXLEN+2)

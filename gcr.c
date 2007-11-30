@@ -403,15 +403,14 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector,
 }
 
 void
-convert_sector_to_GCR(BYTE * buffer, BYTE * ptr,
-  int track, int sector, BYTE * diskID, int error)
+convert_sector_to_GCR(BYTE * buffer, BYTE * ptr, int track, int sector, BYTE * diskID, int error)
 {
 	int i;
 	BYTE buf[4], databuf[0x104], chksum;
 	BYTE tempID[3];
 
 	memcpy(tempID, diskID, 3);
-	memset(ptr, 0x55, 361);	/* 'unformat' GCR sector */
+	memset(ptr, 0x55, SECTOR_SIZE);	/* 'unformat' GCR sector */
 
 	if (error == SYNC_NOT_FOUND)
 		return;
@@ -422,8 +421,8 @@ convert_sector_to_GCR(BYTE * buffer, BYTE * ptr,
 	}
 	else
 	{
-		memset(ptr, 0xff, 5);	/* Sync */
-		ptr += 5;
+		memset(ptr, 0xff, SYNC_LENGTH);	/* Sync */
+		ptr += SYNC_LENGTH;
 
 		if (error == ID_MISMATCH)
 		{
@@ -448,15 +447,15 @@ convert_sector_to_GCR(BYTE * buffer, BYTE * ptr,
 		convert_4bytes_to_GCR(buf, ptr);
 		ptr += 5;
 
-		memset(ptr, 0x55, 9);	/* Header Gap */
-		ptr += 9;
+		memset(ptr, 0x55, HEADER_GAP_LENGTH);	/* Header Gap */
+		ptr += HEADER_GAP_LENGTH;
 	}
 
 	if (error == DATA_NOT_FOUND)
 		return;
 
-	memset(ptr, 0xff, 5);	/* Sync */
-	ptr += 5;
+	memset(ptr, 0xff, SYNC_LENGTH);	/* Sync */
+	ptr += SYNC_LENGTH;
 
 	chksum = 0;
 	databuf[0] = 0x07;
@@ -479,9 +478,8 @@ convert_sector_to_GCR(BYTE * buffer, BYTE * ptr,
 		ptr += 5;
 	}
 
-	/* 7 0x55 gap bytes in my reference disk */
-	memset(ptr, 0x55, 7);	/* Gap before next sector */
-	ptr += 7;
+	memset(ptr, 0x55, TAIL_GAP_LENGTH);	 /* tail gap*/
+	ptr += TAIL_GAP_LENGTH;
 }
 
 size_t
