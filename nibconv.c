@@ -175,9 +175,7 @@ main(int argc, char **argv)
 		dotpos = strrchr(outname, '.');
 		if (dotpos != NULL) *dotpos = '\0';
 
-		if(compare_extension(inname, "NIB"))
-			strcat(outname, ".g64");
-		else if(compare_extension(inname, "G64"))
+		 if(compare_extension(inname, "G64"))
 			strcat(outname, ".d64");
 		else
 			strcat(outname, ".g64");
