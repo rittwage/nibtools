@@ -174,7 +174,13 @@ main(int argc, char **argv)
 		strcpy(outname, inname);
 		dotpos = strrchr(outname, '.');
 		if (dotpos != NULL) *dotpos = '\0';
-		strcat(outname, ".g64");
+
+		if(compare_extension(inname, "NIB"))
+			strcat(outname, ".g64");
+		else if(compare_extension(inname, "G64"))
+			strcat(outname, ".d64");
+		else
+			strcat(outname, ".g64");
 	}
 	else
 		strcpy(outname, argv[1]);
