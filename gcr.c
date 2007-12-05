@@ -959,7 +959,7 @@ check_sync_flags(BYTE *gcrdata, int density, int length)
 
 	if(!syncs)
 		density |= BM_NO_SYNC;
-	else if (syncs == length - 1)
+	else if (syncs >= length - 3)  /* sometimes we get a small weak glitch on killer tracks */
 		density |= BM_FF_TRACK;
 
 	// else do nothing

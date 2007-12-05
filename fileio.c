@@ -623,7 +623,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	/* Create G64 header */
 	strcpy((char *) header, "GCR-1541");
 	header[8] = 0;	/* G64 version */
-	header[9] = (BYTE) 84; // end_track;	 (VICE can't handle non-84 track images) /* Number of Halftracks */
+	header[9] = (BYTE) 84; // end_track;	/* Number of Halftracks  (VICE can't handle non-84 track images) */
 	header[10] = (BYTE) (G64_TRACK_MAXLEN % 256);	/* Size of each stored track */
 	header[11] = (BYTE) (G64_TRACK_MAXLEN / 256);
 
@@ -683,9 +683,12 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 			track_len = raw_track_size[speed_map_1541[track/2]];
 			memset(buffer, 0, track_len);
 		}
-		else //if (track_len > G64_TRACK_MAXLEN)
-			track_len = compress_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
 
+		/* the compress routine checks to see if it's needed */
+		if(1) //if (track_len > G64_TRACK_MAXLEN)
+		{
+			track_len = compress_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
+		}
 		gcr_track[0] = track_len % 256;
 		gcr_track[1] = track_len / 256;
 
