@@ -50,8 +50,8 @@ int capacity[] = 				{ 6231, 6646, 7121, 7664 };
 int capacity_max[] = 		{ 6311, 6726, 7201, 7824 };
 */
 
-/* New calculated defaults: 296rpm, 300rpm, 304rpm */
-int capacity_min[] =		{ (int) (DENSITY0 / 303), (int) (DENSITY1 / 303), (int) (DENSITY2 / 303), (int) (DENSITY3 / 303) };
+/* New calculated defaults: 296rpm, 300rpm, 303rpm */
+int capacity_min[] =		{ (int) (DENSITY0 / 304), (int) (DENSITY1 / 303), (int) (DENSITY2 / 303), (int) (DENSITY3 / 303) };
 int capacity[] = 				{ (int) (DENSITY0 / 300), (int) (DENSITY1 / 300), (int) (DENSITY2 / 300), (int) (DENSITY3 / 300) };
 int capacity_max[] =		{ (int) (DENSITY0 / 296), (int) (DENSITY1 / 296), (int) (DENSITY2 / 296), (int) (DENSITY3 / 296) };
 

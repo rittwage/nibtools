@@ -356,13 +356,13 @@ compare_disks(void)
 			if (gcr_match)
 			{
 				gcr_total++;
-				printf("[*GCR MATCH*]\n");
+				printf("\n[*GCR MATCH*]\n");
 				sprintf(tmpstr, "%d,", track / 2);
 				strcat(gcr_matches, tmpstr);
 			}
 			else
 			{
-				printf("[*NO GCR MATCH*]\n");
+				printf("\n[*NO GCR MATCH*]\n");
 				sprintf(tmpstr, "%d,", track / 2);
 				strcat(gcr_mismatches, tmpstr);
 			}
@@ -620,12 +620,11 @@ raw_track_info(BYTE * gcrdata, int length, char *outputstring)
 			else
 				locked = 0;
 		}
-		else if (((gcrdata[i] & 0x03) == 0x03) &&
-		  (gcrdata[i + 1] == 0xff))
+		else if (gcrdata[i] == 0xff) // (((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i + 1] == 0xff))
 		{
 			locked = 1;
 			sync_cnt++;
-			sync_len[sync_cnt] = 2;
+			sync_len[sync_cnt] = 1;
 		}
 	}
 
