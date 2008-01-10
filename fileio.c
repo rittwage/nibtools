@@ -711,66 +711,51 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 int
 compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 {
-	int orglen, i;
-	int badgcr = 0;
+	int orglen, badgcr = 0;
 	BYTE gcrdata[NIB_TRACK_LENGTH];
 
 	/* copy to spare buffer */
 	memcpy(gcrdata, track_buffer, NIB_TRACK_LENGTH);
-
-	/* double-check our sync-flag assumptions */
-	//density = check_sync_flags(gcrdata, density, length);
 
 	/* user display */
 	printf("\n%4.1f: (", (float) halftrack / 2);
 	printf("%d", density & 3);
 	if ( (density&3) != speed_map_1541[(halftrack / 2) - 1]) printf("!");
 	printf(":%d) ", length);
-
-	if (density & BM_NO_SYNC)
-		printf("NOSYNC ");
-
-	if (density & BM_FF_TRACK)
-		printf("KILLER ");
-
+	if (density & BM_NO_SYNC) printf("NOSYNC ");
+	if (density & BM_FF_TRACK) printf("KILLER ");
 	printf("[");
 
-	/* compress / expand track */
+	/* process and compress track data (if needed) */
 	if (length > 0)
 	{
-		// If our track contains sync, we reduce to a minimum of 24 bits (16 too short for some floppy loaders)
-		// (only 10 bits are required, technically)
+		/* If our track contains sync, we reduce to a minimum of 32 bits
+		   less is too short for some loaders including CBM, but only 10 bits are technically required */
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (!(density & BM_NO_SYNC)) && (reduce_syncs) )
 		{
-			// then try to reduce sync within the track
-			if (length > capacity[density & 3] - CAPACITY_MARGIN)
-				length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 1, 0xff);
+			/* reduce sync marks within the track */
+			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 4, 0xff);
 
 			if (length < orglen)
 				printf("rsync:%d ", orglen - length);
 		}
 
-		// reduce pre-sync gap bytes (experimental)
+		/* reduce tail gaps -  tail gaps occur at the end of every sector and vary from 4-19 bytes, typically  */
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (reduce_gaps) )
 		{
-			for(i=0; i<0xf; i++)
-					length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 0, ((i<<4) | 0x0f));
-			/*
-			for(i=0; i<0x3f; i++)
-					length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 0, ((i<<2) | 0x03));
-			*/
+			length = reduce_tails(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 4);
 
 			if (length < orglen)
 				printf("rgaps:%d ", orglen - length);
 		}
 
-		// handle bad GCR / weak bits
+		/* process bad GCR (or weak bits) */
 		badgcr = check_bad_gcr(gcrdata, length, fix_gcr);
 		if (badgcr > 0) printf("weak:%d ", badgcr);
 
-		// reduce weak bit runs
+		/* reduce bad GCR runs */
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (badgcr > 0) && (reduce_weak) )
 		{
@@ -780,7 +765,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 				printf("rweak:%d ", orglen - length);
 		}
 
-		// still not small enough, we have to truncate the end
+		/* still not small enough, we have to truncate the end */
 		orglen = length;
 		if (length > capacity[density & 3] - CAPACITY_MARGIN)
 		{
@@ -793,14 +778,14 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 		}
 	}
 
-	// if track is empty (unformatted) fill with '0' bytes to simulate
+	/* if track is empty (unformatted) fill with '0' bytes to simulate */
 	if ( (!length) && (density & BM_NO_SYNC))
 	{
 		memset(gcrdata, 0, NIB_TRACK_LENGTH);
 		length = NIB_TRACK_LENGTH;
 	}
 
-	// write processed track buffer
+	/* write processed track buffer */
 	memcpy(track_buffer, gcrdata, length);
 
 	printf("] (%d) ", length);

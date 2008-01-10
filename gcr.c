@@ -50,10 +50,10 @@ int capacity[] = 				{ 6231, 6646, 7121, 7664 };
 int capacity_max[] = 		{ 6311, 6726, 7201, 7824 };
 */
 
-/* New calculated defaults: 296rpm, 300rpm, 303rpm */
-int capacity_min[] =		{ (int) (DENSITY0 / 304), (int) (DENSITY1 / 303), (int) (DENSITY2 / 303), (int) (DENSITY3 / 303) };
+/* New calculated defaults: 297rpm, 300rpm, 303rpm */
+int capacity_min[] =		{ (int) (DENSITY0 / 303), (int) (DENSITY1 / 303), (int) (DENSITY2 / 303), (int) (DENSITY3 / 303) };
 int capacity[] = 				{ (int) (DENSITY0 / 300), (int) (DENSITY1 / 300), (int) (DENSITY2 / 300), (int) (DENSITY3 / 300) };
-int capacity_max[] =		{ (int) (DENSITY0 / 296), (int) (DENSITY1 / 296), (int) (DENSITY2 / 296), (int) (DENSITY3 / 296) };
+int capacity_max[] =		{ (int) (DENSITY0 / 297), (int) (DENSITY1 / 297), (int) (DENSITY2 / 297), (int) (DENSITY3 / 297) };
 
 /* Nibble-to-GCR conversion table */
 static BYTE GCR_conv_data[16] = {
@@ -521,7 +521,7 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, int cap_m
 					break;
 			}
 
-			if (cycle_pos != NULL && check_valid_data(data_pos, gap_match_length))
+			if (cycle_pos != NULL && check_valid_data(data_pos, gap_match_length) )
 			{
 				*cycle_start = start_pos;
 				*cycle_stop = cycle_pos;
@@ -537,8 +537,7 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, int cap_m
 }
 
 size_t
-find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min,
-  int cap_max)
+find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, int cap_max)
 {
 	BYTE *nib_track;	/* start of nibbled track data */
 	BYTE *start_pos;	/* start of periodic area */
@@ -564,7 +563,7 @@ find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min,
 				cycle_pos = p2;
 
 			/* we found one! */
-			if (cycle_pos != NULL && check_valid_data(cycle_pos, gap_match_length))
+			if (cycle_pos != NULL && check_valid_data(cycle_pos, gap_match_length) )
 			{
 				*cycle_start = p1;
 				*cycle_stop = cycle_pos;
@@ -582,14 +581,19 @@ find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min,
 int
 check_valid_data(BYTE * data, int matchlen)
 {
-	//makes assumptions on whether this is good data to match cycles
+	/* makes a simple assumption whether this is good data to match track cycle overlap */
+
 	int i, redund = 0;
 
 	for (i = 0; i < matchlen; i++)
 	{
-		if (data[i] == data[i + 1] || data[i] == data[i + 2] ||
-		  data[i] == data[i + 3] || data[i] == data[i + 4])
-			redund++;
+		//if (data[i] == data[i+matchlen])
+		if ( (data[i] == data[i + 1]) ||
+			(data[i] == data[i + 2]) ||
+			(data[i] == data[i + 3]) ||
+			(data[i] == data[i + 4]) )
+
+		redund++;
 	}
 
 	if (redund > 1)
@@ -724,9 +728,7 @@ check_formatted(BYTE *gcrdata)
    [Input]  destination buffer, source buffer
    [Return] length of copied track fragment
  */
-int
-extract_GCR_track(BYTE *destination, BYTE *source, int *align,
-  int force_align, size_t cap_min, size_t cap_max)
+int extract_GCR_track(BYTE *destination, BYTE *source, int *align, int force_align, size_t cap_min, size_t cap_max)
 {
 	BYTE work_buffer[NIB_TRACK_LENGTH*2];	/* working buffer */
 	BYTE *cycle_start;	/* start position of cycle */
@@ -842,6 +844,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, int *align,
 	sector0_pos = find_sector0(work_buffer, track_len, &sector0_len);
 	sectorgap_pos = find_sector_gap(work_buffer, track_len, &sectorgap_len);
 
+	if(verbose) printf(" (sec0_len=%.4d - gap_len=%.4d) ", (int)sector0_len, (int)sectorgap_len);
 	//if (sectorgap_len >= sector0_len + 0x40) /* Burstnibbler's calc */
 	if (sectorgap_len > GCR_BLOCK_DATA_LEN + SIGNIFICANT_GAPLEN_DIFF)
 	{
@@ -850,7 +853,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, int *align,
 		return (track_len);
 	}
 
-	// no good gap found, try sector 0
+	// no large gap found, try sector 0
 	if (sector0_len != 0)
 	{
 		*align = ALIGN_SEC0;
@@ -889,7 +892,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, int *align,
 int
 strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 {
-	/* minrun is number of bytes *before* minimum sync mark (16 bits) */
+	/* minrun is number of bytes to leave behind */
 	int run, skipped;
 	BYTE *source, *end;
 
@@ -897,7 +900,7 @@ strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 	skipped = 0;
 	end = buffer + length;
 
-	for (source = buffer; source < end - 2; source++)
+	for (source = buffer; source < end; source++)
 	{
 		/* bail if we have enough bytes already */
 		if(length - skipped <= length_max)
@@ -905,8 +908,7 @@ strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 
 		if (*source == target)
 		{
-			/* check that we are before sync */
-			if ((run == minrun) && (*(source+2) == 0xff) )   /* 0x? 0xff 0xff */
+			if (run == minrun)
 				skipped++;
 			else
 				*buffer++ = target;
@@ -926,7 +928,7 @@ strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 int
 reduce_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 {
-	/* minrun is number of bytes *before* minimum sync mark (16 bits) */
+	/* minrun is number of bytes to leave behind */
 	int skipped;
 
 	do
@@ -935,6 +937,27 @@ reduce_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 			return (length);
 
 		skipped = strip_runs(buffer, length, length_max, minrun, target);
+		length -= skipped;
+	}
+	while (skipped > 0 && length > length_max);
+
+	return (length);
+}
+
+/* try to shorten tail gaps until length <= length_max */
+int
+reduce_tails(BYTE * buffer, int length, int length_max, int minrun)
+{
+	/* minrun is number of bytes to leave behind */
+	int skipped;
+
+	do
+	{
+		if (length <= length_max)
+			return (length);
+
+		/* insert code here */
+
 		length -= skipped;
 	}
 	while (skipped > 0 && length > length_max);
@@ -959,7 +982,7 @@ check_sync_flags(BYTE *gcrdata, int density, int length)
 
 	if(!syncs)
 		density |= BM_NO_SYNC;
-	else if (syncs >= length - 3)  /* sometimes we get a small weak glitch on killer tracks */
+	else if (syncs >= length - 3)  /* sometimes we get a small weak glitch on killer tracks from the mastering device */
 		density |= BM_FF_TRACK;
 
 	// else do nothing

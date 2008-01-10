@@ -29,9 +29,9 @@
 
 #define SYNC_LENGTH 	5
 #define HEADER_LENGTH 	10
-#define HEADER_GAP_LENGTH 	9
+#define HEADER_GAP_LENGTH 	9  // this must be 9 or 1541 will corrupt the sector if written
 #define DATA_LENGTH 	325 			// 65 * 5
-#define TAIL_GAP_LENGTH 		7
+#define TAIL_GAP_LENGTH 		7  // this varies by drive motor speed and sector from 4-19
 
 #define SECTOR_SIZE ((SYNC_LENGTH) + (HEADER_LENGTH) + (HEADER_GAP_LENGTH) + \
 											(SYNC_LENGTH) + (DATA_LENGTH) + (TAIL_GAP_LENGTH))
@@ -57,7 +57,6 @@
 #define MAX_SYNC_OFFSET 0x1500
 
 #define SIGNIFICANT_GAPLEN_DIFF 0x20
-
 #define GCR_BLOCK_HEADER_LEN 24
 #define GCR_BLOCK_DATA_LEN   337
 #define GCR_BLOCK_LEN (GCR_BLOCK_HEADER_LEN + GCR_BLOCK_DATA_LEN)
@@ -137,33 +136,24 @@ void convert_4bytes_to_GCR(BYTE * buffer, BYTE * ptr);
 int convert_4bytes_from_GCR(BYTE * gcr, BYTE * plain);
 int extract_id(BYTE * gcr_track, BYTE * id);
 int extract_cosmetic_id(BYTE * gcr_track, BYTE * id);
-size_t find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min,
-  int cap_max);
-size_t find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop,
-  int cap_min, int cap_max);
-BYTE convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_end,
-  BYTE * d64_sector, int track, int sector, BYTE * id);
-void convert_sector_to_GCR(BYTE * buffer, BYTE * ptr,
-  int track, int sector, BYTE * diskID, int error);
+size_t find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, int cap_max);
+size_t find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, int cap_max);
+BYTE convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_end, BYTE * d64_sector, int track, int sector, BYTE * id);
+void convert_sector_to_GCR(BYTE * buffer, BYTE * ptr, int track, int sector, BYTE * diskID, int error);
 BYTE * find_sector_gap(BYTE * work_buffer, int tracklen, size_t * p_sectorlen);
 BYTE * find_sector0(BYTE * work_buffer, int tracklen, size_t * p_sectorlen);
-int extract_GCR_track(BYTE * destination, BYTE * source, int * align,
-  int force_align, size_t cap_min, size_t cap_max);
+int extract_GCR_track(BYTE * destination, BYTE * source, int * align, int force_align, size_t cap_min, size_t cap_max);
 int replace_bytes(BYTE * buffer, int length, BYTE srcbyte, BYTE dstbyte);
 int check_bad_gcr(BYTE * gcrdata, int length, int fix);
 BYTE check_sync_flags(BYTE * gcrdata, int density, int length);
 void bitshift(BYTE * gcrdata, int length, int bits);
-int check_errors(BYTE * gcrdata, int length, int track, BYTE * id,
-  char * errorstring);
-int check_empty(BYTE * gcrdata, int length, int track, BYTE * id,
-  char * errorstring);
-int compare_tracks(BYTE * track1, BYTE * track2, int length1, int length2,
-  int same_disk, char * outputstring);
-int compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
-  BYTE * id1, BYTE * id2, int track, char * outputstring);
+int check_errors(BYTE * gcrdata, int length, int track, BYTE * id, char * errorstring);
+int check_empty(BYTE * gcrdata, int length, int track, BYTE * id, char * errorstring);
+int compare_tracks(BYTE * track1, BYTE * track2, int length1, int length2, int same_disk, char * outputstring);
+int compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2, BYTE * id1, BYTE * id2, int track, char * outputstring);
 int strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target);
-int reduce_runs(BYTE * buffer, int length, int length_max, int minrun,
-  BYTE target);
+int reduce_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target);
+int reduce_tails(BYTE * buffer, int length, int length_max, int minrun);
 int is_bad_gcr(BYTE * gcrdata, size_t length, size_t pos);
 int check_formatted(BYTE * gcrdata);
 int check_valid_data(BYTE * data, int length);
