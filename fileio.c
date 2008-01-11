@@ -741,7 +741,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 				printf("rsync:%d ", orglen - length);
 		}
 
-		/* reduce tail gaps -  sector gaps occur at the end of every sector and vary from 4-19 bytes, typically  */
+		/* reduce sector gaps -  they occur at the end of every sector and vary from 4-19 bytes, typically  */
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (reduce_gap) )
 		{
