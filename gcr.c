@@ -42,7 +42,7 @@ BYTE speed_map_1541[MAX_TRACKS_1541] = {
 	0, 0, 0, 0, 0, 0, 0	/* 36 - 42 (non-standard) */
 };
 
-char alignments[][20] = { "NONE", "GAP", "SEC0", "SYNC", "WEAK", "VMAX", "AUTO", "VMAX-CW"};
+char alignments[][20] = { "NONE", "GAP", "SEC0", "SYNC", "BADGCR", "VMAX", "AUTO", "VMAX-CW"};
 
 /* Burst Nibbler defaults
 int capacity_min[] = 		{ 6183, 6598, 7073, 7616 };
@@ -737,7 +737,7 @@ int extract_GCR_track(BYTE *destination, BYTE *source, int *align, int force_ali
 	BYTE *sector0_pos;	/* position of sector 0 */
 	BYTE *sectorgap_pos;/* position of sector gap */
 	BYTE *longsync_pos;	/* position of longest sync run */
-	BYTE *weakgap_pos;	/* position of weak bit run */
+	BYTE *badgap_pos;	/* position of bad gcr bit run */
 	BYTE *marker_pos;	/* generic marker used by protection handlers */
 	size_t sector0_len;	/* length of gap before sector 0 */
 	size_t sectorgap_len;	/* length of longest gap */
@@ -745,7 +745,7 @@ int extract_GCR_track(BYTE *destination, BYTE *source, int *align, int force_ali
 	sector0_pos = NULL;
 	sectorgap_pos = NULL;
 	longsync_pos = NULL;
-	weakgap_pos = NULL;
+	badgap_pos = NULL;
 	marker_pos = NULL;
 
 	cap_min -= CAP_MIN_ALLOWANCE;
@@ -802,10 +802,10 @@ int extract_GCR_track(BYTE *destination, BYTE *source, int *align, int force_ali
 			marker_pos = find_long_sync(work_buffer, track_len);
 		}
 
-		if (force_align == ALIGN_WEAK)
+		if (force_align == ALIGN_BADGCR)
 		{
-			*align = ALIGN_WEAK;
-			marker_pos = find_weak_gap(work_buffer, track_len);
+			*align = ALIGN_BADGCR;
+			marker_pos = find_bad_gap(work_buffer, track_len);
 		}
 
 		if (force_align == ALIGN_GAP)
@@ -982,7 +982,7 @@ check_sync_flags(BYTE *gcrdata, int density, int length)
 
 	if(!syncs)
 		density |= BM_NO_SYNC;
-	else if (syncs >= length - 3)  /* sometimes we get a small weak glitch on killer tracks from the mastering device */
+	else if (syncs >= length - 3)  /* sometimes we get a small glitch on killer tracks from the mastering device */
 		density |= BM_FF_TRACK;
 
 	// else do nothing
@@ -990,11 +990,10 @@ check_sync_flags(BYTE *gcrdata, int density, int length)
 }
 
 int
-compare_tracks(BYTE *track1, BYTE *track2, int length1, int length2,
-  int same_disk, char *outputstring)
+compare_tracks(BYTE *track1, BYTE *track2, int length1, int length2, int same_disk, char *outputstring)
 {
 	int match, j, k, sync_diff, presync_diff;
-	int gap_diff, weak_diff, size_diff;
+	int gap_diff, badgcr_diff, size_diff;
 	char tmpstr[256];
 
 	match = 0;
@@ -1003,7 +1002,7 @@ compare_tracks(BYTE *track1, BYTE *track2, int length1, int length2,
 	sync_diff = 0;
 	presync_diff = 0;
 	gap_diff = 0;
-	weak_diff = 0;
+	badgcr_diff = 0;
 	size_diff= 0;
 	outputstring[0] = '\0';
 
@@ -1054,7 +1053,7 @@ compare_tracks(BYTE *track1, BYTE *track2, int length1, int length2,
 			if (is_bad_gcr(track1, length1, j) ||
 			  is_bad_gcr(track2, length2, k))
 			{
-				weak_diff++;
+				badgcr_diff++;
 				j++;
 				k++;
 				continue;
@@ -1067,9 +1066,9 @@ compare_tracks(BYTE *track1, BYTE *track2, int length1, int length2,
 		if (j < length1 - 1 || k < length2 - 1)
 			size_diff++;
 
-		// we got to the end of one of them OK and not all sync/weak
+		// we got to the end of one of them OK and not all sync/bad gcr
 		if ((j >= length1 - 1 || k >= length2 - 1) &&
-		  (sync_diff < 0x100 && weak_diff < 0x100))
+		  (sync_diff < 0x100 && badgcr_diff < 0x100))
 			match = 1;
 	}
 
@@ -1091,9 +1090,9 @@ compare_tracks(BYTE *track1, BYTE *track2, int length1, int length2,
 		strcat(outputstring, tmpstr);
 	}
 
-	if (weak_diff)
+	if (badgcr_diff)
 	{
-		sprintf(tmpstr, "(weak:%d)", weak_diff);
+		sprintf(tmpstr, "(badgcr:%d)", badgcr_diff);
 		strcat(outputstring, tmpstr);
 	}
 

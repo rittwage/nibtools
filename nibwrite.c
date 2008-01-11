@@ -26,7 +26,7 @@ int track_length[MAX_HALFTRACKS_1541 + 1];
 
 int start_track, end_track, track_inc;
 int start_track_override, end_track_override;
-int reduce_sync, reduce_weak, reduce_gap;
+int reduce_sync, reduce_badgcr, reduce_gap;
 int fix_gcr, aggressive_gcr;
 int align, force_align;
 unsigned int lpt[4];
@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 	track_inc = 2;
 
 	reduce_sync = 1;
-	reduce_weak = 0;
+	reduce_badgcr = 0;
 	reduce_gap = 0;
 	fix_gcr = 1;
 	align_disk = 0;
@@ -162,7 +162,7 @@ main(int argc, char *argv[])
 			{
 				printf("GMA/SecuriSpeed\n");
 				reduce_sync = 0;
-				reduce_weak = 1;
+				reduce_badgcr = 1;
 			}
 			else if ((*argv)[2] == 'v')
 			{
@@ -173,7 +173,7 @@ main(int argc, char *argv[])
 			{
 				printf("RAPIDLOK\n");
 				reduce_sync = 0;
-				reduce_weak = 1;
+				reduce_badgcr = 1;
 				reduce_gap = 1;
 				align_disk = 1;
 			}
@@ -196,8 +196,8 @@ main(int argc, char *argv[])
 			}
 			else if ((*argv)[2] == 'w')
 			{
-				printf("longest weak run\n");
-				force_align = ALIGN_WEAK;
+				printf("longest bad GCR run\n");
+				force_align = ALIGN_BADGCR;
 			}
 			else if ((*argv)[2] == 's')
 			{
@@ -226,8 +226,8 @@ main(int argc, char *argv[])
 			break;
 
 		case '0':
-			reduce_weak = 1;
-			printf("* Enabled 'reduce weak' option\n");
+			reduce_badgcr = 1;
+			printf("* Enabled 'reduce bad GCR' option\n");
 			break;
 
 		case 'g':
@@ -244,7 +244,7 @@ main(int argc, char *argv[])
 
 		case 'f':
 			fix_gcr = 0;
-			printf("* Disabled weak GCR bit simulation\n");
+			printf("* Disabled bad GCR bit reproduction\n");
 			break;
 
 		case 'v':
@@ -395,10 +395,10 @@ usage(void)
 	     " -s[n]: Manual track skew (in microseconds)\n"
 	     " -t: Enable timer-based track alignment\n"
 	     " -g: Enable gap reduction\n"
-	     " -0: Enable weak-bit run reduction\n"
+	     " -0: Enable bad GCR run reduction\n"
 	     " -r: Disable automatic sync reduction\n"
 	     " -c: Disable automatic capacity adjustment\n"
-	     " -f: Disable automatic weak GCR bit simulation\n"
+	     " -f: Disable automatic bad GCR detection\n"
 	     " -u: Unformat disk. (writes all 0 bits to surface)\n"
 	     " -v: Verbose (output more detailed track data)\n"
 	     " -G: Manual gap match length\n"

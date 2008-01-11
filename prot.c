@@ -176,7 +176,7 @@ auto_gap(BYTE * work_buffer, int tracklen)
 // we can line up the track cycle to this
 // in lieu of no other hints
 BYTE *
-find_weak_gap(BYTE * work_buffer, int tracklen)
+find_bad_gap(BYTE * work_buffer, int tracklen)
 {
 	BYTE *pos, *buffer_end, *key_temp, *key;
 	int run, longest;

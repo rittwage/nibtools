@@ -751,18 +751,18 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 				printf("rgaps:%d ", orglen - length);
 		}
 
-		/* process bad GCR (or weak bits) */
+		/* process bad GCR */
 		badgcr = check_bad_gcr(gcrdata, length, fix_gcr);
-		if (badgcr > 0) printf("weak:%d ", badgcr);
+		if (badgcr > 0) printf("badgcr:%d ", badgcr);
 
 		/* reduce bad GCR runs */
 		orglen = length;
-		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (badgcr > 0) && (reduce_weak) )
+		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (badgcr > 0) && (reduce_badgcr) )
 		{
 			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 0, 0x00);
 
 			if (length < orglen)
-				printf("rweak:%d ", orglen - length);
+				printf("rbgcr:%d ", orglen - length);
 		}
 
 		/* still not small enough, we have to truncate the end */

@@ -24,7 +24,7 @@ BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 int track_length[MAX_HALFTRACKS_1541 + 1];
 
-int reduce_sync, reduce_weak, reduce_gap;
+int reduce_sync, reduce_badgcr, reduce_gap;
 int fix_gcr, aggressive_gcr;
 int start_track, end_track, track_inc;
 int read_killer;
@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 	track_inc = 2;
 
 	reduce_sync = 1;
-	reduce_weak = 0;
+	reduce_badgcr = 0;
 	reduce_gap = 0;
 	fix_gcr = 1;
 	read_killer = 1;

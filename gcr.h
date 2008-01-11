@@ -110,7 +110,7 @@ speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 #define ALIGN_GAP			1
 #define ALIGN_SEC0			2
 #define ALIGN_LONGSYNC		3
-#define ALIGN_WEAK			4
+#define ALIGN_BADGCR			4
 #define ALIGN_VMAX			5
 #define ALIGN_AUTOGAP		6
 #define ALIGN_VMAX_CW		7

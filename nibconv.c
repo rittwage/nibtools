@@ -20,7 +20,7 @@ BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 int track_length[MAX_HALFTRACKS_1541 + 1];
 
 int start_track, end_track, track_inc;
-int reduce_sync, reduce_weak, reduce_gap;
+int reduce_sync, reduce_badgcr, reduce_gap;
 int fix_gcr, align, force_align;
 int gap_match_length;
 int skip_halftracks;
@@ -36,7 +36,7 @@ main(int argc, char **argv)
 	track_inc = 2;
 	fix_gcr = 0;
 	reduce_sync = 0;
-	reduce_weak = 0;
+	reduce_badgcr = 0;
 	reduce_gap = 0;
 	skip_halftracks = 0;
 	align = ALIGN_NONE;
@@ -60,7 +60,7 @@ main(int argc, char **argv)
 		switch ((*argv)[1])
 		{
 		case 'f':
-			printf("* Fix weak GCR\n");
+			printf("* Fix bad GCR\n");
 			fix_gcr = 1;
 			break;
 
@@ -70,8 +70,8 @@ main(int argc, char **argv)
 			break;
 
 		case '0':
-			printf("* Reduce weak GCR enabled\n");
-			reduce_weak = 1;
+			printf("* Reduce bad GCR enabled\n");
+			reduce_badgcr = 1;
 			break;
 
 		case 'g':
@@ -104,7 +104,7 @@ main(int argc, char **argv)
 			{
 				printf("GMA/SecuriSpeed\n");
 				reduce_sync = 0;
-				reduce_weak = 1;
+				reduce_badgcr = 1;
 			}
 			else if ((*argv)[2] == 'v')
 			{
@@ -115,7 +115,7 @@ main(int argc, char **argv)
 			{
 				printf("RAPIDLOK\n");
 				reduce_sync = 0;
-				reduce_weak = 1;
+				reduce_badgcr = 1;
 				reduce_gap = 1;
 			}
 			else
@@ -132,8 +132,8 @@ main(int argc, char **argv)
 			}
 			else if ((*argv)[2] == 'w')
 			{
-				printf("longest weak run\n");
-				force_align = ALIGN_WEAK;
+				printf("longest bad gcr run\n");
+				force_align = ALIGN_BADGCR;
 			}
 			else if ((*argv)[2] == 's')
 			{
@@ -263,7 +263,7 @@ usage(void)
 	" -a[x]: Force alternative track alignments (advanced users only)\n"
 	" -p[x]: Custom protection handlers (advanced users only)\n"
      " -g: Enable gap reduction\n"
-     " -0: Enable weak-bit run reduction\n"
+     " -0: Enable bad GCR run reduction\n"
      " -r: Enable automatic sync reduction\n"
      " -G: Manual gap match length\n");
 	exit(1);

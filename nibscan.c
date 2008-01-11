@@ -39,7 +39,7 @@ int badgcr_tracks[MAX_HALFTRACKS_1541 + 1];
 
 int fix_gcr;
 int reduce_sync;
-int reduce_weak;
+int reduce_badgcr;
 int reduce_gap;
 int waitkey = 0;
 int advanced_info;
@@ -56,8 +56,8 @@ usage(void)
 		" -a[x]: Force alternative track alignments (advanced users only)\n"
 		" -p[x]: Custom protection handlers (advanced users only)\n"
 		" -g: Enable gap reduction\n"
-		" -f: Disable automatic 'fixing' of bad/weak GCR\n"
-		" -0: Enable weak-bit run reduction\n"
+		" -f: Disable automatic bad GCR detection\n"
+		" -0: Enable bad GCR run reduction\n"
 		" -g: Enable gap reduction\n"
 		" -r: Disable automatic sync reduction\n"
 		" -G: Manual gap match length\n"
@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 	gap_match_length = 7;
 	mode = 0;
 	reduce_sync = 1;
-	reduce_weak = 0;
+	reduce_badgcr = 0;
 	reduce_gap = 0;
 
 	fprintf(stdout,
@@ -115,8 +115,8 @@ main(int argc, char *argv[])
 			break;
 
 		case '0':
-			printf("* Reduce weak GCR enabled\n");
-			reduce_weak = 1;
+			printf("* Reduce bad GCR enabled\n");
+			reduce_badgcr = 1;
 			break;
 
 		case 'g':
@@ -143,7 +143,7 @@ main(int argc, char *argv[])
 			break;
 
 		case 'f':
-			printf("* Weak bit correction/simulation disabled\n");
+			printf("* Bad GCR correction/simulation disabled\n");
 			fix_gcr= 0;
 			break;
 
@@ -166,7 +166,7 @@ main(int argc, char *argv[])
 			{
 				printf("GMA/SecuriSpeed\n");
 				//reduce_sync = 0;
-				//reduce_weak = 1;
+				//reduce_badgcr = 1;
 			}
 			else if ((*argv)[2] == 'v')
 			{
@@ -177,7 +177,7 @@ main(int argc, char *argv[])
 			{
 				printf("RAPIDLOK\n");
 				//reduce_sync = 1;
-				//reduce_weak = 1;
+				//reduce_badgcr = 1;
 			}
 			else
 				printf("Unknown protection handler\n");
@@ -193,8 +193,8 @@ main(int argc, char *argv[])
 			}
 			else if ((*argv)[2] == 'w')
 			{
-				printf("longest weak run\n");
-				force_align = ALIGN_WEAK;
+				printf("longest bad GCR run\n");
+				force_align = ALIGN_BADGCR;
 			}
 			else if ((*argv)[2] == 's')
 			{
@@ -520,7 +520,7 @@ scandisk(void)
 
 				if (badgcr_tracks[track])
 				{
-					printf("weak:%d ", badgcr_tracks[track]);
+					printf("badgcr:%d ", badgcr_tracks[track]);
 					totalgcr += badgcr_tracks[track];
 				}
 			}
@@ -588,7 +588,7 @@ scandisk(void)
 	printf("\n---------------------------------------------------------------------\n");
 	printf("%d disk errors detected.\n", errors);
 	printf("%d empty sectors detected.\n", empty);
-	printf("%d bad/weak GCR bytes detected.\n", totalgcr);
+	printf("%d bad GCR bytes detected.\n", totalgcr);
 	printf("%d fat tracks detected.\n", totalfat);
 	printf("%d rapidlok tracks detected.\n", totalrl);
 	printf("%d tracks with non-standard density.\n", total_wrong_density);
@@ -602,13 +602,13 @@ raw_track_info(BYTE * gcrdata, int length, char *outputstring)
 	int sync_len[NIB_TRACK_LENGTH];
 	int gap_cnt = 0;
 	int gap_len[NIB_TRACK_LENGTH];
-	int weak_cnt = 0;
-	int weak_len[NIB_TRACK_LENGTH];
+	int bad_cnt = 0;
+	int bad_len[NIB_TRACK_LENGTH];
 	int i, locked;
 
 	memset(sync_len, 0, sizeof(sync_len));
 	memset(gap_len, 0, sizeof(gap_len));
-	memset(weak_len, 0, sizeof(weak_len));
+	memset(bad_len, 0, sizeof(bad_len));
 
 	// count syncs/lengths
 	for (locked = 0, i = 0; i < length - 1; i++)
@@ -656,27 +656,27 @@ raw_track_info(BYTE * gcrdata, int length, char *outputstring)
 		printf("%d-", gap_len[i]);
 	printf(")");
 
-	// count weaks/lengths
+	// count bad gcr lengths
 	for (locked = 0, i = 0; i < length - 1; i++)
 	{
 		if (locked)
 		{
 			if (is_bad_gcr(gcrdata, length, i))
-				weak_len[weak_cnt]++;
+				bad_len[bad_cnt]++;
 			else
 				locked = 0;
 		}
 		else if (is_bad_gcr(gcrdata, length, i))
 		{
 			locked = 1;
-			weak_cnt++;
-			weak_len[weak_cnt] = 1;
+			bad_cnt++;
+			bad_len[bad_cnt] = 1;
 		}
 	}
 
-	printf("\nWEAKS:%d (", weak_cnt);
-	for (i = 1; i <= weak_cnt; i++)
-		printf("%d-", weak_len[i]);
+	printf("\nBADGCR:%d (", bad_cnt);
+	for (i = 1; i <= bad_cnt; i++)
+		printf("%d-", bad_len[i]);
 	printf(")");
 
 	return 1;
