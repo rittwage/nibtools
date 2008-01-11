@@ -166,7 +166,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		}
 
 		// if we get less than what a track holds,
-		// try again, probably bad read or a weak match
+		// try again, probably bad read or a bad GCR match
 		if (leno < capacity_min[denso & 3] - 0x100)
 		{
 			printf("<! ");
@@ -283,8 +283,8 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 	if (badgcr)
 	{
-		printf("(weak:%d)", badgcr);
-		fprintf(fplog, "(weak:%d) ", badgcr);
+		printf("(badgcr:%d)", badgcr);
+		fprintf(fplog, "(badgcr:%d) ", badgcr);
 	}
 
 	printf("\n");

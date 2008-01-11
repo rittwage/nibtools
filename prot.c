@@ -171,7 +171,7 @@ auto_gap(BYTE * work_buffer, int tracklen)
 		return(key);
 }
 
-// The idea behind this is that weak bits commonly occur
+// The idea behind this is that bad GCR commonly occurs
 // at the ends of tracks when they were mastered.
 // we can line up the track cycle to this
 // in lieu of no other hints

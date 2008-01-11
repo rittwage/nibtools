@@ -762,7 +762,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 0, 0x00);
 
 			if (length < orglen)
-				printf("rbgcr:%d ", orglen - length);
+				printf("rbadgcr:%d ", orglen - length);
 		}
 
 		/* still not small enough, we have to truncate the end */
