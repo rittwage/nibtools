@@ -478,8 +478,8 @@ convert_sector_to_GCR(BYTE * buffer, BYTE * ptr, int track, int sector, BYTE * d
 		ptr += 5;
 	}
 
-	memset(ptr, 0x55, TAIL_GAP_LENGTH);	 /* tail gap*/
-	ptr += TAIL_GAP_LENGTH;
+	memset(ptr, 0x55, SECTOR_GAP_LENGTH);	 /* tail gap*/
+	ptr += SECTOR_GAP_LENGTH;
 }
 
 size_t
@@ -946,7 +946,7 @@ reduce_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 
 /* try to shorten tail gaps until length <= length_max */
 int
-reduce_tails(BYTE * buffer, int length, int length_max, int minrun)
+reduce_gaps(BYTE * buffer, int length, int length_max, int minrun)
 {
 	/* minrun is number of bytes to leave behind */
 	int skipped;

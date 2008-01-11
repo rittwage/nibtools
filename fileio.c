@@ -732,7 +732,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 		/* If our track contains sync, we reduce to a minimum of 32 bits
 		   less is too short for some loaders including CBM, but only 10 bits are technically required */
 		orglen = length;
-		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (!(density & BM_NO_SYNC)) && (reduce_syncs) )
+		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (!(density & BM_NO_SYNC)) && (reduce_sync) )
 		{
 			/* reduce sync marks within the track */
 			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 4, 0xff);
@@ -741,11 +741,11 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 				printf("rsync:%d ", orglen - length);
 		}
 
-		/* reduce tail gaps -  tail gaps occur at the end of every sector and vary from 4-19 bytes, typically  */
+		/* reduce tail gaps -  sector gaps occur at the end of every sector and vary from 4-19 bytes, typically  */
 		orglen = length;
-		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (reduce_gaps) )
+		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (reduce_gap) )
 		{
-			length = reduce_tails(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 4);
+			length = reduce_gaps(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 4);
 
 			if (length < orglen)
 				printf("rgaps:%d ", orglen - length);

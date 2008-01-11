@@ -31,10 +31,10 @@
 #define HEADER_LENGTH 	10
 #define HEADER_GAP_LENGTH 	9  // this must be 9 or 1541 will corrupt the sector if written
 #define DATA_LENGTH 	325 			// 65 * 5
-#define TAIL_GAP_LENGTH 		7  // this varies by drive motor speed and sector from 4-19
+#define SECTOR_GAP_LENGTH 		7  // this varies by drive motor speed and sector from 4-19
 
 #define SECTOR_SIZE ((SYNC_LENGTH) + (HEADER_LENGTH) + (HEADER_GAP_LENGTH) + \
-											(SYNC_LENGTH) + (DATA_LENGTH) + (TAIL_GAP_LENGTH))
+											(SYNC_LENGTH) + (DATA_LENGTH) + (SECTOR_GAP_LENGTH))
 
 /* G64 constants (only needed for current VICE support */
 #define G64_TRACK_MAXLEN 7928
@@ -153,7 +153,7 @@ int compare_tracks(BYTE * track1, BYTE * track2, int length1, int length2, int s
 int compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2, BYTE * id1, BYTE * id2, int track, char * outputstring);
 int strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target);
 int reduce_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target);
-int reduce_tails(BYTE * buffer, int length, int length_max, int minrun);
+int reduce_gaps(BYTE * buffer, int length, int length_max, int minrun);
 int is_bad_gcr(BYTE * gcrdata, size_t length, size_t pos);
 int check_formatted(BYTE * gcrdata);
 int check_valid_data(BYTE * data, int length);

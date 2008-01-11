@@ -38,9 +38,9 @@ int rapidlok_tracks[MAX_HALFTRACKS_1541 + 1];
 int badgcr_tracks[MAX_HALFTRACKS_1541 + 1];
 
 int fix_gcr;
-int reduce_syncs;
+int reduce_sync;
 int reduce_weak;
-int reduce_gaps;
+int reduce_gap;
 int waitkey = 0;
 int advanced_info;
 int gap_match_length;
@@ -80,9 +80,9 @@ main(int argc, char *argv[])
 	fix_gcr = 1;
 	gap_match_length = 7;
 	mode = 0;
-	reduce_syncs = 1;
+	reduce_sync = 1;
 	reduce_weak = 0;
-	reduce_gaps = 0;
+	reduce_gap = 0;
 
 	fprintf(stdout,
 	  "\nnibscan - Commodore disk image scanner / comparator\n"
@@ -110,8 +110,8 @@ main(int argc, char *argv[])
 		{
 
 		case 'r':
-			printf("* Reduce syncs disabled\n");
-			reduce_syncs = 0;
+			printf("* Reduce sync disabled\n");
+			reduce_sync = 0;
 			break;
 
 		case '0':
@@ -121,7 +121,7 @@ main(int argc, char *argv[])
 
 		case 'g':
 			printf("* Reduce gaps enabled\n");
-			reduce_gaps = 1;
+			reduce_gap = 1;
 			break;
 
 		case 'w':
@@ -165,7 +165,7 @@ main(int argc, char *argv[])
 			else if ((*argv)[2] == 'g')
 			{
 				printf("GMA/SecuriSpeed\n");
-				//reduce_syncs = 0;
+				//reduce_sync = 0;
 				//reduce_weak = 1;
 			}
 			else if ((*argv)[2] == 'v')
@@ -176,7 +176,7 @@ main(int argc, char *argv[])
 			else if ((*argv)[2] == 'r')
 			{
 				printf("RAPIDLOK\n");
-				//reduce_syncs = 1;
+				//reduce_sync = 1;
 				//reduce_weak = 1;
 			}
 			else

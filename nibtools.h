@@ -80,7 +80,7 @@ extern float motor_speed;
 extern int skew;
 extern int density_map;
 extern int start_track, end_track, track_inc;
-extern int fix_gcr, reduce_syncs, reduce_gaps, reduce_weak;
+extern int fix_gcr, reduce_sync, reduce_gap, reduce_weak;
 extern int imagetype, auto_capacity_adjust;
 extern int extended_parallel_test;
 extern int force_nosync;

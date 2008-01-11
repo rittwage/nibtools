@@ -26,7 +26,7 @@ int track_length[MAX_HALFTRACKS_1541 + 1];
 
 int start_track, end_track, track_inc;
 int start_track_override, end_track_override;
-int reduce_syncs, reduce_weak, reduce_gaps;
+int reduce_sync, reduce_weak, reduce_gap;
 int fix_gcr, aggressive_gcr;
 int align, force_align;
 unsigned int lpt[4];
@@ -80,9 +80,9 @@ main(int argc, char *argv[])
 	end_track_override = 0;
 	track_inc = 2;
 
-	reduce_syncs = 1;
+	reduce_sync = 1;
 	reduce_weak = 0;
-	reduce_gaps = 0;
+	reduce_gap = 0;
 	fix_gcr = 1;
 	align_disk = 0;
 	auto_capacity_adjust = 1;
@@ -161,7 +161,7 @@ main(int argc, char *argv[])
 			else if ((*argv)[2] == 'g')
 			{
 				printf("GMA/SecuriSpeed\n");
-				reduce_syncs = 0;
+				reduce_sync = 0;
 				reduce_weak = 1;
 			}
 			else if ((*argv)[2] == 'v')
@@ -172,9 +172,9 @@ main(int argc, char *argv[])
 			else if ((*argv)[2] == 'r')
 			{
 				printf("RAPIDLOK\n");
-				reduce_syncs = 0;
+				reduce_sync = 0;
 				reduce_weak = 1;
-				reduce_gaps = 1;
+				reduce_gap = 1;
 				align_disk = 1;
 			}
 			else
@@ -214,8 +214,8 @@ main(int argc, char *argv[])
 			break;
 
 		case 'r':
-			reduce_syncs = 0;
-			printf("* Disabled 'reduce syncs' option\n");
+			reduce_sync = 0;
+			printf("* Disabled 'reduce sync' option\n");
 			break;
 
 		case 'D':
@@ -231,7 +231,7 @@ main(int argc, char *argv[])
 			break;
 
 		case 'g':
-			reduce_gaps = 1;
+			reduce_gap = 1;
 			printf("* Enabled 'reduce gaps' option\n");
 			break;
 

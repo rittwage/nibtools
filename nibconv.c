@@ -20,7 +20,7 @@ BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 int track_length[MAX_HALFTRACKS_1541 + 1];
 
 int start_track, end_track, track_inc;
-int reduce_syncs, reduce_weak, reduce_gaps;
+int reduce_sync, reduce_weak, reduce_gap;
 int fix_gcr, align, force_align;
 int gap_match_length;
 int skip_halftracks;
@@ -35,9 +35,9 @@ main(int argc, char **argv)
 	end_track = 42 * 2;
 	track_inc = 2;
 	fix_gcr = 0;
-	reduce_syncs = 0;
+	reduce_sync = 0;
 	reduce_weak = 0;
-	reduce_gaps = 0;
+	reduce_gap = 0;
 	skip_halftracks = 0;
 	align = ALIGN_NONE;
 	force_align = ALIGN_NONE;
@@ -65,8 +65,8 @@ main(int argc, char **argv)
 			break;
 
 		case 'r':
-			printf("* Reduce syncs disabled\n");
-			reduce_syncs = 1;
+			printf("* Reduce sync disabled\n");
+			reduce_sync = 1;
 			break;
 
 		case '0':
@@ -76,7 +76,7 @@ main(int argc, char **argv)
 
 		case 'g':
 			printf("* Reduce gaps enabled\n");
-			reduce_gaps = 1;
+			reduce_gap = 1;
 			break;
 
 		case 'G':
@@ -103,7 +103,7 @@ main(int argc, char **argv)
 			else if ((*argv)[2] == 'g')
 			{
 				printf("GMA/SecuriSpeed\n");
-				reduce_syncs = 0;
+				reduce_sync = 0;
 				reduce_weak = 1;
 			}
 			else if ((*argv)[2] == 'v')
@@ -114,9 +114,9 @@ main(int argc, char **argv)
 			else if ((*argv)[2] == 'r')
 			{
 				printf("RAPIDLOK\n");
-				reduce_syncs = 0;
+				reduce_sync = 0;
 				reduce_weak = 1;
-				reduce_gaps = 1;
+				reduce_gap = 1;
 			}
 			else
 				printf("Unknown protection handler\n");
