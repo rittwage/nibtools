@@ -728,7 +728,7 @@ check_formatted(BYTE *gcrdata)
    [Input]  destination buffer, source buffer
    [Return] length of copied track fragment
  */
-int extract_GCR_track(BYTE *destination, BYTE *source, int *align, int force_align, size_t cap_min, size_t cap_max)
+int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_align, size_t cap_min, size_t cap_max)
 {
 	BYTE work_buffer[NIB_TRACK_LENGTH*2];	/* working buffer */
 	BYTE *cycle_start;	/* start position of cycle */
@@ -902,11 +902,7 @@ strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 
 	for (source = buffer; source < end; source++)
 	{
-		/* bail if we have enough bytes already */
-		if(length - skipped <= length_max)
-			break;
-
-		if (*source == target)
+		if ( (*source == target) && (length - skipped >= length_max) )
 		{
 			if (run == minrun)
 				skipped++;

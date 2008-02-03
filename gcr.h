@@ -142,7 +142,7 @@ BYTE convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_end, BYTE * d64_sector, int
 void convert_sector_to_GCR(BYTE * buffer, BYTE * ptr, int track, int sector, BYTE * diskID, int error);
 BYTE * find_sector_gap(BYTE * work_buffer, int tracklen, size_t * p_sectorlen);
 BYTE * find_sector0(BYTE * work_buffer, int tracklen, size_t * p_sectorlen);
-int extract_GCR_track(BYTE * destination, BYTE * source, int * align, int force_align, size_t cap_min, size_t cap_max);
+int extract_GCR_track(BYTE * destination, BYTE * source, BYTE *align, int force_align, size_t cap_min, size_t cap_max);
 int replace_bytes(BYTE * buffer, int length, BYTE srcbyte, BYTE dstbyte);
 int check_bad_gcr(BYTE * gcrdata, int length, int fix);
 BYTE check_sync_flags(BYTE * gcrdata, int density, int length);

@@ -20,7 +20,7 @@
 extern int skip_halftracks;
 extern int verbose;
 
-int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
+int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment)
 {
     /*	reads contents of a NIB file */
 
@@ -84,7 +84,7 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 		/* process track cycle */
 		track_length[track] = extract_GCR_track(track_buffer + (track * NIB_TRACK_LENGTH), nibdata,
-			&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
+			&track_alignment[track], force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
 
 		/* output some specs */
 		if(verbose)
@@ -93,7 +93,7 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
 			printf("%d:%d) ", track_density[track]&3, track_length[track]);
-			printf("[align=%s]\n",alignments[align]);
+			printf("[align:%s]\n",alignments[track_alignment[track]]);
 		}
 	}
 	fclose(fpin);
@@ -101,7 +101,7 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 	return 1;
 }
 
-int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
+int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment)
 {
     /*	reads contents of a NIB file */
 	int track, pass_density, pass, nibsize, numtracks;
@@ -199,7 +199,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 					fread(nibdata, NIB_TRACK_LENGTH, 1, fpin);
 
 					length = extract_GCR_track(tmpdata, nibdata,
-						&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
+						&track_alignment[track], force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
 
 					errors = check_errors(tmpdata, length, track, diskid, errorstring);
 
@@ -221,6 +221,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
 		printf("%d:%d) (pass %d, %d errors)\n", track_density[track]&3, track_length[track], best_pass, best_err);
+		printf("[align:%s]\n",alignments[track_alignment[track]]);
 		//printf("%s",errorstring);
 	}
 	fclose(fpin);
@@ -729,13 +730,13 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	/* process and compress track data (if needed) */
 	if (length > 0)
 	{
-		/* If our track contains sync, we reduce to a minimum of 32 bits
+		/* If our track contains sync, we reduce to a minimum of 24 bits
 		   less is too short for some loaders including CBM, but only 10 bits are technically required */
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (!(density & BM_NO_SYNC)) && (reduce_sync) )
 		{
 			/* reduce sync marks within the track */
-			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 4, 0xff);
+			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 3, 0xff);
 
 			if (length < orglen)
 				printf("rsync:%d ", orglen - length);
@@ -765,7 +766,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 				printf("rbadgcr:%d ", orglen - length);
 		}
 
-		/* still not small enough, we have to truncate the end */
+		/* still not small enough, we have to truncate the end (reduce tail) */
 		orglen = length;
 		if (length > capacity[density & 3] - CAPACITY_MARGIN)
 		{

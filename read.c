@@ -116,6 +116,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	BYTE cbuffer1[NIB_TRACK_LENGTH];
 	BYTE cbuffer2[NIB_TRACK_LENGTH];
 	BYTE *cbufn, *cbufo, *bufn, *bufo;
+	BYTE align;
 	int leno, lenn, densn, i, l, badgcr,errors, retries, short_read, long_read;
     BYTE denso;
 	char errorstring[0x1000], diffstr[80];
@@ -211,10 +212,10 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	errors = check_errors(cbufo, leno, halftrack, diskid, errorstring);
 
 	// If there are a lot of errors, the track probably doesn't contain
-	// any DOS sectors (protection)
+	// any CBM sectors (protection)
 	if (errors == sector_map_1541[halftrack/2])
 	{
-		printf("[NDOS] ");
+		printf("[CUSTOM] ");
 		fprintf(fplog, "%s ", errorstring);
 	}
 	else if (errors > 0)
@@ -226,8 +227,8 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	else
 	{
 		// this is all good CBM DOS-style sectors
-		printf("[DOS] ");
-		fprintf(fplog, "[DOS] ");
+		printf("[CBM] ");
+		fprintf(fplog, "[CBM] ");
 	}
 
 	// Fix bad GCR in track for compare
@@ -297,6 +298,7 @@ int
 read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
     int track;
+    BYTE align;
     BYTE dummy[NIB_TRACK_LENGTH];
 
 	printf("\n");

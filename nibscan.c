@@ -32,6 +32,8 @@ int track_length[MAX_HALFTRACKS_1541 + 1];
 int track_length2[MAX_HALFTRACKS_1541 + 1];
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_density2[MAX_HALFTRACKS_1541 + 1];
+BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
+BYTE track_alignment2[MAX_HALFTRACKS_1541 + 1];
 
 int fat_tracks[MAX_HALFTRACKS_1541 + 1];
 int rapidlok_tracks[MAX_HALFTRACKS_1541 + 1];
@@ -263,9 +265,9 @@ load_image(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_l
 	else if (compare_extension(filename, "G64"))
 		return(read_g64(filename, track_buffer, track_density, track_length));
 	else if (compare_extension(filename, "NIB"))
-		return(read_nib(filename, track_buffer, track_density, track_length));
+		return(read_nib(filename, track_buffer, track_density, track_length, track_alignment));
 	else if (compare_extension(filename, "NB2"))
-		return(read_nb2(filename, track_buffer, track_density, track_length));
+		return(read_nb2(filename, track_buffer, track_density, track_length, track_alignment));
 	else
 		printf("Unknown image type = %s!\n", filename);
 

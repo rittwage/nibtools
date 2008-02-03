@@ -22,6 +22,7 @@ char density_branch[4] = { 0xb1, 0xb5, 0xb7, 0xb9 };
 
 BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
+BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 int track_length[MAX_HALFTRACKS_1541 + 1];
 
 int start_track, end_track, track_inc;
@@ -350,12 +351,12 @@ file2disk(CBM_FILE fd, char * filename)
 	}
 	else if (compare_extension(filename, "NIB"))
 	{
-		if(!read_nib(filename, track_buffer, track_density, track_length))
+		if(!read_nib(filename, track_buffer, track_density, track_length, track_alignment))
 			return 0;
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
-		if(!read_nb2(filename, track_buffer, track_density, track_length))
+		if(!read_nb2(filename, track_buffer, track_density, track_length, track_alignment))
 			return 0;
 	}
 	else

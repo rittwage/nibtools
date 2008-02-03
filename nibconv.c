@@ -17,6 +17,7 @@
 
 BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
+BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 int track_length[MAX_HALFTRACKS_1541 + 1];
 
 int start_track, end_track, track_inc;
@@ -198,12 +199,12 @@ main(int argc, char **argv)
 	}
 	else if (compare_extension(inname, "NIB"))
 	{
-		if(!read_nib(inname, track_buffer, track_density, track_length))
+		if(!read_nib(inname, track_buffer, track_density, track_length, track_alignment))
 			exit(0);
 	}
 	else if (compare_extension(inname, "NB2"))
 	{
-		if(!read_nb2(inname, track_buffer, track_density, track_length))
+		if(!read_nb2(inname, track_buffer, track_density, track_length, track_alignment))
 			exit(0);
 	}
 	else

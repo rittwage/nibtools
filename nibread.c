@@ -22,6 +22,7 @@ char density_branch[4] = { 0xb1, 0xb5, 0xb7, 0xb9 };
 
 BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
+BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 int track_length[MAX_HALFTRACKS_1541 + 1];
 
 int reduce_sync, reduce_badgcr, reduce_gap;

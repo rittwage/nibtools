@@ -68,7 +68,6 @@ extern int mode;
 extern FILE * fplog;
 extern int read_killer;
 extern int error_retries;
-extern int align;
 extern int force_align;
 extern int align_disk;
 extern int force_density;
@@ -95,8 +94,8 @@ int disk2file(CBM_FILE fd, char * filename);
 int file2disk(CBM_FILE fd, char * filename);
 
 /* fileio.c */
-int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
-int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
+int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment);
+int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment);
 int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
 int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
 int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
