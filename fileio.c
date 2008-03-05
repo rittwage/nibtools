@@ -87,14 +87,11 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 			&track_alignment[track], force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
 
 		/* output some specs */
-		if(verbose)
-		{
-			printf("%4.1f: (",(float) track / 2);
-			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-			printf("%d:%d) ", track_density[track]&3, track_length[track]);
-			printf("[align:%s]\n",alignments[track_alignment[track]]);
-		}
+		printf("%4.1f: (",(float) track / 2);
+		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+		printf("%d:%d) ", track_density[track]&3, track_length[track]);
+		printf("[align:%s]\n",alignments[track_alignment[track]]);
 	}
 	fclose(fpin);
 	printf("Successfully loaded NIB file\n");
@@ -299,13 +296,10 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		fread(track_buffer + (track * NIB_TRACK_LENGTH), g64maxtrack, 1, fpin);
 
 		/* output some specs */
-		if(verbose)
-		{
-			printf("%4.1f: (",(float) track / 2);
-			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-			printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
-		}
+		printf("%4.1f: (",(float) track / 2);
+		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
 	}
 	fclose(fpin);
 	printf("Successfully loaded G64 file\n");
@@ -469,13 +463,10 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *trac
 		fflush(fpout);
 
 		/* output some specs */
-		if(verbose)
-		{
-			printf("%4.1f: (",(float) track / 2);
-			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-			printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
-		}
+		printf("%4.1f: (",(float) track / 2);
+		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
 	}
 
 	/* fill NIB-header */

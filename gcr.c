@@ -213,9 +213,15 @@ extract_cosmetic_id(BYTE * gcr_track, BYTE * id)
 }
 
 BYTE
-convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector,
-  int track, int sector, BYTE *id)
+convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track, int sector, BYTE *id)
 {
+
+	/* we should later try to repair some common GCR errors
+			1) tri-bit error, in which 01110 is misinterpreted as 01000
+			2) low frequency error, in which 10010 is misinterpreted as 11000
+	*/
+
+
 	BYTE header[10];	/* block header */
 	BYTE hdr_chksum;	/* header checksum */
 	BYTE blk_chksum;	/* block  checksum */
@@ -398,6 +404,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector,
 	/* verify that our data contains no bad GCR, since it can be false positive checksum match */
 	for(j = 0; j < 320; j++)
 		if (is_bad_gcr(gcr_ptr - 325, 320, j)) error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
+
 
 	return (error_code);
 }
