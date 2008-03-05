@@ -20,15 +20,16 @@
 extern int skip_halftracks;
 extern int verbose;
 
+
 int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment)
 {
-    /*	reads contents of a NIB file */
-
 	int track, nibsize, numtracks;
 	int header_entry = 0;
 	char header[0x100];
 	BYTE nibdata[0x2000];
 	FILE *fpin;
+
+	printf("\nReading NIB file...");
 
 	if ((fpin = fopen(filename, "rb")) == NULL)
 	{
@@ -100,7 +101,6 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment)
 {
-    /*	reads contents of a NIB file */
 	int track, pass_density, pass, nibsize, numtracks;
 	int header_entry = 0;
 	char header[0x100];
@@ -111,6 +111,8 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 	int length, best_len;
 	BYTE diskid[2];
 	char errorstring[0x1000];
+
+	printf("\nReading NB2 file...");
 
 	track_inc = 1;  /* all nb2 files contain halftracks */
 
@@ -228,13 +230,14 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
-    /*	reads contents of a G64 file */
 	int track, g64maxtrack;
 	int dens_pointer = 0;
 	int g64tracks, g64size, numtracks;
 	BYTE header[0x2ac];
 	BYTE length_record[2];
 	FILE *fpin;
+
+	printf("\nReading G64 file...");
 
 	if ((fpin = fopen(filename, "rb")) == NULL)
 	{
@@ -309,8 +312,6 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 int
 read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
-	/* reads contents of a D64 file */
-
 	int track, sector, sector_ref;
 	BYTE buffer[256];
 	BYTE gcrdata[NIB_TRACK_LENGTH];
@@ -319,6 +320,8 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 	int error, d64size, last_track;
 	char errorstring[0x1000], tmpstr[8];
 	FILE *fpin;
+
+	printf("\nReading D64 file...");
 
 	if ((fpin = fopen(filename, "rb")) == NULL)
 	{
@@ -421,10 +424,12 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *trac
     	this is only called by nibread, so it does not extract/compress the track
     */
 
-  int track;
-  FILE * fpout;
+	int track;
+	FILE * fpout;
 	char header[0x100];
 	int header_entry = 0;
+
+	printf("\nWriting NIB file...");
 
 	/* clear header */
 	memset(header, 0, sizeof(header));
@@ -499,6 +504,8 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	BYTE d64data[MAXBLOCKSONDISK * 256], *d64ptr;
 	BYTE errorinfo[MAXBLOCKSONDISK], errorcode;
 	int blocks_to_save;
+
+	printf("\nWriting D64 file...");
 
 	memset(errorinfo, 0,sizeof(errorinfo));
 
@@ -597,8 +604,12 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	FILE * fpout;
 	BYTE buffer[NIB_TRACK_LENGTH];
 
+	printf("\nWriting G64 file...");
+
 	/* when writing a G64 file, we don't care about the limitations of drive hardware
-		However, VICE currently ignores G64 header and hardcodes 7928 as the largest track size */
+		However, VICE currently ignores G64 header and hardcodes 7928 as the largest track size
+	*/
+
 	for(i =  0; i < 4; i++)
 	{
 		capacity[i] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;

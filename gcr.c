@@ -407,7 +407,6 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	for(j = 0; j < 320; j++)
 		if (is_bad_gcr(gcr_ptr - 325, 320, j)) error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
 
-
 	return (error_code);
 }
 
