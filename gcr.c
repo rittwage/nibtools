@@ -241,7 +241,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	}
 	if (gcr_cycle == NULL || gcr_cycle <= gcr_start)
 	{
-		//printf("no track cycle, no data\n");
+		/* printf("no track cycle, no data\n"); */
 		return SYNC_NOT_FOUND;
 	}
 
@@ -252,6 +252,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 
 	for (blk_chksum = 0, i = 1; i < 257; i++)
 		blk_chksum ^= d64_sector[i + 1];
+
 	d64_sector[257] = blk_chksum;
 
 	/* copy to  temp. buffer with twice the track data */
@@ -263,6 +264,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	/* Check for at least one Sync */
 	gcr_end = gcr_buffer + track_len;
 	sync_found = 0;
+
 	for (gcr_ptr = gcr_buffer; gcr_ptr < gcr_end; gcr_ptr++)
 	{
 		if (*gcr_ptr == 0xff)
@@ -734,7 +736,7 @@ check_formatted(BYTE *gcrdata)
    If buffer has no good GCR, return tracklen = 0;
    [Input]  destination buffer, source buffer
    [Return] length of copied track fragment
- */
+*/
 int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_align, size_t cap_min, size_t cap_max)
 {
 	BYTE work_buffer[NIB_TRACK_LENGTH*2];	/* working buffer */
@@ -779,7 +781,7 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 	memcpy(work_buffer, cycle_start, track_len);
 	memcpy(work_buffer + track_len, cycle_start, track_len);
 
-	// forced track alignments
+	//* forced track alignments */
 	if (force_align != ALIGN_NONE)
 	{
 		if (force_align == ALIGN_VMAX_CW)
@@ -827,7 +829,7 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 			marker_pos = find_sector0(work_buffer, track_len, &sector0_len);
 		}
 
-		// we found a protection track
+		/* we found a protection track */
 		if (marker_pos)
 		{
 			memcpy(destination, marker_pos, track_len);
@@ -852,7 +854,7 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 	sectorgap_pos = find_sector_gap(work_buffer, track_len, &sectorgap_len);
 
 	if(verbose) printf(" (sec0_len=%.4d - gap_len=%.4d) ", (int)sector0_len, (int)sectorgap_len);
-	//if (sectorgap_len >= sector0_len + 0x40) /* Burstnibbler's calc */
+	/* if (sectorgap_len >= sector0_len + 0x40) */ /* Burstnibbler's calc */
 	if (sectorgap_len > GCR_BLOCK_DATA_LEN + SIGNIFICANT_GAPLEN_DIFF)
 	{
 		*align = ALIGN_GAP;
@@ -860,7 +862,7 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 		return (track_len);
 	}
 
-	// no large gap found, try sector 0
+	/* no large gap found, try sector 0 */
 	if (sector0_len != 0)
 	{
 		*align = ALIGN_SEC0;
@@ -868,7 +870,7 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 		return (track_len);
 	}
 
-	// no sector 0 found, use gap anyway
+	/* no sector 0 found, use gap anyway */
 	if (sectorgap_len)
 	{
 		memcpy(destination, sectorgap_pos, track_len);
@@ -876,7 +878,7 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 		return (track_len);
 	}
 
-	// we aren't dealing with a normal track here, so autogap it
+	/* we aren't dealing with a normal track here, so autogap it */
 	marker_pos = auto_gap(work_buffer, track_len);
 	if (marker_pos)
 	{
@@ -885,16 +887,16 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 		return (track_len);
 	}
 
-	// we give up, just return everything
+	/* we give up, just return everything */
 	memcpy(destination, work_buffer, track_len);
 	*align = ALIGN_NONE;
 	return (track_len);
 }
 
 /*
- * This strips exactly one byte at minrun from each
- * eligible run when called.  It can be called repeatedly
- * for a proportional reduction.
+	This strips exactly one byte at minrun from each
+	eligible run when called.  It can be called repeatedly
+	for a proportional reduction.
  */
 int
 strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
@@ -968,19 +970,20 @@ reduce_gaps(BYTE * buffer, int length, int length_max, int minrun)
 	return (length);
 }
 
-// this routine checks the track data and makes simple decisions
-// about the special cases of being all sync or having no sync
+/*
+	this routine checks the track data and makes simple decisions
+	about the special cases of being all sync or having no sync
+*/
 BYTE
 check_sync_flags(BYTE *gcrdata, int density, int length)
 {
 	int i, syncs = 0;
 
-	// check manually for SYNCKILL
+	/* check manually for SYNCKILL */
 	for (i = 0; i < length - 1; i++)
 	{
-		/* NOTE: This is not flagging true sync marks, only the last 8 bits of it */
-		if (gcrdata[i] == 0xff) syncs++;
-		//if ( ((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i+1] == 0xff) )  syncs++;
+		/* if ( ((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i+1] == 0xff) )  syncs++; */
+		if (gcrdata[i] == 0xff) syncs++; /* NOTE: This is not flagging true sync marks, only the last 8 bits of it */
 	}
 
 	if(!syncs)
@@ -988,7 +991,7 @@ check_sync_flags(BYTE *gcrdata, int density, int length)
 	else if (syncs >= length - 3)  /* sometimes we get a small glitch on killer tracks from the mastering device */
 		density |= BM_FF_TRACK;
 
-	// else do nothing
+	/* else do nothing */
 	return ( density & 0xFF );
 }
 
@@ -1329,8 +1332,10 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 	total = 0;
 	lastpos = length - 1;
 
+	/* wrap around from last byte */
 	if (is_bad_gcr(gcrdata, length, length - 1))
-		sbadgcr = S_BADGCR_ONCE_BAD;
+		/* sbadgcr = S_BADGCR_ONCE_BAD; */
+		sbadgcr = S_BADGCR_LOST;
 	else
 		sbadgcr = S_BADGCR_OK;
 
@@ -1341,41 +1346,55 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 
 		switch (sbadgcr)
 		{
-		case S_BADGCR_OK:
-			if (b_badgcr)
-			{
-				total++;
-				//sbadgcr = S_BADGCR_ONCE_BAD;
-				sbadgcr = S_BADGCR_LOST;
-			}
-			break;
+			case S_BADGCR_OK:
+				if (b_badgcr)
+				{
+					total++;
+					/* sbadgcr = S_BADGCR_ONCE_BAD; */
+					sbadgcr = S_BADGCR_LOST;
+				}
+				break;
 
-		case S_BADGCR_ONCE_BAD:
-			if (b_badgcr || n_badgcr)
-			{
-				sbadgcr = S_BADGCR_LOST;
-				//if(fix) fix_first_gcr(gcrdata, length, lastpos);
-				if (fix) gcrdata[lastpos] = 0x00;
-				total++;
-			}
-			else
-				sbadgcr = S_BADGCR_OK;
-			break;
+			case S_BADGCR_ONCE_BAD:
+				if (b_badgcr || n_badgcr)
+				{
+					sbadgcr = S_BADGCR_LOST;
 
-		case S_BADGCR_LOST:
-			if (b_badgcr || n_badgcr)
-			{
-				if (fix)
-					gcrdata[lastpos] = 0x00;
-			}
-			else
-			{
-				sbadgcr = S_BADGCR_OK;
-				//if(fix) fix_last_gcr(gcrdata, length, lastpos);
-				if (fix) gcrdata[lastpos] = 0x00;
-			}
-			total++;
-			break;
+					/*
+					if(fix)
+						fix_first_gcr(gcrdata, length, lastpos);
+					*/
+
+					if (fix)
+						gcrdata[lastpos] = 0x00;
+				}
+				else
+				{
+					sbadgcr = S_BADGCR_OK;
+				}
+				total++;
+				break;
+
+			case S_BADGCR_LOST:
+				if (b_badgcr || n_badgcr)
+				{
+					if (fix)
+						gcrdata[lastpos] = 0x00;
+				}
+				else
+				{
+					sbadgcr = S_BADGCR_OK;
+
+					/*
+					if(fix)
+						fix_last_gcr(gcrdata, length, lastpos);
+					*/
+
+					if (fix)
+						gcrdata[lastpos] = 0x00;
+				}
+				total++;
+				break;
 		}
 		lastpos = i;
 	}
@@ -1383,30 +1402,38 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 	// clean up after last byte; lastpos = length - 1
 	b_badgcr = is_bad_gcr(gcrdata, length, 0);
 	n_badgcr = is_bad_gcr(gcrdata, length, 1);
+
 	switch (sbadgcr)
 	{
-	case S_BADGCR_OK:
-		break;
+		case S_BADGCR_OK:
+			break;
 
-	case S_BADGCR_ONCE_BAD:
-		if (b_badgcr || n_badgcr)
-		{
-			//if(fix) fix_first_gcr(gcrdata, length, lastpos);
-			if (fix) gcrdata[lastpos] = 0x00;
+		case S_BADGCR_ONCE_BAD:
+			if (b_badgcr || n_badgcr)
+			{
+				//if(fix) fix_first_gcr(gcrdata, length, lastpos);
+				if (fix) gcrdata[lastpos] = 0x00;
+				total++;
+			}
+			break;
+
+		case S_BADGCR_LOST:
+			if (b_badgcr || n_badgcr)
+			{
+				gcrdata[lastpos] = 0x00;
+			}
+			else
+			{
+				/*
+				if(fix)
+					fix_last_gcr(gcrdata, length, lastpos);
+				*/
+
+				if (fix)
+					gcrdata[lastpos] = 0x00;
+			}
 			total++;
-		}
-		break;
-
-	case S_BADGCR_LOST:
-		if (b_badgcr || n_badgcr)
-			gcrdata[lastpos] = 0x00;
-		else
-		{
-			//if(fix) fix_last_gcr(gcrdata, length, lastpos);
-			if (fix) gcrdata[lastpos] = 0x00;
-		}
-		total++;
-		break;
+			break;
 	}
 	return total;
 }

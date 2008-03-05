@@ -602,17 +602,19 @@ raw_track_info(BYTE * gcrdata, int length, char *outputstring)
 {
 	int sync_cnt = 0;
 	int sync_len[NIB_TRACK_LENGTH];
+	/*
 	int gap_cnt = 0;
 	int gap_len[NIB_TRACK_LENGTH];
+	*/
 	int bad_cnt = 0;
 	int bad_len[NIB_TRACK_LENGTH];
 	int i, locked;
 
 	memset(sync_len, 0, sizeof(sync_len));
-	memset(gap_len, 0, sizeof(gap_len));
+	/* memset(gap_len, 0, sizeof(gap_len)); */
 	memset(bad_len, 0, sizeof(bad_len));
 
-	// count syncs/lengths
+	/* count syncs/lengths */
 	for (locked = 0, i = 0; i < length - 1; i++)
 	{
 		if (locked)
@@ -622,7 +624,7 @@ raw_track_info(BYTE * gcrdata, int length, char *outputstring)
 			else
 				locked = 0;
 		}
-		else if (gcrdata[i] == 0xff) // (((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i + 1] == 0xff))
+		else if (gcrdata[i] == 0xff) /* (((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i + 1] == 0xff)) */ /* not full sync, only last 8 bits */
 		{
 			locked = 1;
 			sync_cnt++;
@@ -635,7 +637,8 @@ raw_track_info(BYTE * gcrdata, int length, char *outputstring)
 		printf("%d-", sync_len[i]);
 	printf(")");
 
-	// count gaps/lengths
+	/* count gaps/lengths - this code is innacurate, since gaps are of course not always 0x55 - they rarely are */
+	/*
 	for (locked = 0, i = 0; i < length - 1; i++)
 	{
 		if (locked)
@@ -657,8 +660,9 @@ raw_track_info(BYTE * gcrdata, int length, char *outputstring)
 	for (i = 1; i <= gap_cnt; i++)
 		printf("%d-", gap_len[i]);
 	printf(")");
+	*/
 
-	// count bad gcr lengths
+	/* count bad gcr lengths */
 	for (locked = 0, i = 0; i < length - 1; i++)
 	{
 		if (locked)
@@ -700,8 +704,12 @@ int check_fat(int track)
 	return fat;
 }
 
-// tries to detect and fixup rapidlok track, as the gcr routines
-// don't assemble them quite right.
+/*
+	tries to detect and fixup rapidlok track, as the gcr routines
+	don't assemble them quite right.
+	this is innaccurate!
+*/
+
 int check_rapidlok(int track)
 {
 	int i;

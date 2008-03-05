@@ -65,7 +65,7 @@ NIBWRITE_OBJ=nibwrite.o write.o drive.o
 NIBTOOLS_BIN=nibtools_1541.inc nibtools_1571.inc
 
 # All programs to build
-PROG=nibread nibwrite nibscan nibconv
+PROG=nibread nibwrite nibscan nibconv nibrepair
 
 buildall: ${PROG}
 
@@ -81,6 +81,9 @@ nibwrite.c: ${NIBTOOLS_BIN}
 
 nibconv: ${OBJ} nibconv.o
 	${CC} -o nibconv$(EXE) nibconv.o ${OBJ} $(LDFLAGS)
+
+nibrepair: ${OBJ} nibrepair.o
+	${CC} -o nibrepair$(EXE) nibrepair.o ${OBJ} $(LDFLAGS)
 
 nibscan:	${OBJ} nibscan.o
 	${CC} -o nibscan$(EXE) nibscan.o ${OBJ} $(LDFLAGS)
