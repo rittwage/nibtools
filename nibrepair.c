@@ -235,7 +235,7 @@ int repair(void)
 		return 0;
 	}
 
-	for (track = start_track; track <= end_track; track += track_inc)
+	for (track = start_track; track <= 35*2 /*end_track*/; track += track_inc)
 	{
 		for (sector = 0; sector < sector_map_1541[track/2]; sector++)
 		{
@@ -244,6 +244,30 @@ int repair(void)
 																		track/2, sector, id);
 
 				errorinfo[blockindex] = errorcode;
+
+				switch(errorcode)
+				{
+						case SYNC_NOT_FOUND:
+								printf("T%dS%d Sync not found - Cannot repair\n", track/2, sector);
+								break;
+
+						case HEADER_NOT_FOUND:
+								printf("T%dS%d Header not found - Cannot repair\n", track/2, sector);
+								break;
+
+						case DATA_NOT_FOUND:
+								printf("T%dS%d Data block not found - Cannot repair\n", track/2, sector);
+								break;
+
+						case ID_MISMATCH:
+								printf("T%dS%d Disk ID Mismatch - Cannot repair\n", track/2, sector);
+								break;
+
+						case BAD_GCR_CODE:
+								printf("T%dS%d Illegal GCR - Cannot repair\n", track/2, sector);
+								break;
+
+				}
 				blockindex++;
 		}
 	}
@@ -351,9 +375,6 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
 		convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
 		gcr_ptr++;
 
-		//printf("%0.2d: t%0.2d s%0.2d id1:%0.1x id2:%0.1x\n",
-		//header[0],header[3],header[2],header[5],header[4]);
-
 	} while (header[0] != 0x08 || header[2] != sector ||
 	  header[3] != track || header[5] != id[0] || header[4] != id[1]);
 
@@ -388,13 +409,11 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
 
 	if (hdr_chksum != header[5])
 	{
-		printf("(T%dS%d HEAD_CHKSUM $%.2x != $%.2x)  - Repair (Y/n)? ", track, sector, hdr_chksum, header[5]);
+		printf("T%dS%d Bad Header Checksum $%.2x != $%.2x - Repair (Y/n)? ", track, sector, hdr_chksum, header[5]);
 		fflush(stdin);
 		answer = getchar();
 
-		if(answer != 'y')
-			printf("Not repaired\n");
-		else
+		if(answer != 'n')
 		{
 			/* patch back */
 			header[5] = hdr_chksum;
@@ -404,6 +423,9 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
 			gcr_ptr++;
 			printf("Repaired\n");
 		}
+		else
+			printf("Not repaired\n");
+
 
 		error_code = (error_code == SECTOR_OK) ? BAD_HEADER_CHECKSUM : error_code;
 	}
@@ -442,13 +464,11 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
 
 	if (blk_chksum != d64_sector[257])
 	{
-		printf("(T%dS%d DATA_CHKSUM $%.2x != $%.2x)  - Repair (Y/n)? ", track, sector, blk_chksum, d64_sector[257]);
+		printf("T%dS%d Bad Data Checksum $%.2x != $%.2x - Repair (Y/n)? ", track, sector, blk_chksum, d64_sector[257]);
 		fflush(stdin);
 		answer = getchar();
 
-		if(answer != 'y')
-			printf("Not repaired\n");
-		else
+		if(answer != 'n')
 		{
 			/* patch back */
 			d64_sector[257] = blk_chksum;
@@ -461,6 +481,8 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
 			}
 			printf("Repaired\n");
 		}
+		else
+			printf("Not repaired\n");
 
 		error_code = (error_code == SECTOR_OK) ? BAD_DATA_CHECKSUM : error_code;
 	}
