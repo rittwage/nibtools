@@ -472,7 +472,7 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
 		{
 			/* patch back */
 			d64_sector[257] = blk_chksum;
-			gcr_ptr -= 330;
+			gcr_ptr -= 325;
 			for (i = 0, sectordata = d64_sector; i < 65; i++)
 			{
 				convert_4bytes_to_GCR(sectordata, gcr_ptr);
