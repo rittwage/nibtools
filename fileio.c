@@ -505,7 +505,7 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	BYTE errorinfo[MAXBLOCKSONDISK], errorcode;
 	int blocks_to_save;
 
-	printf("\nWriting D64 file...");
+	printf("\nWriting D64 file...\n");
 
 	memset(errorinfo, 0,sizeof(errorinfo));
 

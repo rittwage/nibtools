@@ -83,10 +83,11 @@ speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 /* Some disks have much less data than we normally expect to be able to write at a given density.
 	It's like short tracks, but it's a mastering issue not a protection.
     This keeps us from getting errors in the track cycle detection */
-#define CAP_MIN_ALLOWANCE 150
+#define CAP_MIN_ALLOWANCE 140
 
 /* minimum amount of good sequential GCR for formatted track */
-#define GCR_MIN_FORMATTED 64	// chessmaster track 29 is shortest so far
+#define GCR_MIN_FORMATTED 16	// chessmaster track 29
+//#define GCR_MIN_FORMATTED 64	// chessmaster track 29
 
 /* Disk Controller error codes */
 #define SECTOR_OK           0x01
@@ -125,6 +126,7 @@ extern int capacity[];
 extern int capacity_min[];
 extern int capacity_max[];\
 extern int gap_match_length;
+extern int cap_min_ignore;
 extern int verbose;
 
 /* enums */

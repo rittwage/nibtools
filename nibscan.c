@@ -46,6 +46,7 @@ int reduce_gap;
 int waitkey = 0;
 int advanced_info;
 int gap_match_length;
+int cap_min_ignore;
 int verbose = 0;
 
 void
@@ -81,6 +82,7 @@ main(int argc, char *argv[])
 	force_align = ALIGN_NONE;
 	fix_gcr = 1;
 	gap_match_length = 7;
+	cap_min_ignore = 0;
 	mode = 0;
 	reduce_sync = 1;
 	reduce_badgcr = 0;
@@ -210,6 +212,11 @@ main(int argc, char *argv[])
 			}
 			else
 				printf("Unknown alignment parameter\n");
+			break;
+
+		case 'm':
+			printf("* Minimum capacity ignore on\n");
+			cap_min_ignore = 1;
 			break;
 
 		default:

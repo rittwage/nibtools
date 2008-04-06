@@ -40,6 +40,7 @@ int verify;
 int auto_capacity_adjust;
 int align_disk;
 int gap_match_length;
+int cap_min_ignore;
 int verbose = 0;
 float motor_speed;
 int skew = 0;
@@ -89,6 +90,7 @@ main(int argc, char *argv[])
 	auto_capacity_adjust = 1;
 	verbose = 0;
 	gap_match_length = 7;
+	cap_min_ignore = 0;
 	motor_speed = 300;
 
 	mode = MODE_WRITE_DISK;
@@ -253,9 +255,14 @@ main(int argc, char *argv[])
 			printf("* Verbose mode on\n");
 			break;
 
-		case 'c':
+		case 'm':
 			auto_capacity_adjust = 0;
 			printf("* Disabled automatic capacity adjustment\n");
+			break;
+
+		case 'c':
+			printf("* Minimum capacity ignore on\n");
+			cap_min_ignore = 1;
 			break;
 
 		case 's':
@@ -265,7 +272,6 @@ main(int argc, char *argv[])
 			printf("* Attempt soft track alignment\n");
 			skew = atoi((char *) (&(*argv)[2]));
 			printf("* Skew set to %dus\n",skew);
-
 			break;
 
 		default:

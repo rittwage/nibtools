@@ -708,9 +708,8 @@ find_sector_gap(BYTE * work_buffer, int tracklen, size_t * p_sectorlen)
 	return pos; // go to first byte of sync
 }
 
-// checks if there is any reasonable section of formatted (GCR) data
-int
-check_formatted(BYTE *gcrdata)
+/* checks if there is any reasonable section of formatted (GCR) data */
+int check_formatted(BYTE *gcrdata)
 {
 	int i, run = 0;
 
@@ -756,7 +755,9 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 	badgap_pos = NULL;
 	marker_pos = NULL;
 
-	cap_min -= CAP_MIN_ALLOWANCE;
+	/* ignore minumum capacity by RPM/density */
+	if(!cap_min_ignore)
+		cap_min -= CAP_MIN_ALLOWANCE;
 
 	/* if this track doesn't have enough formatted data, return blank */
 	if (!check_formatted(source)) return 0;

@@ -37,6 +37,7 @@ int mode;
 int force_density;
 int track_match;
 int gap_match_length;
+int cap_min_ignore;
 int interactive_mode;
 int verbose;
 int density_map;
@@ -94,6 +95,7 @@ main(int argc, char *argv[])
 	align = ALIGN_NONE;
 	force_align = ALIGN_NONE;
 	gap_match_length = 7;
+	cap_min_ignore = 0;
 	mode = MODE_READ_DISK;
 	density_map = DENSITY_STANDARD;
 
@@ -116,7 +118,7 @@ main(int argc, char *argv[])
 			printf("* Using halftracks\n");
 			break;
 
-		case 'm':
+		case 'v':
 			track_match = 1;
 			printf("* Simple track match\n");
 			break;
@@ -196,6 +198,11 @@ main(int argc, char *argv[])
 			}
 			else
 				printf("Unknown protection handler\n");
+			break;
+
+		case 'm':
+			printf("* Minimum capacity ignore on\n");
+			cap_min_ignore = 1;
 			break;
 
 		default:

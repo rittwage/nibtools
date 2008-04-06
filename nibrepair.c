@@ -32,7 +32,8 @@ int track_length[MAX_HALFTRACKS_1541 + 1];
 int start_track, end_track, track_inc;
 int reduce_sync, reduce_badgcr, reduce_gap;
 int fix_gcr, align, force_align;
-int gap_match_length;
+int gap_match_length;\
+int cap_min_ignore;
 int skip_halftracks;
 int verbose = 0;
 
@@ -57,6 +58,7 @@ main(int argc, char **argv)
 	align = ALIGN_NONE;
 	force_align = ALIGN_NONE;
 	gap_match_length = 7;
+	cap_min_ignore = 0;
 
 	fprintf(stdout,
 	  "\nnibrepair - converts a damaged NIB/NB2/G64 to a new 'repaired' G64 file.\n"
@@ -173,6 +175,11 @@ main(int argc, char **argv)
 			verbose = 1;
 			break;
 
+		case 'm':
+			printf("* Minimum capacity ignore on\n");
+			cap_min_ignore = 1;
+			break;
+
 		default:
 			usage();
 			break;
@@ -203,6 +210,11 @@ main(int argc, char **argv)
 	else if (compare_extension(inname, "NB2"))
 	{
 		if(!read_nb2(inname, track_buffer, track_density, track_length, track_alignment))
+			exit(0);
+	}
+	else if (compare_extension(inname, "D64"))
+	{
+		if(!read_d64(inname, track_buffer, track_density, track_length))
 			exit(0);
 	}
 	else
