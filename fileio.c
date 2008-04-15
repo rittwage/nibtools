@@ -91,7 +91,10 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		printf("%4.1f: (",(float) track / 2);
 		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-		printf("%d:%d) ", track_density[track]&3, track_length[track]);
+
+		printf("%d:%d) %.1f%% ", track_density[track]&3, track_length[track],
+			((float)track_length[track] / (float)capacity[track_density[track]&3]) * 100);
+
 		printf("[align:%s]\n",alignments[track_alignment[track]]);
 	}
 	fclose(fpin);
@@ -219,9 +222,11 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		printf(" (");
 		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-		printf("%d:%d) (pass %d, %d errors)\n", track_density[track]&3, track_length[track], best_pass, best_err);
+
+		printf("%d:%d) (pass %d, %d errors) %.1f%%", track_density[track]&3, track_length[track], best_pass, best_err,
+			((float)track_length[track] / (float)capacity[track_density[track]&3]) * 100);
+
 		printf("[align:%s]\n",alignments[track_alignment[track]]);
-		//printf("%s",errorstring);
 	}
 	fclose(fpin);
 	printf("Successfully loaded NB2 file\n");
@@ -302,7 +307,9 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		printf("%4.1f: (",(float) track / 2);
 		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
+
+		printf("%d:%d) %.1f%%\n", track_density[track]&3, track_length[track],
+			((float)track_length[track] / (float)capacity[track_density[track]&3]) * 100);
 	}
 	fclose(fpin);
 	printf("Successfully loaded G64 file\n");
@@ -756,7 +763,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 
 		/* process bad GCR */
 		badgcr = check_bad_gcr(gcrdata, length, fix_gcr);
-		if (badgcr > 0) printf("badgcr:%d ", badgcr);
+		printf("badgcr:%d ", badgcr);
 
 		/* reduce bad GCR runs */
 		orglen = length;

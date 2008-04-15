@@ -171,11 +171,10 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 
 		// if we get less than what a track holds,
 		// try again, probably bad read or a bad GCR match
-		if (leno < capacity_min[denso & 3] - 0x100)
+		if (leno < capacity_min[denso & 3] - CAP_MIN_ALLOWANCE)
 		{
-			printf("Short Read! ");
-			fprintf(fplog, "[%d<%d!] ", leno,
-			  capacity_min[denso & 3] - 155);
+			printf("Short Read! (%d) ", leno);
+			fprintf(fplog, "[%d<%d!] ", leno, capacity_min[denso & 3] - CAP_MIN_ALLOWANCE);
 			l--;
 			if (short_read++ > error_retries)
 				break;
@@ -188,11 +187,10 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 
 		// if we get more than capacity
 		// try again to make sure it's intentional
-		if (leno > capacity_max[denso & 3] + 0x100)
+		if (leno > capacity_max[denso & 3] + CAP_MIN_ALLOWANCE)
 		{
-			printf("Long Read! ");
-			fprintf(fplog, "[%d>%d!] ", leno,
-			  capacity_max[denso & 3] + 255);
+			printf("Long Read! (%d) ", leno);
+			fprintf(fplog, "[%d>%d!] ", leno, capacity_max[denso & 3] + CAP_MIN_ALLOWANCE);
 			l--;
 			if (long_read++ > error_retries)
 				break;
@@ -203,7 +201,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 			}
 		}
 
-		printf("%d ", leno);
+		printf("%d (%.1f%%) ", leno, ((float)leno / (float)capacity[denso&3]) * 100);
 		fprintf(fplog, "%d ", leno);
 
 		// check for CBM DOS errors
@@ -263,7 +261,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 			lenn = extract_GCR_track(cbufn, bufn, &align, force_align,
 			  capacity_min[densn & 3], capacity_max[densn & 3]);
 
-			printf("%d ", lenn);
+			printf("%d %.1f%%", lenn, ((float)lenn / (float)capacity[densn&3]) * 100);
 			fprintf(fplog, "%d ", lenn);
 
 			// fix bad GCR in track for compare
