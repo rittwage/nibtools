@@ -867,20 +867,23 @@ unsigned int crc_dir_track(BYTE *track_buffer, int *track_length)
 		return 0;
 	}
 
-	memset(rawdata, 0,sizeof(rawdata));
+	memset(rawdata, 0, sizeof(rawdata));
+	memset(rawdata, 0, sizeof(data));
 
+	/* t18s0 */
 	errorcode = convert_GCR_sector(track_buffer + ((18*2) * NIB_TRACK_LENGTH),
 		track_buffer + ((18*2) * NIB_TRACK_LENGTH) + track_length[18*2],
 		rawdata, 18, 0, id);
 
 	memcpy(data, rawdata+1 , 256);
 
-	/* t18s1 */
-	errorcode = convert_GCR_sector(track_buffer + ((18*2) * NIB_TRACK_LENGTH),
+
+	errorcode = convert_GCR_sector(
+		track_buffer + ((18*2) * NIB_TRACK_LENGTH),
 		track_buffer + ((18*2) * NIB_TRACK_LENGTH) + track_length[18*2],
 		rawdata, 18, 1, id);
 
-	memcpy(data+256, rawdata+1 , 256);
+	memcpy(data+256, rawdata+1, 256);
 
 	result = crcFast(data, sizeof(data));
 	printf("Track 18 CRC32:\t0x%X\n", (int)result);
@@ -889,14 +892,16 @@ unsigned int crc_dir_track(BYTE *track_buffer, int *track_length)
 
 unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 {
-	/* this calculates a CRC32 for every CBM formatted sector on the disk */
-	unsigned char data[MAXBLOCKSONDISK * 256];
+	/* this calculates a CRC32 for every sector on the disk */
+
+	unsigned char data[BLOCKSONDISK * 256];
 	unsigned int result;
 	int track, sector, index;
 	BYTE id[3];
 	BYTE rawdata[260];
 	BYTE errorcode;
 
+	memset(rawdata, 0, sizeof(data));
 	crcInit();
 
 	/* get disk id */
@@ -910,17 +915,18 @@ unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 	{
 		for (sector = 0; sector < sector_map_1541[track/2]; sector++)
 		{
-			memset(rawdata, 0,sizeof(rawdata));
+			memset(rawdata, 0, sizeof(rawdata));
 
-			errorcode = convert_GCR_sector(track_buffer + ((track) * NIB_TRACK_LENGTH),
+			errorcode = convert_GCR_sector(
+				track_buffer + (track * NIB_TRACK_LENGTH),
 				track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
 				rawdata, track, sector, id);
 
-			memcpy(data+(index*256), rawdata+1 , 256);
+			memcpy(data+(index*256), rawdata+1, 256);
 			index++;
 		}
 	}
-	result = crcFast(data, sizeof(data));
+	result = crcSlow(data, sizeof(data));
 	printf("Full CRC32:\t0x%X\n", (int)result);
 	return result;
 }
