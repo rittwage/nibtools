@@ -906,7 +906,7 @@ unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 		return 0;
 	}
 
-	for (track = start_track; track <= 35*2; track += 2)
+	for (track = start_track, index = 0; track <= 35*2; track += 2)
 	{
 		for (sector = 0; sector < sector_map_1541[track/2]; sector++)
 		{

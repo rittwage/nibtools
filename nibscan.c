@@ -258,9 +258,16 @@ main(int argc, char *argv[])
 		scandisk();
 	}
 
-	printf("\n");
+	printf("\nCRC for first image:\n");
 	crc_dir_track(track_buffer, track_length);
 	crc_all_tracks(track_buffer, track_length);
+
+	if(mode==1)
+	{
+		printf("\nCRC for second image:\n");
+		crc_dir_track(track_buffer2, track_length2);
+		crc_all_tracks(track_buffer2, track_length2);
+	}
 
 	free(track_buffer);
 	free(track_buffer2);
