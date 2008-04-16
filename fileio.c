@@ -867,26 +867,26 @@ unsigned int crc_dir_track(BYTE *track_buffer, int *track_length)
 		return 0;
 	}
 
-	memset(rawdata, 0, sizeof(rawdata));
-	memset(rawdata, 0, sizeof(data));
+	memset(data, 0, sizeof(data));
 
 	/* t18s0 */
-	errorcode = convert_GCR_sector(track_buffer + ((18*2) * NIB_TRACK_LENGTH),
+	memset(rawdata, 0, sizeof(rawdata));
+	errorcode = convert_GCR_sector(
+		track_buffer + ((18*2) * NIB_TRACK_LENGTH),
 		track_buffer + ((18*2) * NIB_TRACK_LENGTH) + track_length[18*2],
 		rawdata, 18, 0, id);
-
 	memcpy(data, rawdata+1 , 256);
 
-
+	/* t18s1 */
+	memset(rawdata, 0, sizeof(rawdata));
 	errorcode = convert_GCR_sector(
 		track_buffer + ((18*2) * NIB_TRACK_LENGTH),
 		track_buffer + ((18*2) * NIB_TRACK_LENGTH) + track_length[18*2],
 		rawdata, 18, 1, id);
-
 	memcpy(data+256, rawdata+1, 256);
 
 	result = crcFast(data, sizeof(data));
-	printf("Track 18 CRC32:\t0x%X\n", (int)result);
+	printf("BAM/DIR CRC:\t0x%X\n", (int)result);
 	return result;
 }
 
@@ -901,7 +901,7 @@ unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 	BYTE rawdata[260];
 	BYTE errorcode;
 
-	memset(rawdata, 0, sizeof(data));
+	memset(data, 0, sizeof(data));
 	crcInit();
 
 	/* get disk id */
@@ -920,14 +920,14 @@ unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 			errorcode = convert_GCR_sector(
 				track_buffer + (track * NIB_TRACK_LENGTH),
 				track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
-				rawdata, track, sector, id);
+				rawdata, track/2, sector, id);
 
 			memcpy(data+(index*256), rawdata+1, 256);
 			index++;
 		}
 	}
-	result = crcSlow(data, sizeof(data));
-	printf("Full CRC32:\t0x%X\n", (int)result);
+	result = crcFast(data, sizeof(data));
+	printf("Full CRC:\t0x%X (%d sectors)\n", (int)result, index);
 	return result;
 }
 
