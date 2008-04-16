@@ -13,6 +13,7 @@
 #include "gcr.h"
 #include "nibtools.h"
 #include "version.h"
+#include "md5.h"
 
 int start_track, end_track, track_inc;
 int imagetype, mode;
@@ -261,12 +262,16 @@ main(int argc, char *argv[])
 	printf("\nCRC for first image:\n");
 	crc_dir_track(track_buffer, track_length);
 	crc_all_tracks(track_buffer, track_length);
+	md5_dir_track(track_buffer, track_length);
+	md5_all_tracks(track_buffer, track_length);
 
 	if(mode==1)
 	{
 		printf("\nCRC for second image:\n");
 		crc_dir_track(track_buffer2, track_length2);
 		crc_all_tracks(track_buffer2, track_length2);
+		md5_dir_track(track_buffer2, track_length2);
+		md5_all_tracks(track_buffer2, track_length2);
 	}
 
 	free(track_buffer);

@@ -106,6 +106,8 @@ int compress_halftrack(int halftrack, BYTE *track_buffer, BYTE track_density, in
 int write_dword(FILE * fd, DWORD * buf, int num);
 unsigned int crc_dir_track(BYTE *track_buffer, int *track_length);
 unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length);
+void md5_dir_track(BYTE *track_buffer, int *track_length);
+void md5_all_tracks(BYTE *track_buffer, int *track_length);
 
 /* read.c */
 BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer);

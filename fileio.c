@@ -16,6 +16,7 @@
 #include "gcr.h"
 #include "nibtools.h"
 #include "crc.h"
+#include "md5.h"
 
 extern int skip_halftracks;
 extern int verbose;
@@ -889,9 +890,103 @@ unsigned int crc_dir_track(BYTE *track_buffer, int *track_length)
 	return result;
 }
 
+void md5_dir_track(BYTE *track_buffer, int *track_length)
+{
+	/* this calculates a MD5 hash of the BAM and first directory sector, which is sufficient to differentiate most disks */
+
+	unsigned char data[512];
+	unsigned char result[16];
+	BYTE id[3];
+	BYTE rawdata[260];
+	BYTE errorcode;
+	int i;
+
+	crcInit();
+	memset(data, 0, sizeof(data));
+	memset(result, 0, sizeof(result));
+
+	/* get disk id */
+	if (!extract_id(track_buffer + (18 * 2 * NIB_TRACK_LENGTH), id))
+	{
+		fprintf(stderr, "Cannot find directory sector.\n");
+		return;
+	}
+
+	/* t18s0 */
+	memset(rawdata, 0, sizeof(rawdata));
+	errorcode = convert_GCR_sector(
+		track_buffer + ((18*2) * NIB_TRACK_LENGTH),
+		track_buffer + ((18*2) * NIB_TRACK_LENGTH) + track_length[18*2],
+		rawdata, 18, 0, id);
+	memcpy(data, rawdata+1 , 256);
+
+	/* t18s1 */
+	memset(rawdata, 0, sizeof(rawdata));
+	errorcode = convert_GCR_sector(
+		track_buffer + ((18*2) * NIB_TRACK_LENGTH),
+		track_buffer + ((18*2) * NIB_TRACK_LENGTH) + track_length[18*2],
+		rawdata, 18, 1, id);
+	memcpy(data+256, rawdata+1, 256);
+
+	md5(data, sizeof(data), result);
+
+	printf("BAM/DIR MD5:\t0x");
+	for (i = 0; i < 16; i++)
+	 	printf ("%02x", result[i]);
+	 printf("\n");
+}
+
+void md5_all_tracks(BYTE *track_buffer, int *track_length)
+{
+	/* this calculates an MD5 hash for all sectors on the disk */
+
+	unsigned char data[BLOCKSONDISK * 256];
+	unsigned char result[16];
+	int track, sector, index;
+	BYTE id[3];
+	BYTE rawdata[260];
+	BYTE errorcode;
+	int i;
+
+	crcInit();
+	memset(data, 0, sizeof(data));
+	memset(result, 0, sizeof(result));
+
+	/* get disk id */
+	if (!extract_id(track_buffer + (18 * 2 * NIB_TRACK_LENGTH), id))
+	{
+		fprintf(stderr, "Cannot find directory sector.\n");
+		return;
+	}
+
+	index = 0;
+	for (track = start_track; track <= 35*2; track += 2)
+	{
+		for (sector = 0; sector < sector_map_1541[track/2]; sector++)
+		{
+			memset(rawdata, 0, sizeof(rawdata));
+
+			errorcode = convert_GCR_sector(
+				track_buffer + (track * NIB_TRACK_LENGTH),
+				track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
+				rawdata, track/2, sector, id);
+
+			memcpy(data+(index*256), rawdata+1, 256);
+			index++;
+		}
+	}
+
+	md5(data, sizeof(data), result);
+
+	printf("Full MD5:\t0x");
+	for (i = 0; i < 16; i++)
+		printf ("%02x", result[i]);
+	printf("\n");
+}
+
 unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 {
-	/* this calculates a CRC32 for every sector on the disk */
+	/* this calculates a CRC32 for all sectors on the disk */
 
 	unsigned char data[BLOCKSONDISK * 256];
 	unsigned int result;
@@ -927,9 +1022,10 @@ unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 		}
 	}
 	result = crcFast(data, sizeof(data));
-	printf("Full CRC:\t0x%X (%d sectors)\n", (int)result, index);
+	printf("Full CRC:\t0x%X\n", (int)result);
 	return result;
 }
+
 
 
 

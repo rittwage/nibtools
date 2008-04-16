@@ -56,7 +56,7 @@ win32:
 WARNS=	-Werror -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wpointer-arith 
 
 # Common objects
-OBJ=gcr.o prot.o fileio.o crc.o
+OBJ=gcr.o prot.o fileio.o crc.o md5.o
 
 # Objects for just mnib
 NIBREAD_OBJ=nibread.o read.o drive.o 
