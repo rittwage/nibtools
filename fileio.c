@@ -2,7 +2,6 @@
 	fileio.c - (C) Pete Rittwage
 	---
 	contains routines used by nibtools to read/write files on the host
-
 */
 
 #include <stdio.h>
@@ -338,7 +337,7 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 	}
 
 	/* here we get to rebuild tracks from scratch */
-	memset(errorinfo, SECTOR_OK, MAXBLOCKSONDISK);
+	memset(errorinfo, SECTOR_OK, sizeof(errorinfo));
 
 	/* determine d64 image size */
 	fseek(fpin, 0, SEEK_END);
@@ -911,7 +910,8 @@ unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 		return 0;
 	}
 
-	for (track = start_track, index = 0; track <= 35*2; track += 2)
+	index = 0;
+	for (track = start_track; track <= 35*2; track += 2)
 	{
 		for (sector = 0; sector < sector_map_1541[track/2]; sector++)
 		{
