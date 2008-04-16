@@ -258,6 +258,10 @@ main(int argc, char *argv[])
 		scandisk();
 	}
 
+	printf("\n");
+	crc_dir_track(track_buffer, track_length);
+	crc_all_tracks(track_buffer, track_length);
+
 	free(track_buffer);
 	free(track_buffer2);
 

@@ -98,8 +98,10 @@ find_sync(BYTE ** gcr_pptr, BYTE * gcr_end)
 	}
 
 	(*gcr_pptr)++;
+
 	while (*gcr_pptr < gcr_end && **gcr_pptr == 0xff)
 		(*gcr_pptr)++;
+
 	return (*gcr_pptr < gcr_end);
 }
 

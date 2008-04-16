@@ -1,7 +1,7 @@
 /*
- * MNIB
- * Copyright 2001-2006 Markus Brenner <markus(at)brenner(dot)de>
- * and Pete Rittwage <peter(at)rittwage(dot)com>
+ * NIBTOOLS
+ * Copyright (c) Pete Rittwage <peter(at)rittwage(dot)com>
+ * based on MNIB by Markus Brenner <markus(at)brenner(dot)de>
  */
 
 #define FL_STEPTO      0x00
@@ -30,7 +30,7 @@
 #define IMAGE_G64      2
 #define IMAGE_NB2	3
 
-#define BM_MATCH       0x10
+#define BM_MATCH       0x10 /* not used but exists in very old images */
 #define BM_NO_CYCLE 0x20
 #define BM_NO_SYNC     0x40
 #define BM_FF_TRACK    0x80
@@ -104,6 +104,8 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *trac
 int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
 int compress_halftrack(int halftrack, BYTE *track_buffer, BYTE track_density, int track_length);
 int write_dword(FILE * fd, DWORD * buf, int num);
+unsigned int crc_dir_track(BYTE *track_buffer, int *track_length);
+unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length);
 
 /* read.c */
 BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer);
