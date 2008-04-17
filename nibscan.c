@@ -50,6 +50,9 @@ int gap_match_length;
 int cap_min_ignore;
 int verbose = 0;
 
+unsigned char md5_hash_result[16];
+unsigned char md5_hash_result2[16];
+
 void
 usage(void)
 {
@@ -259,19 +262,28 @@ main(int argc, char *argv[])
 		scandisk();
 	}
 
-	printf("\nCRC for first image:\n");
-	crc_dir_track(track_buffer, track_length);
-	crc_all_tracks(track_buffer, track_length);
-	md5_dir_track(track_buffer, track_length);
-	md5_all_tracks(track_buffer, track_length);
+	printf("\n");
 
+	md5_dir_track(track_buffer, track_length, md5_hash_result);
 	if(mode==1)
 	{
-		printf("\nCRC for second image:\n");
-		crc_dir_track(track_buffer2, track_length2);
-		crc_all_tracks(track_buffer2, track_length2);
-		md5_dir_track(track_buffer2, track_length2);
-		md5_all_tracks(track_buffer2, track_length2);
+		md5_dir_track(track_buffer2, track_length2, md5_hash_result2);
+		if( memcmp(md5_hash_result, md5_hash_result2, 16 ) == 0 )
+			printf( "*MATCH*\n" );
+		else
+			printf("*no match*\n");
+	}
+
+	printf("\n");
+
+	md5_all_tracks(track_buffer, track_length, md5_hash_result);
+	if(mode==1)
+	{
+		md5_all_tracks(track_buffer2, track_length2, md5_hash_result2);
+		if( memcmp(md5_hash_result, md5_hash_result2, 16 ) == 0 )
+			printf( "*MATCH*\n" );
+		else
+			printf("*no match*\n");
 	}
 
 	free(track_buffer);
