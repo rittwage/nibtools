@@ -52,6 +52,7 @@ int verbose = 0;
 
 unsigned char md5_hash_result[16];
 unsigned char md5_hash_result2[16];
+int crc, crc2;
 
 void
 usage(void)
@@ -262,6 +263,33 @@ main(int argc, char *argv[])
 		scandisk();
 	}
 
+	/* CRC32 */
+	printf("\n");
+
+	crc = crc_dir_track(track_buffer, track_length);
+	if(mode==1)
+	{
+		crc2 = crc_dir_track(track_buffer2, track_length2);
+		if( crc == crc2 )
+			printf( "*MATCH*\n" );
+		else
+			printf("*no match*\n");
+	}
+
+	printf("\n");
+
+	crc = crc_all_tracks(track_buffer, track_length);
+	if(mode==1)
+	{
+		crc2 = crc_all_tracks(track_buffer2, track_length2);
+		if( crc == crc2 )
+			printf( "*MATCH*\n" );
+		else
+			printf("*no match*\n");
+	}
+
+
+	/* MD5 */
 	printf("\n");
 
 	md5_dir_track(track_buffer, track_length, md5_hash_result);
@@ -300,7 +328,12 @@ load_image(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_l
 	else if (compare_extension(filename, "G64"))
 		return(read_g64(filename, track_buffer, track_density, track_length));
 	else if (compare_extension(filename, "NIB"))
-		return(read_nib(filename, track_buffer, track_density, track_length, track_alignment));
+	{
+		if(!read_nib(filename, track_buffer, track_density, track_length, track_alignment))
+			return 0;
+		align_tracks(track_buffer, track_density, track_length, track_alignment);
+		return 1;
+	}
 	else if (compare_extension(filename, "NB2"))
 		return(read_nb2(filename, track_buffer, track_density, track_length, track_alignment));
 	else

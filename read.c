@@ -206,18 +206,18 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 
 		// check for CBM DOS errors
 		*errors = check_errors(cbufo, leno, halftrack, diskid, errorstring);
-		printf("CBM Format %s", errorstring);
 		fprintf(fplog, "%s", errorstring);
 
 		// if we got all good sectors we dont retry
 		if (*errors == 0) break;
 
-		// else we are probably looping for a read retry
-		if(l < error_retries - 1) printf(" (retry)");
-	}
+		// if all bad sectors (protection) we only retry once
+		if (*errors == sector_map_1541[halftrack/2])
+			l = error_retries - 1;
 
-	// Give some indication of disk errors, unless it's all errors
-	*errors = check_errors(cbufo, leno, halftrack, diskid, errorstring);
+		// else we are probably looping for a read retry
+		if(l < error_retries - 1) printf(" %s (retry)", errorstring);
+	}
 
 	// If there are a lot of errors, the track probably doesn't contain
 	// any CBM sectors (protection)
@@ -226,17 +226,10 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 		printf("Non-Standard Format ");
 		fprintf(fplog, "%s ", errorstring);
 	}
-	else if (*errors > 0)
-	{
-		// probably old-style intentional error(s)
-		//printf("[CBM-FORMAT] %s ", errorstring);
-		//fprintf(fplog, "%s ", errorstring);
-	}
 	else
 	{
-		// this is all good CBM DOS-style sectors
-		printf("No Errors ");
-		fprintf(fplog, "No Errors ");
+		printf("[%d Errors] %s", *errors, errorstring);
+		fprintf(fplog, "[%d Errors] %s", *errors, errorstring);
 	}
 
 	// Fix bad GCR in track for compare

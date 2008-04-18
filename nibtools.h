@@ -103,6 +103,7 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *trac
 int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
 int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
 int compress_halftrack(int halftrack, BYTE *track_buffer, BYTE track_density, int track_length);
+int align_tracks(BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment);
 int write_dword(FILE * fd, DWORD * buf, int num);
 unsigned int crc_dir_track(BYTE *track_buffer, int *track_length);
 unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length);

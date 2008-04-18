@@ -762,7 +762,8 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 		cap_min -= CAP_MIN_ALLOWANCE;
 
 	/* if this track doesn't have enough formatted data, return blank */
-	if (!check_formatted(source)) return 0;
+	if (!check_formatted(source))
+		return 0;
 
 	cycle_start = source;
 	memset(work_buffer, 0, sizeof(work_buffer));

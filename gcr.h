@@ -86,7 +86,7 @@ speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 #define CAP_MIN_ALLOWANCE 140
 
 /* minimum amount of good sequential GCR for formatted track */
-#define GCR_MIN_FORMATTED 16	// chessmaster track 29
+#define GCR_MIN_FORMATTED 16
 //#define GCR_MIN_FORMATTED 64	// chessmaster track 29
 
 /* Disk Controller error codes */

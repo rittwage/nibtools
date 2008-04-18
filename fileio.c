@@ -21,13 +21,11 @@
 extern int skip_halftracks;
 extern int verbose;
 
-
 int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment)
 {
 	int track, nibsize, numtracks;
 	int header_entry = 0;
 	char header[0x100];
-	BYTE nibdata[0x2000];
 	FILE *fpin;
 
 	printf("\nReading NIB file...");
@@ -82,21 +80,7 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		header_entry++;
 
 		/* get track from file */
-		fread(nibdata, NIB_TRACK_LENGTH, 1, fpin);
-
-		/* process track cycle */
-		track_length[track] = extract_GCR_track(track_buffer + (track * NIB_TRACK_LENGTH), nibdata,
-			&track_alignment[track], force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
-
-		/* output some specs */
-		printf("%4.1f: (",(float) track / 2);
-		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-
-		printf("%d:%d) %.1f%% ", track_density[track]&3, track_length[track],
-			((float)track_length[track] / (float)capacity[track_density[track]&3]) * 100);
-
-		printf("[align:%s]\n",alignments[track_alignment[track]]);
+		fread(track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH, 1, fpin);
 	}
 	fclose(fpin);
 	printf("Successfully loaded NIB file\n");
@@ -111,9 +95,9 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 	BYTE nibdata[0x2000];
 	BYTE tmpdata[0x2000];
 	FILE *fpin;
+	BYTE diskid[2];
 	int errors, best_err, best_pass;
 	int length, best_len;
-	BYTE diskid[2];
 	char errorstring[0x1000];
 
 	printf("\nReading NB2 file...");
@@ -209,7 +193,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 					if( (pass == 0) || (errors < best_err) )
 					{
 						track_length[track] = length;
-						memcpy(track_buffer + (track * NIB_TRACK_LENGTH), tmpdata, NIB_TRACK_LENGTH);
+						memcpy(track_buffer + (track * NIB_TRACK_LENGTH), nibdata, NIB_TRACK_LENGTH);
 						best_pass = pass;
 						best_err = errors;
 					}
@@ -507,6 +491,8 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	int save_40_errors = 0;
 	int save_40_tracks = 0;
 	int blockindex = 0;
+	BYTE *cycle_start;	/* start position of cycle    */
+	BYTE *cycle_stop;	/* stop  position of cycle +1 */
 	BYTE id[3];
 	BYTE rawdata[260];
 	BYTE d64data[MAXBLOCKSONDISK * 256], *d64ptr;
@@ -534,7 +520,15 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	d64ptr = d64data;
 	for (track = start_track; track <= 40*2; track += 2)
 	{
-		printf("%.2d (%d):" ,track/2, track_length[track]);
+		cycle_start = track_buffer + (track * NIB_TRACK_LENGTH);
+
+		find_track_cycle(
+			&cycle_start, &cycle_stop,
+			capacity_min[speed_map_1541[track/2]],
+			capacity_max[speed_map_1541[track/2]]
+		);
+
+		printf("%.2d (%d):" ,track/2, capacity[speed_map_1541[track/2]]);
 
 		for (sector = 0; sector < sector_map_1541[track/2]; sector++)
 		{
@@ -542,9 +536,7 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 
 			memset(rawdata, 0,sizeof(rawdata));
 
-			errorcode = convert_GCR_sector(track_buffer + (track * NIB_TRACK_LENGTH),
-				track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
-				rawdata, track/2, sector, id);
+			errorcode = convert_GCR_sector(cycle_start, cycle_stop, rawdata, track/2, sector, id);
 
 			errorinfo[blockindex] = errorcode;	/* OK by default */
 
@@ -727,6 +719,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 
 	/* copy to spare buffer */
 	memcpy(gcrdata, track_buffer, NIB_TRACK_LENGTH);
+	memset(track_buffer, 0, NIB_TRACK_LENGTH);
 
 	/* user display */
 	printf("\n%4.1f: (", (float) halftrack / 2);
@@ -802,6 +795,42 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	printf("] (%d) ", length);
 
 	return length;
+}
+
+int align_tracks(BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment)
+{
+	int track;
+	BYTE nibdata[NIB_TRACK_LENGTH];
+
+	memset(nibdata, 0, sizeof(nibdata));
+
+	printf("\nAligning tracks...\n");
+
+	for (track = start_track; track <= end_track; track += track_inc)
+	{
+		memcpy(nibdata,  track_buffer + (track * NIB_TRACK_LENGTH), sizeof(nibdata));
+
+		/* process track cycle */
+		track_length[track] = extract_GCR_track(
+			track_buffer + (track * NIB_TRACK_LENGTH),
+			nibdata,
+			&track_alignment[track],
+			force_align,
+			capacity_min[track_density[track]&3],
+			capacity_max[track_density[track]&3]
+		);
+
+		/* output some specs */
+		printf("%4.1f: (",(float) track / 2);
+		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+
+		printf("%d:%d) %.1f%% ", track_density[track]&3, track_length[track],
+			((float)track_length[track] / (float)capacity[track_density[track]&3]) * 100);
+
+		printf("[align:%s]\n",alignments[track_alignment[track]]);
+	}
+	return 1;
 }
 
 int

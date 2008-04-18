@@ -206,6 +206,7 @@ main(int argc, char **argv)
 	{
 		if(!read_nib(inname, track_buffer, track_density, track_length, track_alignment))
 			exit(0);
+		align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(inname, "NB2"))
 	{

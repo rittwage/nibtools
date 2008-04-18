@@ -359,6 +359,7 @@ file2disk(CBM_FILE fd, char * filename)
 	{
 		if(!read_nib(filename, track_buffer, track_density, track_length, track_alignment))
 			return 0;
+		align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
