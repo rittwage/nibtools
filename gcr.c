@@ -360,7 +360,9 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	/* verify that our header contains no bad GCR, since it can be false positive checksum match */
 	for(j = 0; j < 10; j++)
 	{
-		if (is_bad_gcr(gcr_ptr - 1, 10, j)) error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
+		if (is_bad_gcr(gcr_ptr - 1, 10, j))
+			error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
+		if (error_code == BAD_GCR_CODE) printf("BADGCR in header! ");
 	}
 
 	/* check for data sector */
@@ -374,6 +376,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 
 		if (4 != (nConverted = convert_4bytes_from_GCR(gcr_ptr, sectordata)))
 		{
+
 #if 0
 			// XXX Disabled for unknown reason.
 			if ((i < 64) || (nConverted == 0))
@@ -407,8 +410,11 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 
 	/* verify that our data contains no bad GCR, since it can be false positive checksum match */
 	for(j = 0; j < 320; j++)
-		if (is_bad_gcr(gcr_ptr - 325, 320, j)) error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
-
+	{
+		if (is_bad_gcr(gcr_ptr - 325, 320, j))
+			error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
+			if (error_code == BAD_GCR_CODE) printf("BADGCR in data! ");
+	}
 	return (error_code);
 }
 
@@ -1335,12 +1341,7 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 	total = 0;
 	lastpos = length - 1;
 
-	/* wrap around from last byte */
-	if (is_bad_gcr(gcrdata, length, length - 1))
-		/* sbadgcr = S_BADGCR_ONCE_BAD; */
-		sbadgcr = S_BADGCR_LOST;
-	else
-		sbadgcr = S_BADGCR_OK;
+	sbadgcr = S_BADGCR_OK;
 
 	for (i = 0; i < length - 1; i++)
 	{
@@ -1402,41 +1403,5 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 		lastpos = i;
 	}
 
-	// clean up after last byte; lastpos = length - 1
-	b_badgcr = is_bad_gcr(gcrdata, length, 0);
-	n_badgcr = is_bad_gcr(gcrdata, length, 1);
-
-	switch (sbadgcr)
-	{
-		case S_BADGCR_OK:
-			break;
-
-		case S_BADGCR_ONCE_BAD:
-			if (b_badgcr || n_badgcr)
-			{
-				//if(fix) fix_first_gcr(gcrdata, length, lastpos);
-				if (fix) gcrdata[lastpos] = 0x00;
-				total++;
-			}
-			break;
-
-		case S_BADGCR_LOST:
-			if (b_badgcr || n_badgcr)
-			{
-				gcrdata[lastpos] = 0x00;
-			}
-			else
-			{
-				/*
-				if(fix)
-					fix_last_gcr(gcrdata, length, lastpos);
-				*/
-
-				if (fix)
-					gcrdata[lastpos] = 0x00;
-			}
-			total++;
-			break;
-	}
 	return total;
 }
