@@ -362,7 +362,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	{
 		if (is_bad_gcr(gcr_ptr - 1, 10, j))
 			error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
-		if (error_code == BAD_GCR_CODE) printf("BADGCR in header! ");
+		//if (error_code == BAD_GCR_CODE) printf("BADGCR in header! ");
 	}
 
 	/* check for data sector */
@@ -413,7 +413,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	{
 		if (is_bad_gcr(gcr_ptr - 325, 320, j))
 			error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
-			if (error_code == BAD_GCR_CODE) printf("BADGCR in data! ");
+			//if (error_code == BAD_GCR_CODE) printf("BADGCR in data! ");
 	}
 	return (error_code);
 }
@@ -1125,7 +1125,8 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
   BYTE * id1, BYTE * id2, int track, char * outputstring)
 {
 	int sec_match, numsecs;
-	int sector, error1, error2, i, empty;
+	int sector, error1, error2, empty;
+	int i, j;
 	BYTE checksum1, checksum2;
 	BYTE secbuf1[260], secbuf2[260];
 	char tmpstr[256];
@@ -1194,14 +1195,37 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 		else
 		{
 			if (checksum1 != checksum2)
-				sprintf(tmpstr,
-				  "S%d: data/error mismatch (%.2x/E%d)(%.2x/E%d)\n", sector,
-				  checksum1, error1, checksum2, error2);
-			else
-				sprintf(tmpstr,
-				  "S%d: error mismatch (E%d/E%d)\n", sector,
-				  error1, error2);
+			{
+				sprintf(tmpstr, "S%d: data/error mismatch (%.2x/E%d)(%.2x/E%d)\n",
+					sector,checksum1, error1, checksum2, error2);
 
+				if(verbose)
+				{
+					printf("\nSector1 dump:\n");
+					j = 0;
+					for (i = 2; i <= 256; i++)
+					{
+						printf("%c", secbuf1[i]);
+						j++;
+						if(j > 40) { j =0; printf("\n"); }
+					}
+					printf("\nSector2 dump:\n");
+					j = 0;
+					for (i = 2; i <= 256; i++)
+					{
+						printf("%c", secbuf2[i]);
+						j++;
+						if(j > 40) { j =0; printf("\n"); }
+					}
+					printf("\n");
+					getchar();
+				}
+			}
+			else
+			{
+				sprintf(tmpstr, "S%d: error mismatch (E%d/E%d)\n",
+					sector, error1, error2);
+			}
 		}
 		strcat(outputstring, tmpstr);
 	}

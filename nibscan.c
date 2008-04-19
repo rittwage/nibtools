@@ -446,11 +446,11 @@ compare_disks(void)
 			/* check for DOS sector matches */
 			if(track/2 <= 35)
 			{
-				sec_match =
-					compare_sectors(
-					track_buffer + (track * NIB_TRACK_LENGTH),
-					track_buffer2 + (track * NIB_TRACK_LENGTH),
-					track_length[track], track_length2[track], id, id2, track, errorstring);
+				sec_match = compare_sectors(
+											track_buffer + (track * NIB_TRACK_LENGTH),
+											track_buffer2 + (track * NIB_TRACK_LENGTH),
+											track_length[track], track_length2[track], id, id2, track, errorstring
+											);
 
 				printf("%s", errorstring);
 

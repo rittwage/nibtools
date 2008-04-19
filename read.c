@@ -181,6 +181,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 			else
 			{
 				printf(" (retry)");
+				l = error_retries - 1;
 				continue;
 			}
 		}
@@ -197,6 +198,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 			else
 			{
 				printf(" (retry)");
+				l = error_retries - 1;
 				continue;
 			}
 		}
