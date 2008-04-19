@@ -159,4 +159,6 @@ int reduce_gaps(BYTE * buffer, int length, int length_max, int minrun);
 int is_bad_gcr(BYTE * gcrdata, size_t length, size_t pos);
 int check_formatted(BYTE * gcrdata);
 int check_valid_data(BYTE * data, int length);
+char topetscii(char s);
+char frompetscii(char s);
 

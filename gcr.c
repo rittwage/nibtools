@@ -1150,15 +1150,12 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 		memset(secbuf2, 0, sizeof(secbuf2));
 		tmpstr[0] = '\0';
 
-		error1 = convert_GCR_sector(track1, track1 + length1,
-		  secbuf1, track / 2, sector, id1);
-
-		error2 = convert_GCR_sector(track2, track2 + length2,
-		  secbuf2, track / 2, sector, id2);
+		error1 = convert_GCR_sector(track1, track1 + length1, secbuf1, track / 2, sector, id1);
+		error2 = convert_GCR_sector(track2, track2 + length2, secbuf2, track / 2, sector, id2);
 
 		// compare data returned
 		checksum1 = checksum2 = empty = 0;
-		for (i = 2; i <= 256; i++)
+		for (i = 1; i <= 256; i++)
 		{
 			checksum1 ^= secbuf1[i];
 			checksum2 ^= secbuf2[i];
@@ -1197,23 +1194,34 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 			if (checksum1 != checksum2)
 			{
 				sprintf(tmpstr, "S%d: data/error mismatch (%.2x/E%d)(%.2x/E%d)\n",
-					sector,checksum1, error1, checksum2, error2);
+					sector, checksum1, error1, checksum2, error2);
 
 				if(verbose)
 				{
-					printf("\nSector1 dump:\n");
+					printf(tmpstr, "S%d: data/error mismatch (%.2x/E%d)(%.2x/E%d)\n",
+						sector, checksum1, error1, checksum2, error2);
+
+					printf("\nT%dS%d image #1 dump:\n", track, sector);
 					j = 0;
-					for (i = 2; i <= 256; i++)
+					for (i = 1; i <= 256; i++)
 					{
-						printf("%c", secbuf1[i]);
+						if(secbuf1[i] >= 32)
+							//printf("%c", frompetscii(secbuf1[i]));
+							printf("%c", secbuf1[i]);
+						else
+							printf("*");
 						j++;
 						if(j > 40) { j =0; printf("\n"); }
 					}
-					printf("\nSector2 dump:\n");
+					printf("\nT%dS%d image #2 dump:\n", track, sector);
 					j = 0;
-					for (i = 2; i <= 256; i++)
+					for (i = 1; i <= 256; i++)
 					{
-						printf("%c", secbuf2[i]);
+						if(secbuf2[i] >= 32)
+							//printf("%c", frompetscii(secbuf2[i]));
+							printf("%c", secbuf2[i]);
+						else
+							printf("*");
 						j++;
 						if(j > 40) { j =0; printf("\n"); }
 					}
@@ -1232,6 +1240,27 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 
 	return sec_match;
 }
+
+char frompetscii(char s)
+{
+        if((s>=65)&&(s<=90))
+        	s-=32;
+        else if((s>=97)&&(s<=122))
+        	s+=32;
+
+        return(s);
+}
+
+char topetscii(char s)
+{
+        if((s>=65)&&(s<=90))
+        	s+=32;
+        else if((s>=97)&&(s<=122))
+        	s-=32;
+
+        return(s);
+}
+
 
 // check for CBM DOS errors
 int
