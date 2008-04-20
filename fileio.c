@@ -950,8 +950,11 @@ unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 				track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
 				rawdata, track/2, sector, id);
 
-			memcpy(data+(index*256), rawdata+1, 256);
-			index++;
+			if(errorcode == SECTOR_OK)
+			{
+				memcpy(data+(index*256), rawdata+1, 256);
+				index++;
+			}
 		}
 	}
 	result = crcFast(data, sizeof(data));
@@ -1040,8 +1043,11 @@ unsigned int md5_all_tracks(BYTE *track_buffer, int *track_length, unsigned char
 				track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
 				rawdata, track/2, sector, id);
 
-			memcpy(data+(index*256), rawdata+1, 256);
-			index++;
+			if(errorcode == SECTOR_OK)
+			{
+				memcpy(data+(index*256), rawdata+1, 256);
+				index++;
+			}
 		}
 	}
 

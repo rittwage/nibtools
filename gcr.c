@@ -1394,7 +1394,6 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 				if (b_badgcr)
 				{
 					total++;
-
 					//sbadgcr = S_BADGCR_ONCE_BAD;
 					sbadgcr = S_BADGCR_LOST;  /* aggressive */
 				}
@@ -1403,12 +1402,11 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 			case S_BADGCR_ONCE_BAD:
 				if (b_badgcr || n_badgcr)
 				{
+					total++;
 					sbadgcr = S_BADGCR_LOST;
 
 					if(fix) fix_first_gcr(gcrdata, length, lastpos);
 					//if (fix) gcrdata[lastpos] = 0x00;  /* aggressive */
-
-					total++;
 				}
 				else
 				{
@@ -1419,8 +1417,8 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 			case S_BADGCR_LOST:
 				if (b_badgcr || n_badgcr)
 				{
-					if (fix) gcrdata[lastpos] = 0x00;
 					total++;
+					if (fix) gcrdata[lastpos] = 0x00;
 				}
 				else
 				{
