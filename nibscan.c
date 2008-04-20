@@ -153,7 +153,7 @@ main(int argc, char *argv[])
 
 		case 'f':
 			printf("* Bad GCR correction/simulation disabled\n");
-			fix_gcr= 0;
+			fix_gcr = 0;
 			break;
 
 		case 'p':
@@ -288,7 +288,6 @@ main(int argc, char *argv[])
 			printf("*no match*\n");
 	}
 
-
 	/* MD5 */
 	printf("\n");
 
@@ -419,7 +418,10 @@ compare_disks(void)
 			  compare_tracks(
 				track_buffer + (track * NIB_TRACK_LENGTH),
 				track_buffer2 + (track * NIB_TRACK_LENGTH),
-				track_length[track], track_length2[track], 0, errorstring);
+				track_length[track],
+				track_length2[track],
+				0,
+				errorstring);
 
 			printf("%s", errorstring);
 
@@ -449,7 +451,12 @@ compare_disks(void)
 				sec_match = compare_sectors(
 											track_buffer + (track * NIB_TRACK_LENGTH),
 											track_buffer2 + (track * NIB_TRACK_LENGTH),
-											track_length[track], track_length2[track], id, id2, track, errorstring
+											track_length[track],
+											track_length2[track],
+											id,
+											id2,
+											track,
+											errorstring
 											);
 
 				printf("%s", errorstring);

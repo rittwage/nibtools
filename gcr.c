@@ -1150,8 +1150,8 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 		memset(secbuf2, 0, sizeof(secbuf2));
 		tmpstr[0] = '\0';
 
-		error1 = convert_GCR_sector(track1, track1 + length1, secbuf1, track / 2, sector, id1);
-		error2 = convert_GCR_sector(track2, track2 + length2, secbuf2, track / 2, sector, id2);
+		error1 = convert_GCR_sector(track1, track1 + length1, secbuf1, track/2, sector, id1);
+		error2 = convert_GCR_sector(track2, track2 + length2, secbuf2, track/2, sector, id2);
 
 		// compare data returned
 		checksum1 = checksum2 = empty = 0;
@@ -1165,29 +1165,17 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 		}
 
 		// continue checking
-		if (checksum1 == checksum2 && error1 == error2 && empty < 254)
+		if ((checksum1 == checksum2) && (error1 == error2))
 		{
 			if(error1 == SECTOR_OK)
 			{
-				//sprintf(tmpstr,"S%d: std sector data match\n",sector);
+				//sprintf(tmpstr,"S%d: sector data match\n",sector);
 			}
 			else
 			{
-				sprintf(tmpstr,"S%d: non-std sector data match (%.2x)\n",sector, checksum1);
+				sprintf(tmpstr,"S%d: non-std sector (%.2x/%.2x)(%.2x/%.2x)\n",sector,checksum1,error1,checksum2,error2);
 			}
 			sec_match++;
-		}
-		else if (checksum1 == checksum2 && error1 == error2)
-		{
-			if(error1 == SECTOR_OK)
-			{
-				//sprintf(tmpstr,"S%d: empty sector match\n",sector);
-				sec_match++;
-			}
-			else
-			{
-				sprintf(tmpstr,"S%d: unrecognized sector (%.2x/%.2x)(%.2x/%.2x)\n",sector,checksum1,error1,checksum2,error2);
-			}
 		}
 		else
 		{
@@ -1201,7 +1189,7 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 					printf(tmpstr, "S%d: data/error mismatch (%.2x/E%d)(%.2x/E%d)\n",
 						sector, checksum1, error1, checksum2, error2);
 
-					printf("\nT%dS%d image #1 dump:\n", track, sector);
+					printf("\nT%dS%d image #1 dump:\n", track/2, sector);
 					j = 0;
 					for (i = 1; i <= 256; i++)
 					{
@@ -1213,7 +1201,7 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 						j++;
 						if(j > 40) { j =0; printf("\n"); }
 					}
-					printf("\nT%dS%d image #2 dump:\n", track, sector);
+					printf("\nT%dS%d image #2 dump:\n", track/2, sector);
 					j = 0;
 					for (i = 1; i <= 256; i++)
 					{
@@ -1231,8 +1219,7 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 			}
 			else
 			{
-				sprintf(tmpstr, "S%d: error mismatch (E%d/E%d)\n",
-					sector, error1, error2);
+				sprintf(tmpstr, "S%d: error mismatch (E%d/E%d)\n", sector, error1, error2);
 			}
 		}
 		strcat(outputstring, tmpstr);
@@ -1392,7 +1379,7 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 
 	i = 0;
 	total = 0;
-	lastpos = length - 1;
+	lastpos = 0;
 
 	sbadgcr = S_BADGCR_OK;
 
@@ -1418,21 +1405,22 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 				{
 					sbadgcr = S_BADGCR_LOST;
 
-					if(fix)fix_first_gcr(gcrdata, length, lastpos);
+					if(fix) fix_first_gcr(gcrdata, length, lastpos);
 					//if (fix) gcrdata[lastpos] = 0x00;  /* aggressive */
+
+					total++;
 				}
 				else
 				{
 					sbadgcr = S_BADGCR_OK;
 				}
-				total++;
 				break;
 
 			case S_BADGCR_LOST:
 				if (b_badgcr || n_badgcr)
 				{
-					if (fix)
-						gcrdata[lastpos] = 0x00;
+					if (fix) gcrdata[lastpos] = 0x00;
+					total++;
 				}
 				else
 				{
@@ -1441,7 +1429,6 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 					if(fix) fix_last_gcr(gcrdata, length, lastpos);
 					//if (fix) gcrdata[lastpos] = 0x00;   /* aggressive */
 				}
-				total++;
 				break;
 		}
 		lastpos = i;

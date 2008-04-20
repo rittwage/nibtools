@@ -36,7 +36,7 @@ main(int argc, char **argv)
 	start_track = 1 * 2;
 	end_track = 42 * 2;
 	track_inc = 2;
-	fix_gcr = 0;
+	fix_gcr = 1;
 	reduce_sync = 1;
 	reduce_badgcr = 0;
 	reduce_gap = 0;
@@ -63,8 +63,8 @@ main(int argc, char **argv)
 		switch ((*argv)[1])
 		{
 		case 'f':
-			printf("* Fix bad GCR\n");
-			fix_gcr = 1;
+			printf("* Bad GCR correction/simulation disabled\n");
+			fix_gcr = 0;
 			break;
 
 		case 'r':
@@ -273,7 +273,7 @@ usage(void)
 	" -a[x]: Force alternative track alignments (advanced users only)\n"
 	" -p[x]: Custom protection handlers (advanced users only)\n"
      " -g: Enable gap reduction\n"
-     " -0: Enable bad GCR run reduction\n"
+     " -0: Disable bad GCR run reduction\n"
      " -r: Enable automatic sync reduction\n"
      " -G: Manual gap match length\n");
 	exit(1);

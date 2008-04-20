@@ -535,9 +535,7 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 			printf("%d", sector);
 
 			memset(rawdata, 0,sizeof(rawdata));
-
 			errorcode = convert_GCR_sector(cycle_start, cycle_stop, rawdata, track/2, sector, id);
-
 			errorinfo[blockindex] = errorcode;	/* OK by default */
 
 			if (errorcode != SECTOR_OK)
@@ -934,7 +932,7 @@ unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 	crcInit();
 
 	/* get disk id */
-	if (!extract_id(track_buffer + (18 * 2 * NIB_TRACK_LENGTH), id))
+	if (!extract_id(track_buffer + (18*2 * NIB_TRACK_LENGTH), id))
 	{
 		fprintf(stderr, "Cannot find directory sector.\n");
 		return 0;
@@ -957,7 +955,7 @@ unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 		}
 	}
 	result = crcFast(data, sizeof(data));
-	printf("Full CRC:\t0x%X\n", (int)result);
+	printf("Full CRC:\t0x%X (%d blocks)\n", (int)result, index);
 	return result;
 }
 
@@ -976,7 +974,7 @@ unsigned int md5_dir_track(BYTE *track_buffer, int *track_length, unsigned char 
 	memset(result, 0, sizeof(result));
 
 	/* get disk id */
-	if (!extract_id(track_buffer + (18 * 2 * NIB_TRACK_LENGTH), id))
+	if (!extract_id(track_buffer + (18*2 * NIB_TRACK_LENGTH), id))
 	{
 		fprintf(stderr, "Cannot find directory sector.\n");
 		return 0;
@@ -1024,7 +1022,7 @@ unsigned int md5_all_tracks(BYTE *track_buffer, int *track_length, unsigned char
 	memset(result, 0, sizeof(result));
 
 	/* get disk id */
-	if (!extract_id(track_buffer + (18 * 2 * NIB_TRACK_LENGTH), id))
+	if (!extract_id(track_buffer + (18*2 * NIB_TRACK_LENGTH), id))
 	{
 		fprintf(stderr, "Cannot find directory sector.\n");
 		return 0;
@@ -1052,7 +1050,7 @@ unsigned int md5_all_tracks(BYTE *track_buffer, int *track_length, unsigned char
 	printf("Full MD5:\t0x");
 	for (i = 0; i < 16; i++)
 		printf ("%02x", result[i]);
-	printf("\n");
+	printf(" (%d blocks)\n", index);
 
 	return 1;
 }
