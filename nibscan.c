@@ -393,13 +393,11 @@ compare_disks(void)
 		{
 			track_length[track] = 0;
 			printf("1 - UNFORMATTED!\n");
-			continue;
 		}
 		if(!check_formatted(track_buffer2 + (track * NIB_TRACK_LENGTH)))
 		{
 			track_length2[track] = 0;
 			printf("2 - UNFORMATTED!\n");
-			continue;
 		}
 
 		if( ((track_length[track] > 0) && (track_length2[track] == 0)) ||
@@ -409,7 +407,7 @@ compare_disks(void)
 			if(waitkey) getchar();
 		}
 
-		if ((track_length[track] > 0) && (track_length2[track] > 0))
+		if ((track_length[track] > 0) || (track_length2[track] > 0))
 		{
 			numtracks++;
 
@@ -502,7 +500,7 @@ compare_disks(void)
 	//printf("Matches (%s)\n", sec_matches);
 	//printf("Mismatches (%s)\n", sec_mismatches);
 	//printf("\n");
-	printf("%d/%d total standard CBM DOS sectors matched (%d mismatched)\n", sec_total, numsecs, numsecs-sec_total);
+	printf("%d/%d total sectors (or errors) matched (%d mismatched)\n", sec_total, numsecs, numsecs-sec_total);
 	printf("CBM DOS errors (d1/%d - d2/%d)\n",errors_d1, errors_d2);
 	printf("%d tracks had mismatched densities (%s)\n", dens_mismatch, dens_mismatches);
 

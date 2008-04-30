@@ -289,12 +289,15 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		fread(track_buffer + (track * NIB_TRACK_LENGTH), g64maxtrack, 1, fpin);
 
 		/* output some specs */
-		printf("%4.1f: (",(float) track / 2);
-		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+		if(verbose)
+		{
+			printf("%4.1f: (",(float) track / 2);
+			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
 
-		printf("%d:%d) %.1f%%\n", track_density[track]&3, track_length[track],
-			((float)track_length[track] / (float)capacity[track_density[track]&3]) * 100);
+			printf("%d:%d) %.1f%%\n", track_density[track]&3, track_length[track],
+				((float)track_length[track] / (float)capacity[track_density[track]&3]) * 100);
+		}
 	}
 	fclose(fpin);
 	printf("Successfully loaded G64 file\n");
@@ -421,7 +424,7 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *trac
 	char header[0x100];
 	int header_entry = 0;
 
-	printf("\nWriting NIB file...");
+	printf("\nWriting NIB file...\n");
 
 	/* clear header */
 	memset(header, 0, sizeof(header));
@@ -460,10 +463,13 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *trac
 		fflush(fpout);
 
 		/* output some specs */
-		printf("%4.1f: (",(float) track / 2);
-		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-		printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
+		if(verbose)
+		{
+			printf("%4.1f: (",(float) track / 2);
+			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+			printf("%d:%d)\n", track_density[track]&3, track_length[track]  );
+		}
 	}
 
 	/* fill NIB-header */
@@ -950,7 +956,7 @@ unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 				track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
 				rawdata, track/2, sector, id);
 
-			if(errorcode == SECTOR_OK)
+			if(1) //errorcode == SECTOR_OK)
 			{
 				memcpy(data+(index*256), rawdata+1, 256);
 				index++;
@@ -1043,7 +1049,7 @@ unsigned int md5_all_tracks(BYTE *track_buffer, int *track_length, unsigned char
 				track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
 				rawdata, track/2, sector, id);
 
-			if(errorcode == SECTOR_OK)
+			if(1) //errorcode == SECTOR_OK)
 			{
 				memcpy(data+(index*256), rawdata+1, 256);
 				index++;
