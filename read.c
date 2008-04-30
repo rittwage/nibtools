@@ -120,15 +120,13 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 	BYTE cbuffer2[NIB_TRACK_LENGTH];
 	BYTE *cbufn, *cbufo, *bufn, *bufo;
 	BYTE align;
-	int leno, lenn, densn, i, l, badgcr, retries, short_read, long_read;
+	int leno, lenn, densn, i, l, badgcr, retries;
     BYTE denso;
 	char errorstring[0x1000], diffstr[80];
 
 	badgcr = 0;
 	*errors = 0;
 	retries = 1;
-	short_read = 0;
-	long_read = 0;
 	bufn = buffer1;
 	bufo = buffer2;
 	cbufn = cbuffer1;
@@ -175,15 +173,8 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 		{
 			printf("Short Read! (%d) ", leno);
 			fprintf(fplog, "[%d<%d!] ", leno, capacity_min[denso & 3] - CAP_MIN_ALLOWANCE);
-			l--;
-			if (short_read++ > error_retries)
-				break;
-			else
-			{
-				printf(" (retry)");
-				l = error_retries - 1;
-				continue;
-			}
+			if(l < (error_retries - 2)) l = error_retries - 2;
+			continue;
 		}
 
 		// if we get more than capacity
@@ -192,15 +183,8 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 		{
 			printf("Long Read! (%d) ", leno);
 			fprintf(fplog, "[%d>%d!] ", leno, capacity_max[denso & 3] + CAP_MIN_ALLOWANCE);
-			l--;
-			if (long_read++ > error_retries)
-				break;
-			else
-			{
-				printf(" (retry)");
-				l = error_retries - 1;
-				continue;
-			}
+			if(l < (error_retries - 2)) l = error_retries - 2;
+			continue;
 		}
 
 		printf("%d (%.1f%%) ", leno, ((float)leno / (float)capacity[denso&3]) * 100);
@@ -215,7 +199,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 
 		// if all bad sectors (protection) we only retry once
 		if (*errors == sector_map_1541[halftrack/2])
-			l = error_retries - 1;
+			if(l < (error_retries - 2)) l = error_retries - 2;
 
 		// else we are probably looping for a read retry
 		if(l < error_retries - 1) printf(" %s (retry)", errorstring);
@@ -223,7 +207,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 
 	// If there are a lot of errors, the track probably doesn't contain
 	// any CBM sectors (protection)
-	if (*errors == sector_map_1541[halftrack/2])
+	if ((*errors == sector_map_1541[halftrack/2]) || (halftrack > 70))
 	{
 		printf("Non-Standard Format ");
 		fprintf(fplog, "%s ", errorstring);
