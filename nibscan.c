@@ -334,7 +334,12 @@ load_image(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_l
 		return 1;
 	}
 	else if (compare_extension(filename, "NB2"))
-		return(read_nb2(filename, track_buffer, track_density, track_length, track_alignment));
+	{
+		if(!read_nb2(filename, track_buffer, track_density, track_length, track_alignment))
+			return 0;
+		align_tracks(track_buffer, track_density, track_length, track_alignment);
+		return 1;
+	}
 	else
 		printf("Unknown image type = %s!\n", filename);
 

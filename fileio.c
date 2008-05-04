@@ -154,7 +154,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 			fprintf(stderr, "Cannot find directory sector.\n");
 			return 0;
 	}
-	printf("\ndiskid: %s\n", diskid);
+	printf("\ndiskid: %c%c\n", diskid[0], diskid[1]);
 
 	rewind(fpin);
 	if (fread(header, sizeof(header), 1, fpin) != 1) {
@@ -186,13 +186,16 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 					fread(nibdata, NIB_TRACK_LENGTH, 1, fpin);
 
 					length = extract_GCR_track(tmpdata, nibdata,
-						&track_alignment[track], force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
+						&track_alignment[track],
+						force_align,
+						capacity_min[track_density[track]&3],
+						capacity_max[track_density[track]&3]);
 
 					errors = check_errors(tmpdata, length, track, diskid, errorstring);
 
 					if( (pass == 0) || (errors < best_err) )
 					{
-						track_length[track] = length;
+						track_length[track] = 0x2000;
 						memcpy(track_buffer + (track * NIB_TRACK_LENGTH), nibdata, NIB_TRACK_LENGTH);
 						best_pass = pass;
 						best_err = errors;
