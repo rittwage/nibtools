@@ -98,7 +98,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		if (!cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
 		{
 			// If we got a timeout, reset the port before retrying.
-			printf(" (timeout) ");
+			printf("(timeout) ");
 			fflush(stdout);
 			cbm_parallel_burst_read(fd);
 			delay(500);
@@ -152,8 +152,8 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 		// if we have a killer track, exit processing
 		if(denso & BM_FF_TRACK)
 		{
-			printf(" Killer Track");
-			fprintf(fplog, "Killer Track- %s (%d)", errorstring, leno);
+			printf("[Killer Track] ");
+			fprintf(fplog, "[Killer Track] %s (%d)", errorstring, leno);
 			memcpy(buffer, bufo, NIB_TRACK_LENGTH);
 			return (denso);
 		}
@@ -161,8 +161,8 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 		// If we get nothing we are on an empty track (unformatted)
 		if (!leno)
 		{
-			printf("Unformatted Track");
-			fprintf(fplog, "Unformatted Track - %s (%d)", errorstring, leno);
+			printf("[Unformatted Track] ");
+			fprintf(fplog, "[Unformatted Track] %s (%d)", errorstring, leno);
 			memcpy(buffer, bufo, NIB_TRACK_LENGTH);
 			return (denso);
 		}
@@ -174,7 +174,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 			printf("Short Read! (%d) ", leno);
 			fprintf(fplog, "[%d<%d!] ", leno, capacity_min[denso & 3] - CAP_MIN_ALLOWANCE);
 			if(l < (error_retries - 3)) l = error_retries - 3;
-			//continue;
+			continue;
 		}
 
 		// if we get more than capacity
@@ -184,10 +184,10 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 			printf("Long Read! (%d) ", leno);
 			fprintf(fplog, "[%d>%d!] ", leno, capacity_max[denso & 3] + CAP_MIN_ALLOWANCE);
 			if(l < (error_retries - 3)) l = error_retries - 3;
-			//continue;
+			continue;
 		}
 
-		printf("%d (%.1f%%) ", leno, ((float)leno / (float)capacity[denso&3]) * 100);
+		//printf("%d (%.1f%%) ", leno, ((float)leno / (float)capacity[denso&3]) * 100);
 		fprintf(fplog, "%d ", leno);
 
 		// check for CBM DOS errors
@@ -199,23 +199,27 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 
 		// if all bad sectors (protection) we only retry once
 		if (*errors == sector_map_1541[halftrack/2])
-			if(l < (error_retries - 3)) l = error_retries - 3;
+		{
+			if(l < (error_retries - 3))
+				l = error_retries - 3;
+		}
+		else // else we are probably looping for a read retry
+			printf("%s ", errorstring);
 
-		// else we are probably looping for a read retry
-		if(l < error_retries - 1) printf(" %s (retry)", errorstring);
+		if(l < error_retries - 1) printf("(retry) ");
 	}
 
 	// If there are a lot of errors, the track probably doesn't contain
 	// any CBM sectors (protection)
 	if ((*errors == sector_map_1541[halftrack/2]) || (halftrack > 70))
 	{
-		printf("Non-Standard Format ");
+		printf("[Non-Standard Format] ");
 		fprintf(fplog, "%s ", errorstring);
 	}
 	else
 	{
-		printf("%s [%d Errors] ", errorstring, *errors);
-		fprintf(fplog, "%s [%d Errors] ", errorstring, *errors);
+		printf("[%d Errors] ", *errors);
+		fprintf(fplog, "[%d Errors] ", *errors);
 	}
 
 	// Fix bad GCR in track for compare
@@ -249,8 +253,8 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 			// compare raw gcr data, unreliable
 			if (compare_tracks(cbufo, cbufn, leno, lenn, 1, errorstring))
 			{
-				printf("[Raw Match] ");
-				fprintf(fplog, "[Raw Match] ");
+				printf("[Bit Match] ");
+				fprintf(fplog, "[Bit Match] ");
 				break;
 			}
 			else

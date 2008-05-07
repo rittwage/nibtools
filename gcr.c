@@ -1173,7 +1173,7 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 			}
 			else
 			{
-				sprintf(tmpstr,"S%d: non-std sector (%.2x/%.2x)(%.2x/%.2x)\n",sector,checksum1,error1,checksum2,error2);
+				sprintf(tmpstr,"S%d: non-std sector (%.2x/E%d)(%.2x/E%d)\n",sector,checksum1,error1,checksum2,error2);
 			}
 			sec_match++;
 		}
