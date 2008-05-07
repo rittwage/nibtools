@@ -533,11 +533,11 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 
 		find_track_cycle(
 			&cycle_start, &cycle_stop,
-			capacity_min[speed_map_1541[track/2]],
-			capacity_max[speed_map_1541[track/2]]
+			capacity_min[speed_map_1541[(track/2)-1]],
+			capacity_max[speed_map_1541[(track/2)-1]]
 		);
 
-		printf("%.2d (%d):" ,track/2, capacity[speed_map_1541[track/2]]);
+		printf("%.2d (%d):" ,track/2, capacity[speed_map_1541[(track/2)-1]]);
 
 		for (sector = 0; sector < sector_map_1541[track/2]; sector++)
 		{
