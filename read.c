@@ -188,6 +188,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 		}
 
 		//printf("%d (%.1f%%) ", leno, ((float)leno / (float)capacity[denso&3]) * 100);
+		printf("%d ", leno);
 		fprintf(fplog, "%d ", leno);
 
 		// check for CBM DOS errors
