@@ -148,5 +148,6 @@ void motor_off(CBM_FILE fd);
 void step_to_halftrack(CBM_FILE fd, int halftrack);
 int verify_floppy(CBM_FILE fd);
 #ifdef DJGPP
+#include <unistd.h>
 int find_par_port(CBM_FILE fd);
 #endif
