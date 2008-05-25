@@ -338,7 +338,21 @@ main(int argc, char *argv[])
 int
 file2disk(CBM_FILE fd, char * filename)
 {
-	printf("Writing filename: %s\n", filename);
+	char command[256];
+	char *dotpos;
+	int iszip = 0;
+	int retval = 1;
+
+	/* unzip image if possible */
+	if (compare_extension(filename, "ZIP"))
+	{
+		printf("Unzipping image...\n");
+		sprintf(command, "unzip %s", filename);
+		system(command);
+		dotpos = strrchr(filename, '.');
+		if (dotpos != NULL) *dotpos = '\0';
+		iszip++;
+	}
 
 	/* clear our buffers */
 	memset(track_buffer, 0, sizeof(track_buffer));
@@ -346,31 +360,33 @@ file2disk(CBM_FILE fd, char * filename)
 
 	/* read and remaster disk */
 	if (compare_extension(filename, "D64"))
-	{
-		if(!read_d64(filename, track_buffer, track_density, track_length))
-			return 0;
-	}
+		retval = read_d64(filename, track_buffer, track_density, track_length);
 	else if (compare_extension(filename, "G64"))
-	{
-		if(!read_g64(filename, track_buffer, track_density, track_length))
-			return 0;
-	}
+		retval = read_g64(filename, track_buffer, track_density, track_length);
 	else if (compare_extension(filename, "NIB"))
 	{
-		if(!read_nib(filename, track_buffer, track_density, track_length, track_alignment))
-			return 0;
-		align_tracks(track_buffer, track_density, track_length, track_alignment);
+		retval = read_nib(filename, track_buffer, track_density, track_length, track_alignment);
+		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
-		if(!read_nb2(filename, track_buffer, track_density, track_length, track_alignment))
-			return 0;
+		retval = read_nb2(filename, track_buffer, track_density, track_length, track_alignment);
+		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else
 	{
 		printf("\nUnknown image type");
-		return 0;
+		retval = 0;
 	}
+
+	if(iszip)
+	{
+		unlink(filename);
+		printf("Temporary file deleted.\n");
+	}
+
+	if(!retval) return 0;
+
 
 	track_inc = 2;  /* 15x1 can't write halftracks */
 	if(start_track_override) start_track = start_track_override;

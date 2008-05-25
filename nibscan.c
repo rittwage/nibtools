@@ -322,28 +322,46 @@ main(int argc, char *argv[])
 int
 load_image(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
+	char command[256];
+	char *dotpos;
+	int iszip = 0;
+	int retval = 1;
+
+	/* unzip image if possible */
+	if (compare_extension(filename, "ZIP"))
+	{
+		printf("Unzipping image...\n");
+		sprintf(command, "unzip %s", filename);
+		system(command);
+		dotpos = strrchr(filename, '.');
+		if (dotpos != NULL) *dotpos = '\0';
+		iszip++;
+	}
+
 	if (compare_extension(filename, "D64"))
-		return(read_d64(filename, track_buffer, track_density, track_length));
+		retval = read_d64(filename, track_buffer, track_density, track_length);
 	else if (compare_extension(filename, "G64"))
-		return(read_g64(filename, track_buffer, track_density, track_length));
+		retval = read_g64(filename, track_buffer, track_density, track_length);
 	else if (compare_extension(filename, "NIB"))
 	{
-		if(!read_nib(filename, track_buffer, track_density, track_length, track_alignment))
-			return 0;
-		align_tracks(track_buffer, track_density, track_length, track_alignment);
-		return 1;
+		retval = read_nib(filename, track_buffer, track_density, track_length, track_alignment);
+		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
-		if(!read_nb2(filename, track_buffer, track_density, track_length, track_alignment))
-			return 0;
-		align_tracks(track_buffer, track_density, track_length, track_alignment);
-		return 1;
+		retval = read_nb2(filename, track_buffer, track_density, track_length, track_alignment);
+		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else
 		printf("Unknown image type = %s!\n", filename);
 
-	return 0;
+	if(iszip)
+	{
+		unlink(filename);
+		printf("Temporary file deleted.\n");
+	}
+
+	return retval;
 }
 
 int

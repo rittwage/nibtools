@@ -32,6 +32,9 @@ int ARCH_MAINDECL
 main(int argc, char **argv)
 {
 	char inname[256], outname[256], *dotpos;
+	char command[256];
+	int iszip = 0;
+	int retval = 1;
 
 	start_track = 1 * 2;
 	end_track = 42 * 2;
@@ -177,6 +180,17 @@ main(int argc, char **argv)
 
 	strcpy(inname, argv[0]);
 
+	/* unzip image if possible */
+	if (compare_extension(inname, "ZIP"))
+	{
+		printf("Unzipping image...\n");
+		sprintf(command, "unzip %s", inname);
+		system(command);
+		dotpos = strrchr(inname, '.');
+		if (dotpos != NULL) *dotpos = '\0';
+		iszip++;
+	}
+
 	if(argc < 2)
 	{
 		strcpy(outname, inname);
@@ -195,30 +209,26 @@ main(int argc, char **argv)
 
 	/* convert */
 	if (compare_extension(inname, "D64"))
-	{
-		if(!read_d64(inname, track_buffer, track_density, track_length))
-			exit(0);
-	}
+		retval = read_d64(inname, track_buffer, track_density, track_length);
 	else if (compare_extension(inname, "G64"))
-	{
-		if(!read_g64(inname, track_buffer, track_density, track_length))
-			exit(0);
-	}
+		retval = read_g64(inname, track_buffer, track_density, track_length);
 	else if (compare_extension(inname, "NIB"))
-	{
-		if(!read_nib(inname, track_buffer, track_density, track_length, track_alignment))
-			exit(0);
-	}
+		 retval = read_nib(inname, track_buffer, track_density, track_length, track_alignment);
 	else if (compare_extension(inname, "NB2"))
-	{
-		if(!read_nb2(inname, track_buffer, track_density, track_length, track_alignment))
-			exit(0);
-	}
+		retval = read_nb2(inname, track_buffer, track_density, track_length, track_alignment);
 	else
 	{
 		printf("Unknown input file type\n");
-		exit(0);
+		retval = 0;
 	}
+
+	if(iszip)
+	{
+			unlink(inname);
+			printf("Temporary file deleted.\n");
+	}
+
+	if(!retval) exit(0);
 
 	if (compare_extension(outname, "D64"))
 	{
