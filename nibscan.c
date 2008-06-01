@@ -323,7 +323,8 @@ int
 load_image(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
 	char command[256];
-	char *dotpos;
+	char pathname[256];
+	char *dotpos, *pathpos;
 	int iszip = 0;
 	int retval = 1;
 
@@ -331,10 +332,13 @@ load_image(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_l
 	if (compare_extension(filename, "ZIP"))
 	{
 		printf("Unzipping image...\n");
-		sprintf(command, "unzip %s", filename);
-		system(command);
 		dotpos = strrchr(filename, '.');
 		if (dotpos != NULL) *dotpos = '\0';
+		strcpy(pathname, filename);
+		pathpos = strrchr(pathname, '\\');
+		if (pathpos != NULL) *pathpos = '\0';
+		sprintf(command, "unzip %s.zip -d %s", filename, pathname);
+		system(command);
 		iszip++;
 	}
 
@@ -358,7 +362,7 @@ load_image(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_l
 	if(iszip)
 	{
 		unlink(filename);
-		printf("Temporary file deleted.\n");
+		printf("Temporary file deleted (%s)\n", filename);
 	}
 
 	return retval;

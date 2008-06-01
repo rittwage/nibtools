@@ -31,8 +31,8 @@ int verbose;
 int ARCH_MAINDECL
 main(int argc, char **argv)
 {
-	char inname[256], outname[256], *dotpos;
-	char command[256];
+	char inname[256], outname[256], command[256], pathname[256];
+	char *dotpos, *pathpos;
 	int iszip = 0;
 	int retval = 1;
 
@@ -184,10 +184,13 @@ main(int argc, char **argv)
 	if (compare_extension(inname, "ZIP"))
 	{
 		printf("Unzipping image...\n");
-		sprintf(command, "unzip %s", inname);
-		system(command);
 		dotpos = strrchr(inname, '.');
 		if (dotpos != NULL) *dotpos = '\0';
+		strcpy(pathname, inname);
+		pathpos = strrchr(pathname, '\\');
+		if (pathpos != NULL) *pathpos = '\0';
+		sprintf(command, "unzip %s.zip -d %s", inname, pathname);
+		system(command);
 		iszip++;
 	}
 

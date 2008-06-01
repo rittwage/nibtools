@@ -339,7 +339,8 @@ int
 file2disk(CBM_FILE fd, char * filename)
 {
 	char command[256];
-	char *dotpos;
+	char pathname[256];
+	char *dotpos, *pathpos;
 	int iszip = 0;
 	int retval = 1;
 
@@ -347,10 +348,13 @@ file2disk(CBM_FILE fd, char * filename)
 	if (compare_extension(filename, "ZIP"))
 	{
 		printf("Unzipping image...\n");
-		sprintf(command, "unzip %s", filename);
-		system(command);
 		dotpos = strrchr(filename, '.');
 		if (dotpos != NULL) *dotpos = '\0';
+		strcpy(pathname, filename);
+		pathpos = strrchr(pathname, '\\');
+		if (pathpos != NULL) *pathpos = '\0';
+		sprintf(command, "unzip %s.zip -d %s", filename, pathname);
+		system(command);
 		iszip++;
 	}
 
