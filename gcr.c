@@ -963,18 +963,8 @@ int
 reduce_gaps(BYTE * buffer, int length, int length_max, int minrun)
 {
 	/* minrun is number of bytes to leave behind */
-	int skipped;
 
-	do
-	{
-		if (length <= length_max)
-			return (length);
-
-		/* insert code here */
-
-		length -= skipped;
-	}
-	while (skipped > 0 && length > length_max);
+	/* this does nothing yet */
 
 	return (length);
 }
