@@ -1,0 +1,17 @@
+
+TARGETNAME=nibrepair
+TARGETPATH=../../bin
+TARGETTYPE=PROGRAM
+
+INCLUDES=../include/WINDOWS;../../include;../../include/WINDOWS;../../arch/windows/
+
+SOURCES=../nibrepair.c \
+	../gcr.c \
+	../prot.c \
+	../fileio.c \
+	../crc.c \
+	../md5.c \
+        nibrepair.rc
+
+UMTYPE=console
+#UMBASE=0x100000

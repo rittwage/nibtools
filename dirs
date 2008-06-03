@@ -1,4 +1,5 @@
 DIRS=WINBUILD-nibread \
      WINBUILD-nibscan \
      WINBUILD-nibconv \
+     WINBUILD-nibrepair \
      WINBUILD-nibwrite
