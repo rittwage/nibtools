@@ -14,6 +14,8 @@ SOURCES=../nibwrite.c \
 	../prot.c \
 	../write.c \
 	../fileio.c \
+	../crc.c \
+	../md5.c \
         nibwrite.rc
 
 UMTYPE=console

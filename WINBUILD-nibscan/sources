@@ -9,6 +9,8 @@ SOURCES=../nibscan.c \
 	../gcr.c \
 	../prot.c \
 	../fileio.c \
+	../crc.c \
+	../md5.c \
         nibscan.rc
 
 UMTYPE=console

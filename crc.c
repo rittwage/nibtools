@@ -212,7 +212,7 @@ crc
 crcFast(unsigned char const message[], int nBytes)
 {
     crc	           remainder = INITIAL_REMAINDER;
-    unsigned char  data;
+    crc            data;
 	int            byte;
 
 

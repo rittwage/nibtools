@@ -9,6 +9,8 @@ SOURCES=../nibconv.c \
 	../gcr.c \
 	../prot.c \
 	../fileio.c \
+	../crc.c \
+	../md5.c \
         nibconv.rc
 
 UMTYPE=console
