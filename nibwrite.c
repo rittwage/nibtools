@@ -296,7 +296,7 @@ main(int argc, char *argv[])
 	atexit(handle_exit);
 	signal(SIGINT, handle_signals);
 
-	if(filename)
+	if(mode == MODE_WRITE_DISK)
 	{
 		if(!loadimage(filename))
 		{
