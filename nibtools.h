@@ -92,7 +92,8 @@ void usage(void);
 int disk2file(CBM_FILE fd, char * filename);
 
 /* nibwrite.c */
-int file2disk(CBM_FILE fd, char * filename);
+int loadimage(char * filename);
+int writeimage(CBM_FILE fd);
 
 /* fileio.c */
 int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment);

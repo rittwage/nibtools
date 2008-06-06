@@ -296,9 +296,18 @@ main(int argc, char *argv[])
 	atexit(handle_exit);
 	signal(SIGINT, handle_signals);
 
+	if(filename)
+	{
+		if(!loadimage(filename))
+		{
+			printf("\nImage loading failed\n");
+			exit(0);
+		}
+	}
+
 	if(!init_floppy(fd, drive, bump))
 	{
-		printf("Floppy drive initialization failed\n");
+		printf("\nFloppy drive initialization failed\n");
 		exit(0);
 	}
 
@@ -309,7 +318,7 @@ main(int argc, char *argv[])
 			//printf("Current disk WILL be OVERWRITTEN!\n"
 			//	"Press ENTER to continue or CTRL-C to quit.\n");
 			//getchar();
-			file2disk(fd, filename);
+			writeimage(fd);
 			break;
 
 		case MODE_UNFORMAT_DISK:
@@ -336,7 +345,7 @@ main(int argc, char *argv[])
 }
 
 int
-file2disk(CBM_FILE fd, char * filename)
+loadimage(char * filename)
 {
 	char command[256];
 	char pathname[256];
@@ -389,9 +398,11 @@ file2disk(CBM_FILE fd, char * filename)
 		printf("Temporary file deleted.\n");
 	}
 
-	if(!retval) return 0;
+	return retval;
+}
 
-
+int writeimage(CBM_FILE fd)
+{
 	track_inc = 2;  /* 15x1 can't write halftracks */
 	if(start_track_override) start_track = start_track_override;
 	if(end_track_override) end_track = end_track_override;
