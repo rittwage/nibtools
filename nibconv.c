@@ -187,8 +187,18 @@ main(int argc, char **argv)
 		dotpos = strrchr(inname, '.');
 		if (dotpos != NULL) *dotpos = '\0';
 		strcpy(pathname, inname);
+
+		/* try to detect pathname */
 		pathpos = strrchr(pathname, '\\');
-		if (pathpos != NULL) *pathpos = '\0';
+		if (pathpos != NULL)
+			*pathpos = '\0';
+		else //*nix
+		{
+			pathpos = strrchr(pathname, '/');
+			if (pathpos != NULL)
+				*pathpos = '\0';
+		}
+
 		sprintf(command, "unzip %s.zip -d %s", inname, pathname);
 		system(command);
 		iszip++;

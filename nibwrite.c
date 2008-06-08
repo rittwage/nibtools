@@ -359,9 +359,19 @@ loadimage(char * filename)
 		printf("Unzipping image...\n");
 		dotpos = strrchr(filename, '.');
 		if (dotpos != NULL) *dotpos = '\0';
+
+		/* try to detect pathname */
 		strcpy(pathname, filename);
 		pathpos = strrchr(pathname, '\\');
-		if (pathpos != NULL) *pathpos = '\0';
+		if (pathpos != NULL)
+			*pathpos = '\0';
+		else //*nix
+		{
+			pathpos = strrchr(pathname, '/');
+			if (pathpos != NULL)
+				*pathpos = '\0';
+		}
+
 		sprintf(command, "unzip %s.zip -d %s", filename, pathname);
 		system(command);
 		iszip++;
