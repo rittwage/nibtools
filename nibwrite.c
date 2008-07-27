@@ -351,7 +351,7 @@ loadimage(char * filename)
 	char pathname[256];
 	char *dotpos, *pathpos;
 	int iszip = 0;
-	int retval = 1;
+	int retval = 0;
 
 	/* unzip image if possible */
 	if (compare_extension(filename, "ZIP"))
@@ -397,10 +397,8 @@ loadimage(char * filename)
 		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else
-	{
 		printf("\nUnknown image type");
-		retval = 0;
-	}
+
 
 	if(iszip)
 	{

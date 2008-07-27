@@ -326,7 +326,7 @@ load_image(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_l
 	char pathname[256];
 	char *dotpos, *pathpos;
 	int iszip = 0;
-	int retval = 1;
+	int retval = 0;
 
 	/* unzip image if possible */
 	if (compare_extension(filename, "ZIP"))
