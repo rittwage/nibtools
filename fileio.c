@@ -828,14 +828,17 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, int *track_length, BYT
 		);
 
 		/* output some specs */
-		printf("%4.1f: (",(float) track / 2);
-		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+		if(verbose)
+		{
+			printf("%4.1f: (",(float) track / 2);
+			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
 
-		printf("%d:%d) %.1f%% ", track_density[track]&3, track_length[track],
-			((float)track_length[track] / (float)capacity[track_density[track]&3]) * 100);
+			printf("%d:%d) %.1f%% ", track_density[track]&3, track_length[track],
+				((float)track_length[track] / (float)capacity[track_density[track]&3]) * 100);
 
-		printf("[align:%s]\n",alignments[track_alignment[track]]);
+			printf("[align:%s]\n",alignments[track_alignment[track]]);
+		}
 	}
 	return 1;
 }

@@ -26,7 +26,6 @@ BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 int track_length[MAX_HALFTRACKS_1541 + 1];
 
 int start_track, end_track, track_inc;
-int start_track_override, end_track_override;
 int reduce_sync, reduce_badgcr, reduce_gap;
 int fix_gcr, aggressive_gcr;
 int align, force_align;
@@ -78,8 +77,6 @@ main(int argc, char *argv[])
 
 	start_track =  2;
 	end_track = 82;
-	start_track_override = 0;
-	end_track_override = 0;
 	track_inc = 2;
 
 	reduce_sync = 1;
@@ -120,15 +117,15 @@ main(int argc, char *argv[])
 		case 'B':
 		case 'S':
 			if (!(*argv)[2]) usage();
-			start_track_override = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
-			printf("* Start track set to %d\n", start_track_override/2);
+			start_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
+			printf("* Start track set to %d\n", start_track/2);
 			break;
 
 		case 'l':
 		case 'E':
 			if (!(*argv)[2]) usage();
-			end_track_override = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
-			printf("* End track set to %d\n", end_track_override/2);
+			end_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
+			printf("* End track set to %d\n", end_track/2);
 			break;
 
 		case 't':
@@ -412,8 +409,6 @@ loadimage(char * filename)
 int writeimage(CBM_FILE fd)
 {
 	track_inc = 2;  /* 15x1 can't write halftracks */
-	if(start_track_override) start_track = start_track_override;
-	if(end_track_override) end_track = end_track_override;
 
 	/* turn on motor and measure speed */
 	motor_on(fd);
