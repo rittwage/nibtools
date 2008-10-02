@@ -188,13 +188,10 @@ unformat_disk(CBM_FILE fd)
 	set_density(fd, 2);
 
 	printf("\nUnformatting...\n\n");
-	printf("00000000011111111112222222222333333333344\n");
-	printf("12345678901234567890123456789012345678901\n");
-	printf("-----------------------------------------\n");
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		printf("X");
+		printf("\n%4.1f: zeroed!", (float) track / 2);
 		unformat_track(fd, track);
 	}
 	printf("\n");
