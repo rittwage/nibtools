@@ -17,24 +17,41 @@ BYTE density_map_rapidlok[MAX_TRACKS_1541] = {
 	2, 2, 2, 2, 2, 2, 2				/* 36 - 42  */
 };
 
-void
-shift_buffer(BYTE * buffer, int length, int n)
+void shift_buffer_left(BYTE *buffer, int length, int n)
 {
-	int i;
-	BYTE tempbuf[NIB_TRACK_LENGTH];
-	BYTE carry;
-	int carryshift;
+    int i;
+    BYTE tempbuf[NIB_TRACK_LENGTH + 1];
+    BYTE carry;
+    int carryshift = 8 - n;
 
-	carryshift = 8 - n;
-	memcpy(tempbuf, buffer, length);
+    memcpy(tempbuf, buffer, length);
+    tempbuf[length] = 0x00;
 
-	// shift buffer right by n bits
-	carry = tempbuf[length - 1];
-	for (i = 0; i < length; i++)
-	{
-		buffer[i] = (tempbuf[i] >> n) | (carry << carryshift);
-		carry = tempbuf[i];
-	}
+    // shift buffer left by n bits
+    for (i = 0; i < length; i++)
+    {
+        carry = tempbuf[i+1];
+        buffer[i] = (tempbuf[i] << n) | (carry >> carryshift);
+    }
+}
+
+
+void shift_buffer_right(BYTE *buffer, int length, int n)
+{
+    int i;
+    BYTE tempbuf[NIB_TRACK_LENGTH];
+    BYTE carry;
+    int carryshift = 8 - n;
+
+    memcpy(tempbuf, buffer, length);
+
+    // shift buffer right by n bits
+    carry = 0;
+    for (i = 0; i < length; i++)
+    {
+        buffer[i] = (tempbuf[i] >> n) | (carry << carryshift);
+        carry = tempbuf[i];
+    }
 }
 
 BYTE *
