@@ -120,12 +120,12 @@ main(int argc, char *argv[])
 
 		case 'v':
 			track_match = 1;
-			printf("* Simple track match\n");
+			printf("* Simple track match (crude verify)\n");
 			break;
 
 		case 's':
 			force_nosync = 1;
-			printf("* Force reading without regard to sync\n");
+			printf("* Forcing read without regard to sync\n");
 			break;
 
 		case 't':
@@ -141,12 +141,12 @@ main(int argc, char *argv[])
 		case 'd':
 			force_density = 1;
 			density_map = DENSITY_STANDARD;
-			printf("* Force default density\n");
+			printf("* Forcing default density\n");
 			break;
 
 		case 'k':
 			read_killer = 0;
-			printf("* Disable reading of 'killer' tracks\n");
+			printf("* Disabling read of 'killer' tracks\n");
 			break;
 
 		case 'S':
@@ -186,8 +186,7 @@ main(int argc, char *argv[])
 			printf("* Read retries set to %d\n", error_retries);
 			break;
 
-		case 'p':
-			// custom protection handling
+		case 'p': // custom protection handling
 			printf("* Custom copy protection handler: ");
 			if ((*argv)[2] == 'r')
 			{
@@ -345,10 +344,12 @@ usage(void)
 	     " -G[n]: Match track gap by [n] number of bytes (advanced users only)\n"
 	     " -k: Disable reading of 'killer' tracks\n"
 	     " -d: Force default densities\n"
-	     " -m: Enable track matching (crude read verify)\n"
+	     " -v: Enable track matching (crude read verify)\n"
 	     " -i: Interactive imaging mode\n"
+	     " -m: Disable minimum capacity check\n"
 	     " -V: Verbose (output more detailed track data)\n"
 	     " -h: Read halftracks\n"
+		 " -p: Custom protection handling (see documentation)\n"
 	     " -t: Extended parallel port tests\n"
 	     );
 	exit(1);
