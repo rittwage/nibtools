@@ -254,7 +254,9 @@ main(int argc, char **argv)
 	{
 		if(skip_halftracks) track_inc = 2;
 
-		align_tracks(track_buffer, track_density, track_length, track_alignment);
+		if (compare_extension(inname, "NIB"))
+			align_tracks(track_buffer, track_density, track_length, track_alignment);
+
 		write_g64(outname, track_buffer, track_density, track_length);
 
 		if (compare_extension(inname, "D64"))
