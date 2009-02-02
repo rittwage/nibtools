@@ -52,7 +52,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout,
 	  "\nnibconv - converts a CBM disk image from one format to another.\n"
-	  "(C) Pete Rittwage, Dr. Markus Brenner, and friends.\n"
+	  "(C) C64 Preservation Project\nhttp://c64preservation.com\n"
 	  "Version " VERSION "\n\n");
 
 	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH)))
@@ -261,8 +261,8 @@ main(int argc, char **argv)
 
 		if (compare_extension(inname, "D64"))
 		{
-			printf("\nWARNING!\nConverting from D64 to G64 is not entirely useful.\n");
-			printf("All individual sector header and gap information is not stored in a D64 image,\n");
+			printf("\nWARNING!\nConverting from D64/G64 to G64 is not normally useful.\n");
+			printf("No individual sector header or gap information is stored in a D64 image,\n");
 			printf("so it has to be recontructed to make this conversion.  If the program you are\n");
 			printf("trying to use needs this information (such as for protection),\nit may still fail.\n");
 		}

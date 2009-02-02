@@ -976,13 +976,15 @@ reduce_gaps(BYTE * buffer, int length, int length_max, int minrun)
 BYTE
 check_sync_flags(BYTE *gcrdata, int density, int length)
 {
-	int i, syncs = 0;
+	int i, syncs;
+	syncs = 0;
 
 	/* check manually for SYNCKILL */
 	for (i = 0; i < length - 1; i++)
 	{
-		/* if ( ((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i+1] == 0xff) )  syncs++; */
-		if (gcrdata[i] == 0xff) syncs++; /* NOTE: This is not flagging true sync marks, only the last 8 bits of it */
+		/* if ( ((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i+1] == 0xFF) )  syncs++; */
+		if ((gcrdata[i] & 0x7F) == 0x7F)
+			syncs++; /* NOTE: This is not flagging true sync marks, only the last 7 bits of it */
 	}
 
 	if(!syncs)

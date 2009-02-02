@@ -19,12 +19,15 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 	#define LEADER  0x100
 
 	int track, length, i;
+	//BYTE density_original;
 	BYTE rawtrack[NIB_TRACK_LENGTH + LEADER];
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		/* double-check our sync-flag assumptions */
+		//density_original = track_density[track];
 		track_density[track] = check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+		//if(track_density[track] != density_original) printf("\nOriginal density was %d, data seems to be %d\n", density_original, track_density[track]);
 
 		if(mode == MODE_WRITE_RAW)
 		{
@@ -68,17 +71,14 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
 		replace_bytes(track_buffer + (track * NIB_TRACK_LENGTH), length, 0x00, 0x01);
 
-		/* unformat track with 01010101
+		/* unformat track with 0x55 (01010101) or sync (11111111)
 		    most of this is the leader which is overwritten
 		    some 1571's don't like a lot of 0x00 bytes, they see phantom sync, etc.
 		*/
-		memset(rawtrack, 0x55, sizeof(rawtrack));
-
-		/* insert one partial sync at the beginning, if sync detected on track
-			this is because we align to the first full sync byte and could miss a couple bits
-		*/
-		if(! (track_density[track] & BM_NO_SYNC))
-			memset(rawtrack + LEADER - 1, 0xff, 1);
+		if(track_density[track] & BM_NO_SYNC)
+			memset(rawtrack, 0x55, sizeof(rawtrack));
+		else
+			memset(rawtrack, 0xff, sizeof(rawtrack));
 
 		/* append real track data */
 		memcpy(rawtrack + LEADER, track_buffer + (track * NIB_TRACK_LENGTH), length);

@@ -58,7 +58,7 @@ main(int argc, char *argv[])
 
 	fprintf(stdout,
 	  "\nnibread - Commodore 1541/1571 disk image nibbler\n"
-	  "(C) 2007 Peter Rittwage, Dr. Markus Brenner\n" "Version " VERSION "\n\n");
+	  "(C) C64 Preservation Project\nhttp://c64preservation.com\n" "Version " VERSION "\n\n");
 
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();

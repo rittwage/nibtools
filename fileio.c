@@ -764,7 +764,8 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 
 		/* process bad GCR */
 		badgcr = check_bad_gcr(gcrdata, length, fix_gcr);
-		printf("badgcr:%d ", badgcr);
+		//printf("badgcr:%d ", badgcr);
+		//if(fix_gcr) printf("(fixed) "); else printf("(not fixed) ");
 
 		/* reduce bad GCR runs */
 		orglen = length;

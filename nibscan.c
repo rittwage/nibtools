@@ -95,7 +95,7 @@ main(int argc, char *argv[])
 
 	fprintf(stdout,
 	  "\nnibscan - Commodore disk image scanner / comparator\n"
-	  "(C) Pete Rittwage\n" "Version " VERSION "\n\n");
+	  "(C) C64 Preservation Project\nhttp://c64preservation.com\n" "Version " VERSION "\n\n");
 
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
