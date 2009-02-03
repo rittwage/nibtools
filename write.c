@@ -75,7 +75,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		    most of this is the leader which is overwritten
 		    some 1571's don't like a lot of 0x00 bytes, they see phantom sync, etc.
 		*/
-		if(track_density[track] & BM_NO_SYNC)
+		if((track_density[track] & BM_NO_SYNC) || (force_align == ALIGN_AUTOGAP))
 			memset(rawtrack, 0x55, sizeof(rawtrack));
 		else
 			memset(rawtrack, 0xff, sizeof(rawtrack));
