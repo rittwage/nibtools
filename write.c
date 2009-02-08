@@ -72,28 +72,23 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		replace_bytes(track_buffer + (track * NIB_TRACK_LENGTH), length, 0x00, 0x01);
 
 		/* unformat track with 0x55 (01010101) or sync (11111111)
-		    most of this is the leader which is overwritten
+		    this is the leader which is overwritten
 		    some 1571's don't like a lot of 0x00 bytes, they see phantom sync, etc.
 		*/
 		if((track_density[track] & BM_NO_SYNC) || (force_align == ALIGN_AUTOGAP))
-			memset(rawtrack, 0x55, sizeof(rawtrack));
+			memset(rawtrack, 0x55, LEADER);
 		else
-			memset(rawtrack, 0xff, sizeof(rawtrack));
+			memset(rawtrack, 0xff, LEADER);
 
 		/* append real track data */
 		memcpy(rawtrack + LEADER, track_buffer + (track * NIB_TRACK_LENGTH), length);
 
 		/* handle short tracks that won't 'loop overwrite' existing data */
-		if(length < capacity[track_density[track] & 3] - CAPACITY_MARGIN)
+		if(length  + LEADER  < capacity[track_density[track] & 3] - CAPACITY_MARGIN)
 		{
 				printf("[pad:%d]", (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - length);
-
-				/* we only pull the trigger on this if it's not long enough even with the leader */
-				if(length + LEADER < capacity[track_density[track] & 3] - CAPACITY_MARGIN)
-				{
-					memset(rawtrack + length + LEADER, 0x55, (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - length);
-					length = capacity[track_density[track] & 3] - CAPACITY_MARGIN;
-				}
+				memset(rawtrack + length + LEADER, 0x55, (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - length);
+				length = capacity[track_density[track] & 3] - CAPACITY_MARGIN;
 		}
 
 		/* step to destination track and set density */

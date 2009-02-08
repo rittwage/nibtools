@@ -54,13 +54,18 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 	if(numtracks <= 42)
 	{
-		end_track = (numtracks * 2);
+		if(numtracks * 2 < end_track)
+			end_track = (numtracks * 2);
+
 		track_inc = 2;
 	}
 	else
 	{
 		printf("\nImage contains halftracks!\n");
-		end_track = numtracks;
+
+		if(numtracks < end_track)
+			end_track = numtracks;
+
 		track_inc = 1;
 	}
 
@@ -129,13 +134,18 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 	if(numtracks <= 42)
 	{
-		end_track = (numtracks * 2);
+		if(numtracks * 2 < end_track)
+			end_track = (numtracks * 2);
+
 		track_inc = 2;
 	}
 	else
 	{
 		printf("\nImage contains halftracks!\n");
-		end_track = numtracks;
+
+		if(numtracks < end_track)
+			end_track = numtracks;
+
 		track_inc = 1;
 	}
 	printf("\n%d track image (filesize = %d bytes)\n", numtracks, nibsize);
@@ -259,13 +269,18 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 	if(numtracks <= 42)
 	{
-		end_track = (numtracks * 2);
+		if(numtracks * 2 < end_track)
+			end_track = (numtracks * 2);
+
 		track_inc = 2;
 	}
 	else
 	{
-		printf("Image contains halftracks!\n");
-		end_track = numtracks;
+		printf("\nImage contains halftracks!\n");
+
+		if(numtracks < end_track)
+			end_track = numtracks;
+
 		track_inc = 1;
 	}
 
@@ -756,7 +771,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (reduce_gap) )
 		{
-			length = reduce_gaps(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 4);
+			length = reduce_gaps(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN);
 
 			if (length < orglen)
 				printf("rgaps:%d ", orglen - length);

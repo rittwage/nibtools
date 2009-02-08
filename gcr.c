@@ -958,13 +958,42 @@ reduce_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 	return (length);
 }
 
+int
+strip_gaps(BYTE * buffer, int length, int length_max)
+{
+	int skipped;
+	BYTE *source, *end;
+
+	skipped = 0;
+	end = buffer + length;
+
+	/* this is crude, I know */
+	/* this will find a sync that is of sufficient length and strip the byte before it, which can damage real data if done too much */
+	for (source = buffer + 1; source < end - 1; source++)
+	{
+		if ( (*(source - 1) != 0xff) && ((*source) == 0xff) && (*(source + 1) == 0xff) )
+			skipped++;
+		else
+			*buffer++ = *source;
+	}
+	return skipped;
+}
+
 /* try to shorten tail gaps until length <= length_max */
 int
-reduce_gaps(BYTE * buffer, int length, int length_max, int minrun)
+reduce_gaps(BYTE * buffer, int length, int length_max)
 {
-	/* minrun is number of bytes to leave behind */
+	int skipped;
 
-	/* this does nothing yet */
+	do
+	{
+		if (length <= length_max)
+			return (length);
+
+		skipped = strip_gaps(buffer, length, length_max);
+		length -= skipped;
+	}
+	while (skipped > 0 && length > length_max);
 
 	return (length);
 }

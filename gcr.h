@@ -155,7 +155,8 @@ int compare_tracks(BYTE * track1, BYTE * track2, int length1, int length2, int s
 int compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2, BYTE * id1, BYTE * id2, int track, char * outputstring);
 int strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target);
 int reduce_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target);
-int reduce_gaps(BYTE * buffer, int length, int length_max, int minrun);
+int strip_gaps(BYTE * buffer, int length, int length_max);
+int reduce_gaps(BYTE * buffer, int length, int length_max);
 int is_bad_gcr(BYTE * gcrdata, size_t length, size_t pos);
 int check_formatted(BYTE * gcrdata);
 int check_valid_data(BYTE * data, int length);
