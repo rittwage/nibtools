@@ -969,9 +969,9 @@ strip_gaps(BYTE * buffer, int length, int length_max)
 
 	/* this is crude, I know */
 	/* this will find a sync that is of sufficient length and strip the byte before it, which can damage real data if done too much */
-	for (source = buffer + 1; source < end - 1; source++)
+	for (source = buffer; source < end - 2; source++)
 	{
-		if ( (*(source - 1) != 0xff) && ((*source) == 0xff) && (*(source + 1) == 0xff) )
+		if ( (*source != 0xff) && (*(source+1) == 0xff) && (*(source+2) == 0xff) )
 			skipped++;
 		else
 			*buffer++ = *source;
