@@ -407,6 +407,9 @@ compare_disks(void)
 	sec_matches[0] = '\0';
 	dens_mismatches[0] = '\0';
 
+	/* ignore halftracks in compare */
+	track_inc = 2;
+
 	// extract disk id's from track 18
 	memset(id, 0, 3);
 	extract_id(track_buffer + (36 * NIB_TRACK_LENGTH), id);
@@ -565,6 +568,8 @@ scandisk(void)
 	char errorstring[0x1000];
 	char testfilename[16];
 	FILE *trkout;
+
+	track_inc = 2;
 
 	// clear buffers
 	memset(badgcr_tracks, 0, sizeof(badgcr_tracks));

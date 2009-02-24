@@ -710,7 +710,10 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		}
 
 		/* process/compress GCR data */
-		track_len = compress_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
+		//printf(" [badgcr: %d] ",check_bad_gcr(buffer, track_length[track+2], fix_gcr));
+		check_bad_gcr(buffer, track_length[track+2], fix_gcr);
+		if(track_len > G64_TRACK_MAXLEN)
+			track_len = compress_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
 
 		/* only unformatted tracks will be too large at this point, truncate */
 		if((track_len > G64_TRACK_MAXLEN) || (!track_len))
@@ -776,11 +779,6 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 			if (length < orglen)
 				printf("rgaps:%d ", orglen - length);
 		}
-
-		/* process bad GCR */
-		badgcr = check_bad_gcr(gcrdata, length, fix_gcr);
-		//printf("badgcr:%d ", badgcr);
-		//if(fix_gcr) printf("(fixed) "); else printf("(not fixed) ");
 
 		/* reduce bad GCR runs */
 		orglen = length;

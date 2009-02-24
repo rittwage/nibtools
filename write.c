@@ -52,7 +52,10 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 			}
 		}
 		else
+		{
+			printf(" [badgcr: %d] ",check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track], fix_gcr));
 			length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+		}
 
 		/* engineer killer track */
 		if(track_density[track] & BM_FF_TRACK)
@@ -84,7 +87,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		memcpy(rawtrack + LEADER, track_buffer + (track * NIB_TRACK_LENGTH), length);
 
 		/* handle short tracks that won't 'loop overwrite' existing data */
-		if(length  + LEADER  < capacity[track_density[track] & 3] - CAPACITY_MARGIN)
+		if(length + LEADER  < capacity[track_density[track] & 3] - CAPACITY_MARGIN)
 		{
 				printf("[pad:%d]", (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - length);
 				memset(rawtrack + length + LEADER, 0x55, (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - length);

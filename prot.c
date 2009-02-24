@@ -182,9 +182,9 @@ auto_gap(BYTE * work_buffer, int tracklen)
 
 	/* last 5 bytes of gap */
 	// printf("gapbyte: %x, len: %d\n",gapbyte,longest);
-	if(key >= work_buffer + 5)
-		return(key - 5);
-	else
+	//if(key >= work_buffer + 5)
+	//	return(key - 5);
+	//else
 		return(key);
 }
 
@@ -251,6 +251,7 @@ find_long_sync(BYTE * work_buffer, int tracklen)
 		{
 			if (run == 0)
 				key_temp = pos;
+
 			run++;
 		}
 		else

@@ -677,6 +677,7 @@ find_sector_gap(BYTE * work_buffer, int tracklen, size_t * p_sectorlen)
 
 	if (!find_sync(&pos, buffer_end))
 		return NULL;
+
 	sync_last = pos;
 	maxgap = 0;
 
@@ -685,6 +686,7 @@ find_sector_gap(BYTE * work_buffer, int tracklen, size_t * p_sectorlen)
 	{
 		if (!find_sync(&pos, buffer_end))
 			break;
+
 		gap = pos - sync_last;
 		if (gap > maxgap)
 		{
@@ -705,6 +707,7 @@ find_sector_gap(BYTE * work_buffer, int tracklen, size_t * p_sectorlen)
 		pos -= 1;
 		if (pos == work_buffer)
 			pos += tracklen;
+
 	} while (*pos == 0xff);
 
 	/* move to first sync GCR byte */
@@ -846,9 +849,19 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 		}
 	}
 
-	/* autogap tracks with no detected cycle */
+	/* tracks with no detected cycle */
 	if (track_len == NIB_TRACK_LENGTH)
 	{
+		/* if there is sync, align to the longest one */
+		marker_pos = find_long_sync(work_buffer, track_len);
+		if (marker_pos)
+		{
+			memcpy(destination, marker_pos, track_len);
+			*align = ALIGN_LONGSYNC;
+			return (track_len);
+		}
+
+		/* we aren't dealing with a normal track here, so autogap it */
 		marker_pos = auto_gap(work_buffer, track_len);
 		if (marker_pos)
 		{
@@ -863,6 +876,7 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 	sectorgap_pos = find_sector_gap(work_buffer, track_len, &sectorgap_len);
 
 	if(verbose) printf(" (sec0_len=%.4d - gap_len=%.4d) ", (int)sector0_len, (int)sectorgap_len);
+
 	/* if (sectorgap_len >= sector0_len + 0x40) */ /* Burstnibbler's calc */
 	if (sectorgap_len > GCR_BLOCK_DATA_LEN + SIGNIFICANT_GAPLEN_DIFF)
 	{
@@ -884,6 +898,15 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 	{
 		memcpy(destination, sectorgap_pos, track_len);
 		*align = ALIGN_GAP;
+		return (track_len);
+	}
+
+	/* if there is sync, align to the longest one */
+	marker_pos = find_long_sync(work_buffer, track_len);
+	if (marker_pos)
+	{
+		memcpy(destination, marker_pos, track_len);
+		*align = ALIGN_LONGSYNC;
 		return (track_len);
 	}
 
