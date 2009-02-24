@@ -17,6 +17,7 @@ void
 master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
 	#define LEADER  0x100
+	int badgcr =0;
 
 	int track, length, i;
 	//BYTE density_original;
@@ -53,8 +54,9 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		}
 		else
 		{
-			printf(" [badgcr: %d] ",check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track], fix_gcr));
+			badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track], fix_gcr);
 			length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+			printf(" [badgcr: %d] ", badgcr);
 		}
 
 		/* engineer killer track */
