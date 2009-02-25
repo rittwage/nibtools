@@ -76,6 +76,7 @@ extern int interactive_mode;
 extern int gap_match_length;
 extern int cap_min_ignore;
 extern int verbose;
+extern int fillbyte;
 extern float motor_speed;
 extern int skew;
 extern int density_map;

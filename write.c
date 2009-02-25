@@ -83,7 +83,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		if((track_density[track] & BM_NO_SYNC) || (force_align == ALIGN_AUTOGAP))
 			memset(rawtrack, 0x55, LEADER);
 		else
-			memset(rawtrack, 0xff, LEADER);
+			memset(rawtrack, fillbyte, LEADER);
 
 		/* append real track data */
 		memcpy(rawtrack + LEADER, track_buffer + (track * NIB_TRACK_LENGTH), length);
