@@ -90,7 +90,7 @@ main(int argc, char *argv[])
 	gap_match_length = 7;
 	cap_min_ignore = 0;
 	motor_speed = 300;
-	fillbyte=0x55;
+	fillbyte=0xff;
 
 	mode = MODE_WRITE_DISK;
 	align = ALIGN_NONE;
@@ -153,14 +153,12 @@ main(int argc, char *argv[])
 				printf("V-MAX!\n");
 				force_align = ALIGN_VMAX;
 				fix_gcr = 0;
-				fillbyte = 0xff;
 			}
 			else if ((*argv)[2] == 'c')
 			{
 				printf("V-MAX! (CINEMAWARE)\n");
 				force_align = ALIGN_VMAX_CW;
 				fix_gcr = 0;
-				fillbyte = 0xff;
 			}
 			else if ((*argv)[2] == 'g')
 			{
@@ -180,6 +178,13 @@ main(int argc, char *argv[])
 				reduce_badgcr = 1;
 				reduce_gap = 1;
 				align_disk = 1;
+			}
+			else if ((*argv)[2] == 'm')
+			{
+				printf("Magic Bytes/Time Warp/Rainbow Arts (earlier)\n");
+				reduce_sync = 0;
+				reduce_gap = 1;
+				fillbyte=0x55;
 			}
 			else
 				printf("Unknown protection handler\n");
