@@ -90,7 +90,7 @@ main(int argc, char *argv[])
 	gap_match_length = 7;
 	cap_min_ignore = 0;
 	motor_speed = 300;
-	fillbyte=0xff;
+	fillbyte = 0xff;
 
 	mode = MODE_WRITE_DISK;
 	align = ALIGN_NONE;

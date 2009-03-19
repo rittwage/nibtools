@@ -384,24 +384,14 @@ _wtB1:
         DEC  $1c03                ; CA data direction head (0->$ff: write)
         STA  $1800                ; send handshake
 
-        ; this following part is not needed, really
-        ; we do the same in the track preprocessing already (Pete 5/3/2006)
-;        LDX  #$55                 ; write 256x $55 bytes after Sync
-;        STX  $1c01                ;
-;_wtL2:
-;        CLV                       ;
-;_wtL3:
-;        BVC  _wtL3                ;
-;        INY                       ;
-;        BNE  _wtL2                ;
-
-        ; this now writes real $00 bytes instead of $01 (Pete 5/3/2006)
-        LDX  #$55
+	LDX #$00
+	BEQ _first
 
 _write:
-        BVC  _write                ; wait for byte ready
+	BVC _write
         STX  $1c01                 ; write GCR byte to disk
 
+_first:
         ; (cycle count - we have ~32 cycles before next byte is ready)
         CLV                        ; clear byte ready (0+2 = 2)
         EOR  #$ff                  ; toggle handshake value (2+2 = 4)
