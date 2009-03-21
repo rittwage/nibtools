@@ -77,7 +77,7 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		return 0;
 	}
 
-	for (track = start_track; track <= end_track; track += track_inc)
+	for (track = 2; track <= end_track; track += track_inc)
 	{
 		/* get density from header or use default */
 		track_density[track] = (BYTE)(header[0x10 + (header_entry * 2) + 1]);
@@ -172,7 +172,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		return 0;
 	}
 
-	for (track = start_track; track <= end_track; track += track_inc)
+	for (track = 2; track <= end_track; track += track_inc)
 	{
 		/* get density from header or use default */
 		track_density[track] = (BYTE)(header[0x10 + (header_entry * 2) + 1]);
@@ -292,7 +292,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 	printf("\nG64: %d total bytes = %d tracks of %d bytes each\n", g64size, numtracks, g64maxtrack);
 
-	for (track = start_track; track <= end_track; track += track_inc)
+	for (track = 2; track <= end_track; track += track_inc)
 	{
 		/* get density from header */
 		track_density[track] = header[0x9 + 0x153 + dens_pointer];

@@ -218,6 +218,11 @@ main(int argc, char *argv[])
 				printf("autogap\n");
 				force_align = ALIGN_AUTOGAP;
 			}
+			else if ((*argv)[2] == 'n')
+			{
+				printf("raw (no alignment, use NIB start)\n");
+				force_align = ALIGN_RAW;
+			}
 			else
 				printf("Unknown alignment parameter\n");
 			break;
@@ -358,6 +363,7 @@ loadimage(char * filename)
 	char *dotpos, *pathpos;
 	int iszip = 0;
 	int retval = 0;
+	int i;
 
 	/* unzip image if possible */
 	if (compare_extension(filename, "ZIP"))
@@ -395,12 +401,25 @@ loadimage(char * filename)
 	else if (compare_extension(filename, "NIB"))
 	{
 		retval = read_nib(filename, track_buffer, track_density, track_length, track_alignment);
-		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
+		if(retval)
+		{
+			if(force_align != ALIGN_RAW)
+				align_tracks(track_buffer, track_density, track_length, track_alignment);
+			else
+			{
+				for(i=start_track; i<=end_track;i+=track_inc)
+				{
+					track_length[i] = capacity_max[track_density[i]];
+					track_alignment[i] = ALIGN_RAW;
+				}
+			}
+		}
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
 		retval = read_nb2(filename, track_buffer, track_density, track_length, track_alignment);
-		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
+		if((retval) && (force_align != ALIGN_RAW))
+			align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else
 		printf("\nUnknown image type");
