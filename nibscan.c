@@ -215,6 +215,11 @@ main(int argc, char *argv[])
 				printf("autogap\n");
 				force_align = ALIGN_AUTOGAP;
 			}
+			else if ((*argv)[2] == 'n')
+			{
+				printf("raw (no alignment, use NIB start)\n");
+				force_align = ALIGN_RAW;
+			}
 			else
 				printf("Unknown alignment parameter\n");
 			break;

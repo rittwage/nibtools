@@ -94,11 +94,11 @@ clean:
 distclean: clean
 	${RM} ${PROG} *.exe
 
-nibtools_1541.bin: nibtools_15x1.asm
+nibtools_1541.bin: nibtools_15x1-ihs.asm
 	$(CA65) $(CA65_FLAGS) -D DRIVE=1541 -o $*.tmp $<
 	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
 
-nibtools_1571.bin: nibtools_15x1.asm
+nibtools_1571.bin: nibtools_15x1-ihs.asm
 	$(CA65) $(CA65_FLAGS) -D DRIVE=1571 -o $*.tmp $<
 	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
 

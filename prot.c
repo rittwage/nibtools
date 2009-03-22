@@ -17,6 +17,14 @@ BYTE density_map_rapidlok[MAX_TRACKS_1541] = {
 	2, 2, 2, 2, 2, 2, 2				/* 36 - 42  */
 };
 
+int skew_map[MAX_TRACKS_1541] = {
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*  1 - 10 */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 11 - 20 */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 21 - 30 */
+	0, 0, 0, 0, 0,					/* 31 - 35 */
+	0, 0, 0, 0, 0, 0, 0				/* 36 - 42  */
+};
+
 void shift_buffer_left(BYTE *buffer, int length, int n)
 {
     int i;

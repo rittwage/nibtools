@@ -37,12 +37,12 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		fprintf(fplog, "\n      ");
 	}
 
-	if(force_density && halftrack <= (35*2) && density_map == DENSITY_STANDARD)
+	if(force_density && density_map == DENSITY_STANDARD)
 	{
 		density = speed_map_1541[(halftrack / 2) - 1];
 		printf("{DEFAULT }");
 	}
-	else if(force_density && halftrack <= (36*2) && density_map == DENSITY_RAPIDLOK)
+	else if(force_density && density_map == DENSITY_RAPIDLOK)
 	{
 		density = density_map_rapidlok[(halftrack / 2) - 1];
 		printf("{RAPIDLOK}");
@@ -88,7 +88,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	for (i = 0; i < 10; i++)
 	{
 		// read track
-		if ((density & BM_NO_SYNC) || (density & BM_FF_TRACK) || (halftrack >= (35*2)) || (force_nosync))
+		if ((density & BM_NO_SYNC) || (density & BM_FF_TRACK) || (force_nosync)) // || (halftrack >= (35*2))
 			send_mnib_cmd(fd, FL_READWOSYNC);
 		else
 			send_mnib_cmd(fd, FL_READNORMAL);

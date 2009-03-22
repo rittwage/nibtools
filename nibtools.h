@@ -63,6 +63,7 @@ extern char bitrate_range[4];
 extern char bitrate_value[4];
 extern char density_branch[4];
 extern BYTE density_map_rapidlok[];
+extern int skew_map[];
 extern int density_map;
 extern int mode;
 extern FILE * fplog;
