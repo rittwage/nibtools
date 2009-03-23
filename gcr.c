@@ -797,7 +797,7 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 	if(verbose)
 	{
 		sector0_pos = find_sector0(work_buffer, track_len, &sector0_len);
-		printf(" {sec0 = %d offset} ",(sector0_pos - work_buffer)+(cycle_start-source));
+		printf(" {sec0 = %d offset} ",(sector0_pos - work_buffer)); //+(cycle_start-source));
 	}
 
 	//* forced track alignments */

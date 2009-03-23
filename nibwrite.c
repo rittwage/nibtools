@@ -189,15 +189,15 @@ main(int argc, char *argv[])
 			else if ((*argv)[2] == 'e')
 			{
 				printf("EA Track 34/35 skew\n");
-				skew_map[35] = 1800;  /* track 35 is skewed from track 34 by a 1/4 track */
+				skew_map[35] = 1500;  /* track 35 is skewed from track 34 by a 1/4 track */
 				force_align = ALIGN_SEC0;
 				fillbyte = 0x55;
 			}
 			else if ((*argv)[2] == 'a')
 			{
 				printf("Activision XEMAG 2.0 Track 35/36 skew\n");
-				skew_map[35] = 1400;  /* track 35 is skewed from track 34  */
-				skew_map[36] = 4600;  /* track 36 is skewed from track 35  */
+				skew_map[35] = 1200;  /* track 35 is skewed from track 34  */
+				skew_map[36] = 4400;  /* track 36 is skewed from track 35  */
 				force_align = ALIGN_SEC0;
 				fillbyte = 0x55;
 			}
