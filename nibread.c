@@ -43,6 +43,7 @@ int verbose;
 int density_map;
 int extended_parallel_test;
 int force_nosync;
+int ihs;
 float motor_speed;
 
 CBM_FILE fd;
@@ -96,6 +97,7 @@ main(int argc, char *argv[])
 	force_align = ALIGN_NONE;
 	gap_match_length = 7;
 	cap_min_ignore = 0;
+	ihs = 0;
 	mode = MODE_READ_DISK;
 	density_map = DENSITY_STANDARD;
 
@@ -118,6 +120,11 @@ main(int argc, char *argv[])
 			printf("* Using halftracks\n");
 			break;
 
+		case 'i':
+			printf("* 1571 index hole sensor (use only for side 1)\n");
+			ihs = 1;
+			break;
+
 		case 'v':
 			track_match = 1;
 			printf("* Simple track match (crude verify)\n");
@@ -133,7 +140,7 @@ main(int argc, char *argv[])
 			printf("* Extended parallel port testing\n");
 			break;
 
-		case 'i':
+		case 'I':
 			interactive_mode = 1;
 			printf("* Interactive mode\n");
 			break;
@@ -149,14 +156,12 @@ main(int argc, char *argv[])
 			printf("* Disabling read of 'killer' tracks\n");
 			break;
 
-		case 'S':
 		case 'B':
 			if (!(*argv)[2]) usage();
 			start_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
 			printf("* Start track set to %d\n", start_track/2);
 			break;
 
-		case 'l':
 		case 'E':
 			if (!(*argv)[2]) usage();
 			end_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));

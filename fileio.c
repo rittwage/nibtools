@@ -739,7 +739,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 int
 compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 {
-	int orglen, badgcr = 0;
+	int orglen;
 	BYTE gcrdata[NIB_TRACK_LENGTH];
 
 	/* copy to spare buffer */
@@ -770,6 +770,16 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 				printf("rsync:%d ", orglen - length);
 		}
 
+		/* reduce bad GCR runs */
+		orglen = length;
+		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (reduce_badgcr) )
+		{
+			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 0, 0x00);
+
+			if (length < orglen)
+				printf("rbadgcr:%d ", orglen - length);
+		}
+
 		/* reduce sector gaps -  they occur at the end of every sector and vary from 4-19 bytes, typically  */
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (reduce_gap) )
@@ -778,16 +788,6 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 
 			if (length < orglen)
 				printf("rgaps:%d ", orglen - length);
-		}
-
-		/* reduce bad GCR runs */
-		orglen = length;
-		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (badgcr > 0) && (reduce_badgcr) )
-		{
-			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 0, 0x00);
-
-			if (length < orglen)
-				printf("rbadgcr:%d ", orglen - length);
 		}
 
 		/* still not small enough, we have to truncate the end (reduce tail) */

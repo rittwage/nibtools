@@ -4,6 +4,28 @@
  * based on MNIB by Markus Brenner <markus(at)brenner(dot)de>
  */
 
+
+#define FL_STEPTO      0x00
+#define FL_MOTOR       0x01
+#define FL_RESET       0x02
+#define FL_READWOSYNC  0x03
+#define FL_READNORMAL  0x04
+#define FL_READIHS 0x05
+#define FL_DENSITY     0x06
+#define FL_SCANKILLER  0x07
+#define FL_SCANDENSITY 0x08
+#define FL_READMOTOR   0x09
+#define FL_TEST        0x0a
+#define FL_WRITENOSYNC   0x0b
+#define FL_WRITEIHS 0x0c
+#define FL_CAPACITY    0x0d
+#define FL_INITTRACK 0x0e
+#define FL_VERIFY_CODE 0x0f
+#define FL_ZEROTRACK 0x10
+
+/*
+#define FL_READIHS 0x03
+#define FL_WRITEIHS 0x04
 #define FL_STEPTO      0x00
 #define FL_MOTOR       0x01
 #define FL_RESET       0x02
@@ -22,6 +44,7 @@
 #define FL_READMARKER  0x0f
 #define FL_VERIFY_CODE 0x10
 #define FL_ZEROTRACK 0x11
+*/
 
 #define DISK_NORMAL    0
 
@@ -80,6 +103,7 @@ extern int verbose;
 extern int fillbyte;
 extern float motor_speed;
 extern int skew;
+extern int ihs;
 extern int density_map;
 extern int start_track, end_track, track_inc;
 extern int fix_gcr, reduce_sync, reduce_gap, reduce_badgcr;

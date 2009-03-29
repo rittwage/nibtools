@@ -43,6 +43,7 @@ int cap_min_ignore;
 int verbose = 0;
 float motor_speed;
 int skew = 0;
+int ihs = 0;
 int fillbyte;
 
 CBM_FILE fd;
@@ -116,14 +117,12 @@ main(int argc, char *argv[])
 			printf("* Using halftracks\n");
 			break;
 
-		case 'B':
 		case 'S':
 			if (!(*argv)[2]) usage();
 			start_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
 			printf("* Start track set to %d\n", start_track/2);
 			break;
 
-		case 'l':
 		case 'E':
 			if (!(*argv)[2]) usage();
 			end_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
@@ -186,18 +185,10 @@ main(int argc, char *argv[])
 				reduce_gap = 1;
 				fillbyte=0x55;
 			}
-			else if ((*argv)[2] == 'e')
+			else if ((*argv)[2] == 'f')
 			{
-				printf("EA FAT Track 34/35\n");
+				printf("'FAT' Tracks\n");
 				force_align = ALIGN_SEC0;
-				//reduce_sync = 0;
-				fillbyte = 0x55;
-			}
-			else if ((*argv)[2] == 'a')
-			{
-				printf("Activision XEMAG 2.0 FAT Track 35/36\n");
-				force_align = ALIGN_SEC0;
-				//reduce_sync = 0;
 				fillbyte = 0x55;
 			}
 			else
@@ -297,6 +288,11 @@ main(int argc, char *argv[])
 			printf("* Attempt soft track alignment\n");
 			skew = atoi((char *) (&(*argv)[2]));
 			printf("* Skew set to %dus\n",skew);
+			break;
+
+		case 'i':
+			printf("* 1571 index hole sensor (use only for side 1)\n");
+			ihs = 1;
 			break;
 
 		default:
@@ -417,15 +413,17 @@ loadimage(char * filename)
 		retval = read_nib(filename, track_buffer, track_density, track_length, track_alignment);
 		if(retval)
 		{
-			if(force_align != ALIGN_RAW)
-				align_tracks(track_buffer, track_density, track_length, track_alignment);
-			else
+			if(force_align == ALIGN_RAW)
 			{
 				for(i=start_track; i<=end_track;i+=track_inc)
 				{
 					track_length[i] = capacity_max[track_density[i]];
 					track_alignment[i] = ALIGN_RAW;
 				}
+			}
+			else
+			{
+				align_tracks(track_buffer, track_density, track_length, track_alignment);
 			}
 		}
 	}
