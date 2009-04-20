@@ -168,7 +168,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 	rewind(fpin);
 	if (fread(header, sizeof(header), 1, fpin) != 1) {
-		printf("unable to read NIB header\n");
+		printf("unable to read NB2 header\n");
 		return 0;
 	}
 
@@ -181,7 +181,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		best_pass = 0;
 		best_len = 0;  /* unused for now */
 
-		printf("%4.1f:",(float) track / 2);
+		printf("\n%4.1f:",(float) track / 2);
 
 		/* contains 16 passes of track, four for each density */
 		for(pass_density = 0; pass_density < 4; pass_density ++)
@@ -205,7 +205,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 					if( (pass == 0) || (errors < best_err) )
 					{
-						track_length[track] = 0x2000;
+						//track_length[track] = 0x2000;
 						memcpy(track_buffer + (track * NIB_TRACK_LENGTH), nibdata, NIB_TRACK_LENGTH);
 						best_pass = pass;
 						best_err = errors;
@@ -224,7 +224,6 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		printf("%d:%d) (pass %d, %d errors) %.1f%%", track_density[track]&3, track_length[track], best_pass, best_err,
 			((float)track_length[track] / (float)capacity[track_density[track]&3]) * 100);
 
-		printf("[align:%s]\n",alignments[track_alignment[track]]);
 	}
 	fclose(fpin);
 	printf("Successfully loaded NB2 file\n");
@@ -842,17 +841,15 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, int *track_length, BYT
 		);
 
 		/* output some specs */
-		if(verbose)
-		{
-			printf("%4.1f: (",(float) track / 2);
-			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+		printf("%4.1f: (",(float) track / 2);
+		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
 
-			printf("%d:%d) %.1f%% ", track_density[track]&3, track_length[track],
-				((float)track_length[track] / (float)capacity[track_density[track]&3]) * 100);
+		//printf("%d:%d) %.1f%% ", track_density[track]&3, track_length[track],
+		//	((float)track_length[track] / (float)capacity[track_density[track]&3]) * 100);
 
-			printf("[align:%s]\n",alignments[track_alignment[track]]);
-		}
+		printf("%d:%d) ", track_density[track]&3, track_length[track]);
+		printf("[align=%s]\n",alignments[track_alignment[track]]);
 	}
 	return 1;
 }

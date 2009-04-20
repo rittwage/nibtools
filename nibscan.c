@@ -489,7 +489,7 @@ compare_disks(void)
 			}
 
 			/* check for DOS sector matches */
-			if(1) //if(track/2 <= 35)
+			if(track/2 <= 35)
 			{
 				sec_match = compare_sectors(
 											track_buffer + (track * NIB_TRACK_LENGTH),
@@ -599,7 +599,7 @@ scandisk(void)
 	// check each track for various things
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		printf("-------------------------------------------------\n");
+		//printf("-------------------------------------------------\n");
 		printf("Track %4.1f: ", (float) track/2);
 
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH)))

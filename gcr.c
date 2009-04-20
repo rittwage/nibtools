@@ -797,7 +797,7 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 	if(verbose)
 	{
 		sector0_pos = find_sector0(work_buffer, track_len, &sector0_len);
-		printf(" {sec0 = %d offset} ",(sector0_pos - work_buffer));
+		printf("{sec0=%.4d;len=%d} ",(sector0_pos - work_buffer),sector0_len);
 	}
 
 	//* forced track alignments */
@@ -882,8 +882,10 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 	sector0_pos = find_sector0(work_buffer, track_len, &sector0_len);
 	sectorgap_pos = find_sector_gap(work_buffer, track_len, &sectorgap_len);
 
-	//if(verbose) printf(" (sec0_len=%.4d - pos=%d, gap_len=%.4d - pos=%d) ",
-	//	(int)sector0_len, (int)(sector0_pos-work_buffer), (int)sectorgap_len, (int)(sectorgap_pos-work_buffer));
+	if(verbose)
+	{
+		printf("{gap=%.4d;len=%d) ", (int)(sectorgap_pos-work_buffer), (int)sectorgap_len);
+	}
 
 	/* if (sectorgap_len >= sector0_len + 0x40) */ /* Burstnibbler's calc */
 	if (sectorgap_len > GCR_BLOCK_DATA_LEN + SIGNIFICANT_GAPLEN_DIFF)

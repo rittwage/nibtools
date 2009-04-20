@@ -226,7 +226,7 @@ main(int argc, char **argv)
 	else if (compare_extension(inname, "G64"))
 		retval = read_g64(inname, track_buffer, track_density, track_length);
 	else if (compare_extension(inname, "NIB"))
-		 retval = read_nib(inname, track_buffer, track_density, track_length, track_alignment);
+		retval = read_nib(inname, track_buffer, track_density, track_length, track_alignment);
 	else if (compare_extension(inname, "NB2"))
 		retval = read_nb2(inname, track_buffer, track_density, track_length, track_alignment);
 	else
@@ -254,7 +254,7 @@ main(int argc, char **argv)
 	{
 		if(skip_halftracks) track_inc = 2;
 
-		if (compare_extension(inname, "NIB"))
+		if ( (compare_extension(inname, "NIB")) || (compare_extension(inname, "NB2")) )
 			align_tracks(track_buffer, track_density, track_length, track_alignment);
 
 		write_g64(outname, track_buffer, track_density, track_length);
