@@ -226,7 +226,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 	}
 	fclose(fpin);
-	printf("Successfully loaded NB2 file\n");
+	printf("\nSuccessfully loaded NB2 file\n");
 	return 1;
 }
 
@@ -317,7 +317,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		}
 	}
 	fclose(fpin);
-	printf("Successfully loaded G64 file\n");
+	printf("\nSuccessfully loaded G64 file\n");
 	return 1;
 }
 
@@ -426,7 +426,7 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 	}
 
 	fclose(fpin);
-	printf("Successfully loaded D64 file\n");
+	printf("\nSuccessfully loaded D64 file\n");
 	return 1;
 }
 

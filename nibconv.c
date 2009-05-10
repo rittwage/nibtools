@@ -269,12 +269,19 @@ main(int argc, char **argv)
 	}
 	else if (compare_extension(outname, "NIB"))
 	{
-		printf("Output to NIB format makes no sense\n");
+		if(skip_halftracks) track_inc = 2;
+
+		if ( !(compare_extension(inname, "NB2")) )
+		{
+			printf("Output to NIB format makes no sense from this input file.\n");
+			exit(0);
+		}
+		write_nib(outname, track_buffer, track_density, track_length);
 		exit(0);
 	}
 	else if (compare_extension(outname, "NB2"))
 	{
-		printf("Output to NB2 format makes no sense\n");
+		printf("Output to NB2 format makes no sense from this input file.\n");
 		exit(0);
 	}
 	else
