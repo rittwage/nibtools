@@ -459,10 +459,11 @@ void get_disk_id(CBM_FILE fd)
 }
 
 /* $152b Density Scan */
-BYTE scan_track(CBM_FILE fd, int track)
+BYTE
+scan_track(CBM_FILE fd, int track)
 {
 	BYTE density, killer_info;
-	int bin, i;
+	int bin, i, dens_detected=0;
 	BYTE count;
 	BYTE density_major[4], iMajorMax; /* 50% majorities for bit rate */
 	BYTE density_stats[4], iStatsMax; /* total occurrences */
@@ -479,10 +480,11 @@ BYTE scan_track(CBM_FILE fd, int track)
 		density_major[bin] = density_stats[bin] = 0;
 
 	/* Use medium bitrate for scan */
-	set_bitrate(fd, speed_map_1541[track/2]);
+	set_bitrate(fd, 2);
 
-	//for (i = 0; i < ( ((density == 2) || (track > 35 * 2)) ? 20 : 10); i++)
-	for(i=0; i<10; i++)
+	/* we have to sample density 2 tracks more because they are sometimes on the edge of 1 and 2 by this routine.
+		also tracks > 35 should be scrutinized more */
+	for (i = 0; i < ( ((density == 2) || (track > 35 * 2)) ? 20 : 10); i++)
 	{
 		send_mnib_cmd(fd, FL_SCANDENSITY);
 
@@ -490,7 +492,6 @@ BYTE scan_track(CBM_FILE fd, int track)
 		for (bin = 3; bin >= 0; bin--)
 		{
 			count = cbm_parallel_burst_read(fd);
-
 			if (count >= 0x40)
 				density_major[bin]++;
 
@@ -501,9 +502,17 @@ BYTE scan_track(CBM_FILE fd, int track)
 
 	for(i = 0; i <= 3; i++)
 	{
+		if(density_major[i] > 1)
+		{
+			if(verbose) printf("{%d:%3d/%2d}",i,density_stats[i],density_major[i]);
+			dens_detected = 1;
+		}
+
 		fprintf(fplog,"{%d:%3d/%2d}",i,density_stats[i],density_major[i]);
-		if(density_major[i] > 1) break;
 	}
+
+	if((!dens_detected) && (verbose))
+		printf("{ NOGCR? }");
 
 	// if the default density flagged a good detect, skip calculations
 	if ((density_major[density] > 0) && (!killer_info))
