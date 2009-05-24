@@ -163,7 +163,8 @@ main(int argc, char *argv[])
 			{
 				printf("GMA/SecuriSpeed\n");
 				reduce_sync = 0;
-				reduce_badgcr = 1;
+				fix_gcr = 0;
+				force_align = ALIGN_AUTOGAP;
 			}
 			else if ((*argv)[2] == 'v')
 			{

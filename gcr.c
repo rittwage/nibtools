@@ -1252,7 +1252,7 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 							if(secbuf1[i*j] >= 32)
 								printf("%c", secbuf1[i*j]);
 							else
-								printf("*");
+								printf("%c", secbuf1[i*j]+32);
 						}
 						printf("\n");
 
@@ -1261,7 +1261,7 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 							if(secbuf1[i*k] >= 32)
 								printf("%c", secbuf2[i*k]);
 							else
-								printf("*");
+								printf("%c", secbuf2[i*k]+32);
 						}
 						printf("\n");
 					}
