@@ -797,7 +797,7 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 	if(verbose)
 	{
 		sector0_pos = find_sector0(work_buffer, track_len, &sector0_len);
-		printf("{sec0=%.4d;len=%d} ",(sector0_pos - work_buffer),sector0_len);
+		printf("{sec0=%.4d;len=%d} ",(sector0_pos - work_buffer), (int)sector0_len);
 	}
 
 	//* forced track alignments */
@@ -1180,7 +1180,7 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 {
 	int sec_match, numsecs;
 	int sector, error1, error2, empty;
-	int i, j;
+	int i, j, k;
 	BYTE checksum1, checksum2;
 	BYTE secbuf1[260], secbuf2[260];
 	char tmpstr[256];
@@ -1244,29 +1244,28 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 						sector, checksum1, error1, checksum2, error2);
 
 					printf("\nT%dS%d image #1 dump:\n", track/2, sector);
-					j = 0;
-					for (i = 1; i <= 256; i++)
+
+					for (i=1; i<=4; i++)
 					{
-						if(secbuf1[i] >= 32)
-							//printf("%c", frompetscii(secbuf1[i]));
-							printf("%c", secbuf1[i]);
-						else
-							printf("*");
-						j++;
-						if(j > 40) { j =0; printf("\n"); }
+						for(j=0; j<32; j++)
+						{
+							if(secbuf1[i*j] >= 32)
+								printf("%c", secbuf1[i*j]);
+							else
+								printf("*");
+						}
+						printf("\n");
+
+						for(k=0;k<32; k++)
+						{
+							if(secbuf1[i*k] >= 32)
+								printf("%c", secbuf2[i*k]);
+							else
+								printf("*");
+						}
+						printf("\n");
 					}
-					printf("\nT%dS%d image #2 dump:\n", track/2, sector);
-					j = 0;
-					for (i = 1; i <= 256; i++)
-					{
-						if(secbuf2[i] >= 32)
-							//printf("%c", frompetscii(secbuf2[i]));
-							printf("%c", secbuf2[i]);
-						else
-							printf("*");
-						j++;
-						if(j > 40) { j =0; printf("\n"); }
-					}
+
 					printf("\n");
 					getchar();
 				}
