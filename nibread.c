@@ -120,7 +120,7 @@ main(int argc, char *argv[])
 			printf("* Using halftracks\n");
 			break;
 
-		case 'i':
+		case 'I':
 			printf("* 1571 index hole sensor (use only for side 1)\n");
 			ihs = 1;
 			break;
@@ -140,7 +140,7 @@ main(int argc, char *argv[])
 			printf("* Extended parallel port testing\n");
 			break;
 
-		case 'I':
+		case 'i':
 			interactive_mode = 1;
 			printf("* Interactive mode\n");
 			break;
