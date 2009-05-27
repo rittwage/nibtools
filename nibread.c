@@ -40,10 +40,11 @@ int gap_match_length;
 int cap_min_ignore;
 int interactive_mode;
 int verbose;
-int density_map;
 int extended_parallel_test;
 int force_nosync;
 int ihs;
+
+BYTE density_map;
 float motor_speed;
 
 CBM_FILE fd;

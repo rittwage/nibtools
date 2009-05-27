@@ -121,7 +121,7 @@ speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 #define GCR_MASK_BAD_LAST 1
 
 /* global variables */
-extern char sector_map_1541[];
+extern BYTE sector_map_1541[];
 extern BYTE speed_map_1541[];
 extern int capacity[];
 extern int capacity_min[];

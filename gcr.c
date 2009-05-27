@@ -24,7 +24,7 @@
 #include "gcr.h"
 #include "prot.h"
 
-char sector_map_1541[MAX_TRACKS_1541 + 1] = {
+BYTE sector_map_1541[MAX_TRACKS_1541 + 1] = {
 	0,
 	21, 21, 21, 21, 21, 21, 21, 21, 21, 21,	/*  1 - 10 */
 	21, 21, 21, 21, 21, 21, 21, 19, 19, 19,	/* 11 - 20 */
