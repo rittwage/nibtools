@@ -238,13 +238,6 @@ main(int argc, char *argv[])
 			printf("* Disabled 'reduce sync' option\n");
 			break;
 
-		case 'D':
-			if (!(*argv)[2])
-				usage();
-			drive = (BYTE) atoi((char *) (&(*argv)[2]));
-			printf("* Use Device %d\n", drive);
-			break;
-
 		case '0':
 			reduce_badgcr = 1;
 			printf("* Enabled 'reduce bad GCR' option\n");
@@ -253,6 +246,13 @@ main(int argc, char *argv[])
 		case 'g':
 			reduce_gap = 1;
 			printf("* Enabled 'reduce gaps' option\n");
+			break;
+
+		case 'D':
+			if (!(*argv)[2])
+				usage();
+			drive = (BYTE) atoi((char *) (&(*argv)[2]));
+			printf("* Use Device %d\n", drive);
 			break;
 
 		case 'G':

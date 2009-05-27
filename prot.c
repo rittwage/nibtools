@@ -17,7 +17,7 @@ BYTE density_map_rapidlok[MAX_TRACKS_1541] = {
 	2, 2, 2, 2, 2, 2, 2				/* 36 - 42  */
 };
 
-int skew_map[MAX_TRACKS_1541] = {
+BYTE skew_map[MAX_TRACKS_1541] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*  1 - 10 */
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 11 - 20 */
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 21 - 30 */

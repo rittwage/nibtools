@@ -306,8 +306,8 @@ usage(void)
 	" -a[x]: Force alternative track alignments (advanced users only)\n"
 	" -p[x]: Custom protection handlers (advanced users only)\n"
      " -g: Enable gap reduction\n"
-     " -0: Disable bad GCR run reduction\n"
-     " -r: Enable automatic sync reduction\n"
+     " -0: Enable bad GCR run reduction\n"
+     " -r: Disable automatic sync reduction\n"
      " -G: Manual gap match length\n");
 	exit(1);
 }
