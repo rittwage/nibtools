@@ -1258,7 +1258,7 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 
 						for(k=0;k<32; k++)
 						{
-							if(secbuf1[i*k] >= 32)
+							if(secbuf2[i*k] >= 32)
 								printf("%c", secbuf2[i*k]);
 							else
 								printf("%c", secbuf2[i*k]+32);
