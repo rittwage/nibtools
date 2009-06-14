@@ -525,6 +525,8 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	printf("\nWriting D64 file...\n");
 
 	memset(errorinfo, 0,sizeof(errorinfo));
+	memset(rawdata, 0,sizeof(rawdata));
+	memset(d64data, 0,sizeof(d64data));
 
 	/* create output file */
 	if ((fpout = fopen(filename, "wb")) == NULL)
@@ -545,11 +547,16 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	{
 		cycle_start = track_buffer + (track * NIB_TRACK_LENGTH);
 
-		find_track_cycle(
-			&cycle_start, &cycle_stop,
-			capacity_min[speed_map_1541[(track/2)-1]],
-			capacity_max[speed_map_1541[(track/2)-1]]
-		);
+		if(track_length[track])
+			cycle_stop = track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track];
+		else
+		{
+			find_track_cycle(
+				&cycle_start, &cycle_stop,
+				capacity_min[speed_map_1541[(track/2)-1]],
+				capacity_max[speed_map_1541[(track/2)-1]]
+				);
+		}
 
 		printf("%.2d (%d):" ,track/2, capacity[speed_map_1541[(track/2)-1]]);
 
