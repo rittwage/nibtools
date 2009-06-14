@@ -13,7 +13,6 @@
 
 #include "mnibarch.h"
 #include "gcr.h"
-#include "version.h"
 #include "nibtools.h"
 
 char bitrate_range[4] = { 43 * 2, 31 * 2, 25 * 2, 18 * 2 };

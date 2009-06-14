@@ -12,7 +12,6 @@
 #include "mnibarch.h"
 #include "gcr.h"
 #include "nibtools.h"
-#include "version.h"
 #include "md5.h"
 
 int start_track, end_track, track_inc;

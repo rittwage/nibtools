@@ -13,7 +13,6 @@
 #include "mnibarch.h"
 #include "gcr.h"
 #include "nibtools.h"
-#include "version.h"
 
 BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];

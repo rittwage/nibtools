@@ -22,7 +22,6 @@
 #include "mnibarch.h"
 #include "gcr.h"
 #include "nibtools.h"
-#include "version.h"
 
 BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
@@ -308,7 +307,7 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
     int sync_found, i, j;
     size_t track_len;
     BYTE d64_sector[260];
-    BYTE answer;
+    int answer;
 
 	error_code = SECTOR_OK;
 
