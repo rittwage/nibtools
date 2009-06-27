@@ -23,6 +23,8 @@
 #include "gcr.h"
 #include "nibtools.h"
 
+int _dowildcard = 1;
+
 BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];

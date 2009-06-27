@@ -14,6 +14,8 @@
 #include "nibtools.h"
 #include "md5.h"
 
+int _dowildcard = 1;
+
 int start_track, end_track, track_inc;
 int imagetype, mode;
 int align, force_align;

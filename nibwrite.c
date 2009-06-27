@@ -15,6 +15,8 @@
 #include "gcr.h"
 #include "nibtools.h"
 
+int _dowildcard = 1;
+
 char bitrate_range[4] = { 43 * 2, 31 * 2, 25 * 2, 18 * 2 };
 char bitrate_value[4] = { 0x00, 0x20, 0x40, 0x60 };
 char density_branch[4] = { 0xb1, 0xb5, 0xb7, 0xb9 };
