@@ -23,6 +23,7 @@
 #include <string.h>
 #include "gcr.h"
 #include "prot.h"
+#include "crc.h"
 
 BYTE sector_map_1541[MAX_TRACKS_1541 + 1] = {
 	0,
@@ -1184,12 +1185,15 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 	BYTE checksum1, checksum2;
 	BYTE secbuf1[260], secbuf2[260];
 	char tmpstr[256];
+	unsigned int crcresult1, crcresult2;
 
 	sec_match = 0;
 	numsecs = 0;
 	checksum1 = 0;
 	checksum2 = 0;
 	outputstring[0] = '\0';
+
+	crcInit();
 
 	// ignore dead tracks
 	if (!length1 || !length2 || length1 + length2 == 0x4000)
@@ -1218,8 +1222,11 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 				empty++;
 		}
 
+		crcresult1 = crcFast(&secbuf1[1], 256);
+		crcresult2 = crcFast(&secbuf2[1], 256);
+
 		// continue checking
-		if ((checksum1 == checksum2) && (error1 == error2))
+		if ((checksum1 == checksum2) && (error1 == error2) && (crcresult1 == crcresult2))
 		{
 			if(error1 == SECTOR_OK)
 			{
@@ -1233,15 +1240,15 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 		}
 		else
 		{
-			if (checksum1 != checksum2)
+			if ((checksum1 != checksum2) || (crcresult1 != crcresult2))
 			{
-				sprintf(tmpstr, "S%d: data/error mismatch (%.2x/E%d)(%.2x/E%d)\n",
-					sector, checksum1, error1, checksum2, error2);
+				sprintf(tmpstr, "S%d mismatch (%.2x/E%d/CRC:%x) (%.2x/E%d/CRC:%x)\n",
+					sector, checksum1, error1, crcresult1, checksum2, error2, crcresult2);
 
 				if(verbose)
 				{
-					printf(tmpstr, "S%d: data/error mismatch (%.2x/E%d)(%.2x/E%d)\n",
-						sector, checksum1, error1, checksum2, error2);
+					printf(tmpstr, "S%d mismatch (%.2x/E%d/CRC:%x) (%.2x/E%d/CRC:%x)\n",
+						sector, checksum1, error1, crcresult1, checksum2, error2, crcresult2);
 
 					printf("\nT%dS%d image #1 dump:\n", track/2, sector);
 
