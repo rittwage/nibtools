@@ -188,6 +188,7 @@ main(int argc, char *argv[])
 				printf("RAPIDLOK\n");
 				//reduce_sync = 1;
 				//reduce_badgcr = 1;
+				force_align = ALIGN_SEC0;
 			}
 			else
 				printf("Unknown protection handler\n");

@@ -178,7 +178,7 @@ main(int argc, char *argv[])
 				reduce_sync = 0;
 				reduce_badgcr = 1;
 				reduce_gap = 1;
-				align_disk = 1;
+				force_align = ALIGN_SEC0;
 			}
 			else if ((*argv)[2] == 'm')
 			{

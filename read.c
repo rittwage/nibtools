@@ -45,6 +45,10 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	else if(force_density && density_map == DENSITY_RAPIDLOK)
 	{
 		density = density_map_rapidlok[(halftrack / 2) - 1];
+
+		if(density == -1)
+				density = scan_track(fd, halftrack);
+
 		printf("{RAPIDLOK}");
 	}
 	else
