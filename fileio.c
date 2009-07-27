@@ -384,7 +384,7 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 		memset(gcrdata, 0x55, sizeof(gcrdata));
 		errorstring[0] = '\0';
 
-		for (sector = 0; sector < sector_map_1541[track]; sector++)
+		for (sector = 0; sector < sector_map_cbm[track]; sector++)
 		{
 			// get error and increase reference pointer in errorinfo
 			error = errorinfo[sector_ref++];
@@ -404,10 +404,10 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 		}
 
 		// calculate track length
-		track_length[track*2] = sector_map_1541[track] * SECTOR_SIZE;
+		track_length[track*2] = sector_map_cbm[track] * SECTOR_SIZE;
 
 		// use default densities for D64
-		track_density[track*2] = speed_map_1541[track-1];
+		track_density[track*2] = speed_map_cbm[track-1];
 
 		// write track
 		memcpy(track_buffer + (track * 2 * NIB_TRACK_LENGTH), gcrdata, track_length[track*2]);
@@ -553,14 +553,14 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		{
 			find_track_cycle(
 				&cycle_start, &cycle_stop,
-				capacity_min[speed_map_1541[(track/2)-1]],
-				capacity_max[speed_map_1541[(track/2)-1]]
+				capacity_min[speed_map_cbm[(track/2)-1]],
+				capacity_max[speed_map_cbm[(track/2)-1]]
 				);
 		}
 
-		printf("%.2d (%d):" ,track/2, capacity[speed_map_1541[(track/2)-1]]);
+		printf("%.2d (%d):" ,track/2, capacity[speed_map_cbm[(track/2)-1]]);
 
-		for (sector = 0; sector < sector_map_1541[track/2]; sector++)
+		for (sector = 0; sector < sector_map_cbm[track/2]; sector++)
 		{
 			printf("%d", sector);
 
@@ -702,8 +702,8 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 
 		memset(&gcr_track[2], 0x55, G64_TRACK_MAXLEN);
 
-		gcr_track[0] = raw_track_size[speed_map_1541[track/2]] % 256;
-		gcr_track[1] = raw_track_size[speed_map_1541[track/2]] / 256;
+		gcr_track[0] = raw_track_size[speed_map_cbm[track/2]] % 256;
+		gcr_track[1] = raw_track_size[speed_map_cbm[track/2]] / 256;
 
 		memcpy(buffer, track_buffer + ((track+2) * NIB_TRACK_LENGTH), track_length[track+2]);
 		track_len = track_length[track+2];
@@ -711,7 +711,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		if(track_len == 0)
 		{
 			/* track doesn't exist: write blank track */
-			track_len = raw_track_size[speed_map_1541[track/2]];
+			track_len = raw_track_size[speed_map_cbm[track/2]];
 			memset(buffer, 0, track_len);
 		}
 
@@ -755,7 +755,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	/* user display */
 	printf("\n%4.1f: (", (float) halftrack / 2);
 	printf("%d", density & 3);
-	if ( (density&3) != speed_map_1541[(halftrack / 2) - 1]) printf("!");
+	if ( (density&3) != speed_map_cbm[(halftrack / 2) - 1]) printf("!");
 	printf(":%d) ", length);
 	if (density & BM_NO_SYNC) printf("NOSYNC ");
 	if (density & BM_FF_TRACK) printf("KILLER ");
@@ -971,7 +971,7 @@ unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 	index = 0;
 	for (track = start_track; track <= 35*2; track += 2)
 	{
-		for (sector = 0; sector < sector_map_1541[track/2]; sector++)
+		for (sector = 0; sector < sector_map_cbm[track/2]; sector++)
 		{
 			memset(rawdata, 0, sizeof(rawdata));
 
@@ -1064,7 +1064,7 @@ unsigned int md5_all_tracks(BYTE *track_buffer, int *track_length, unsigned char
 	index = 0;
 	for (track = start_track; track <= 35*2; track += 2)
 	{
-		for (sector = 0; sector < sector_map_1541[track/2]; sector++)
+		for (sector = 0; sector < sector_map_cbm[track/2]; sector++)
 		{
 			memset(rawdata, 0, sizeof(rawdata));
 

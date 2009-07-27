@@ -328,7 +328,7 @@ set_default_bitrate(CBM_FILE fd, int track)
 {
 	BYTE density;
 
-	density = speed_map_1541[(track / 2) - 1];
+	density = speed_map_cbm[(track / 2) - 1];
 
 	send_mnib_cmd(fd, FL_DENSITY);
 	cbm_parallel_burst_write(fd, density_branch[density]);

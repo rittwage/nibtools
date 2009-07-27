@@ -251,7 +251,7 @@ int repair(void)
 
 	for (track = start_track; track <= 35*2 /*end_track*/; track += track_inc)
 	{
-		for (sector = 0; sector < sector_map_1541[track/2]; sector++)
+		for (sector = 0; sector < sector_map_cbm[track/2]; sector++)
 		{
 				errorcode = repair_GCR_sector(track_buffer + (track * NIB_TRACK_LENGTH),
 																		track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],

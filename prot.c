@@ -9,12 +9,13 @@
 #include "gcr.h"
 #include "prot.h"
 
-BYTE density_map_rapidlok[MAX_TRACKS_1541] = {
+BYTE speed_map_rapidlok[MAX_TRACKS_1541] = {
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,	/*  1 - 10 */
 	3, 3, 3, 3, 3, 3, 3, 2, 2, 2,	/* 11 - 20 */
 	2, 2, 2, 2, 2, 2, 2, 2, 2, 2,	/* 21 - 30 */
 	2, 2, 2, 2, 2,					/* 31 - 35 */
-	2, -1, -1, -1, -1, -1, -1				/* 36 - 42  */
+	2,										/* 36 (keytrack) */
+	0, 0, 0, 0, 0, 0				/* 37 - 42  */
 };
 
 BYTE skew_map[MAX_TRACKS_1541] = {

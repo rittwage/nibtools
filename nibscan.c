@@ -507,9 +507,9 @@ compare_disks(void)
 				printf("%s", errorstring);
 
 				sec_total += sec_match;
-				numsecs += sector_map_1541[track/2];
+				numsecs += sector_map_cbm[track/2];
 
-				if (sec_match == sector_map_1541[track/2])
+				if (sec_match == sector_map_cbm[track/2])
 				{
 					trk_total++;
 					printf("[*DATA MATCH*]\n");
@@ -625,7 +625,7 @@ scandisk(void)
 				printf(":KILLER");
 
 			// establish default density and warn
-			defdensity = speed_map_1541[(track / 2) - 1];
+			defdensity = speed_map_cbm[(track / 2) - 1];
 
 			if ((track_density[track] & 3) != defdensity)
 			{

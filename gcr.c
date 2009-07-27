@@ -25,7 +25,7 @@
 #include "prot.h"
 #include "crc.h"
 
-BYTE sector_map_1541[MAX_TRACKS_1541 + 1] = {
+BYTE sector_map_cbm[MAX_TRACKS_1541 + 1] = {
 	0,
 	21, 21, 21, 21, 21, 21, 21, 21, 21, 21,	/*  1 - 10 */
 	21, 21, 21, 21, 21, 21, 21, 19, 19, 19,	/* 11 - 20 */
@@ -35,12 +35,12 @@ BYTE sector_map_1541[MAX_TRACKS_1541 + 1] = {
 };
 
 
-BYTE speed_map_1541[MAX_TRACKS_1541] = {
+BYTE speed_map_cbm[MAX_TRACKS_1541] = {
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,	/*  1 - 10 */
 	3, 3, 3, 3, 3, 3, 3, 2, 2, 2,	/* 11 - 20 */
 	2, 2, 2, 2, 1, 1, 1, 1, 1, 1,	/* 21 - 30 */
 	0, 0, 0, 0, 0,					/* 31 - 35 */
-	0, 0, 0, 0, 0, 0, 0	/* 36 - 42 (non-standard) */
+	0, 0, 0, 0, 0, 0, 0				/* 36 - 42 (non-standard) */
 };
 
 char alignments[][20] = { "NONE", "GAP", "SEC0", "SYNC", "BADGCR", "VMAX", "AUTO", "VMAX-CW"};
@@ -1200,7 +1200,7 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 		return 0;
 
 	// check for sector matches
-	for (sector = 0; sector < sector_map_1541[track / 2]; sector++)
+	for (sector = 0; sector < sector_map_cbm[track / 2]; sector++)
 	{
 		numsecs++;
 
@@ -1320,7 +1320,7 @@ check_errors(BYTE * gcrdata, int length, int track, BYTE * id, char * errorstrin
 	errors = 0;
 	errorstring[0] = '\0';
 
-	for (sector = 0; sector < sector_map_1541[track/2]; sector++)
+	for (sector = 0; sector < sector_map_cbm[track/2]; sector++)
 	{
 		errorcode = convert_GCR_sector(gcrdata, gcrdata + length, secbuf, (track/2), sector, id);
 
@@ -1346,7 +1346,7 @@ check_empty(BYTE * gcrdata, int length, int track, BYTE * id, char * errorstring
 	errorstring[0] = '\0';
 	temp_errorstring[0] = '\0';
 
-	for (sector = 0; sector < sector_map_1541[track / 2]; sector++)
+	for (sector = 0; sector < sector_map_cbm[track / 2]; sector++)
 	{
 		errorcode = convert_GCR_sector(gcrdata, gcrdata + length, secbuf, (track / 2), sector, id);
 

@@ -37,18 +37,18 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		fprintf(fplog, "\n      ");
 	}
 
-	if(force_density && density_map == DENSITY_STANDARD)
+	if(halftrack/2 > 35)
 	{
-		density = speed_map_1541[(halftrack / 2) - 1];
+		density = scan_track(fd, halftrack);
+	}
+	else	 if(force_density && density_map == DENSITY_STANDARD)
+	{
+		density = speed_map_cbm[(halftrack / 2) - 1];
 		printf("{DEFAULT }");
 	}
 	else if(force_density && density_map == DENSITY_RAPIDLOK)
 	{
-		density = density_map_rapidlok[(halftrack / 2) - 1];
-
-		if(density == -1)
-				density = scan_track(fd, halftrack);
-
+		density = speed_map_rapidlok[(halftrack / 2) - 1];
 		printf("{RAPIDLOK}");
 	}
 	else
@@ -61,8 +61,8 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	printf("(%d",density&3);
 	fprintf(fplog,"(%d",density&3);
 
-	if ( (density&3) != speed_map_1541[(halftrack / 2) - 1])
-		printf("!=%d", speed_map_1541[(halftrack / 2) - 1]);
+	if ( (density&3) != speed_map_cbm[(halftrack / 2) - 1])
+		printf("!=%d", speed_map_cbm[(halftrack / 2) - 1]);
 
 	if(density & BM_FF_TRACK)
 	{
@@ -96,7 +96,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			send_mnib_cmd(fd, FL_READIHS);
 		else
 		{
-			if ((density & BM_NO_SYNC) || (density & BM_FF_TRACK) || (force_nosync)) // || (halftrack >= (35*2))
+			if ((density & BM_NO_SYNC) || (density & BM_FF_TRACK) || (force_nosync))
 				send_mnib_cmd(fd, FL_READWOSYNC);
 			else
 				send_mnib_cmd(fd, FL_READNORMAL);
@@ -207,7 +207,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 		if (*errors == 0) break;
 
 		// if all bad sectors (protection) we only retry once
-		if (*errors == sector_map_1541[halftrack/2])
+		if (*errors == sector_map_cbm[halftrack/2])
 		{
 			if(l < (error_retries - 3))
 				l = error_retries - 3;
@@ -220,7 +220,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 
 	// If there are a lot of errors, the track probably doesn't contain
 	// any CBM sectors (protection)
-	if ((*errors == sector_map_1541[halftrack/2]) || (halftrack > 70))
+	if ((*errors == sector_map_cbm[halftrack/2]) || (halftrack > 70))
 	{
 		printf("[Non-Standard Format] ");
 		fprintf(fplog, "%s ", errorstring);
@@ -271,7 +271,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 
 			// compare sector data
 			if (compare_sectors(cbufo, cbufn, leno, lenn, diskid, diskid, halftrack, errorstring) ==
-				sector_map_1541[halftrack/2])
+				sector_map_cbm[halftrack/2])
 			{
 				printf("[Sectors Match] ");
 				fprintf(fplog, "[Sectors Match] ");
