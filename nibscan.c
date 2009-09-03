@@ -253,13 +253,11 @@ main(int argc, char *argv[])
 		if(!load_image(file2,  track_buffer2, track_density2, track_length2))
 			exit(0);
 
-		printf("\nfile #1: %s\n", file1);
-		printf("file #2: %s\n", file2);
-
 		compare_disks();
 
-		printf("\nfile #1: %s\n", file1);
-		printf("file #2: %s\n", file2);
+		printf("\n1: %s\n", file1);
+		printf("2: %s\n", file2);
+
 	}
 	else 	// just scan for errors, etc.
 	{
@@ -391,9 +389,6 @@ compare_disks(void)
 	int track;
 	int numtracks = 0;
 	int numsecs = 0;
-	BYTE id[3];
-	BYTE id2[3];
-	char errorstring[0x1000];
 	int gcr_match = 0;
 	int sec_match = 0;
 	int dens_mismatch = 0;
@@ -407,6 +402,8 @@ compare_disks(void)
 	char sec_matches[256];
 	char dens_mismatches[256];
 	char tmpstr[16];
+	char errorstring[0x1000];
+	BYTE id[3], id2[3], cid[3], cid2[3];
 
 	gcr_mismatches[0] = '\0';
 	sec_mismatches[0] = '\0';
@@ -423,8 +420,10 @@ compare_disks(void)
 	memset(id2, 0, 3);
 	extract_id(track_buffer2 + (36 * NIB_TRACK_LENGTH), id2);
 
-	printf("\ndisk ID #1: %s\n", id);
-	printf("disk ID #2: %s\n", id2);
+	memset(cid, 0, 3);
+	extract_cosmetic_id(track_buffer + (36 * NIB_TRACK_LENGTH), cid);
+	memset(cid2, 0, 3);
+	extract_cosmetic_id(track_buffer2 + (36 * NIB_TRACK_LENGTH), cid2);
 
 	if(waitkey) getchar();
 
@@ -552,9 +551,16 @@ compare_disks(void)
 	printf("%d tracks had mismatched densities (%s)\n", dens_mismatch, dens_mismatches);
 
 	if(!(id[0]==id2[0] && id[1]==id2[1]))
-		printf("disk ID's do not match - (%s != %s)\n", id, id2);
+		printf("\nFormat ID's do not match!:\t(%s != %s)", id, id2);
 	else
-		printf("disk ID's matched - (%s = %s)\n", id, id2);
+		printf("\nFormat ID's match:\t\t(%s = %s)", id, id2);
+
+	if(!(cid[0]==cid2[0] && cid[1]==cid2[1]))
+		printf("\nCosmetic ID's do not match:\t(%s != %s)\n", cid, cid2);
+	else
+		printf("\nCosmetic ID's match:\t\t(%s = %s)\n", cid, cid2);
+
+	printf("---------------------------------------------------------------------\n");
 
 	return 1;
 }

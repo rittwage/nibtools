@@ -483,13 +483,11 @@ scan_track(CBM_FILE fd, int track)
 	for (bin = 0; bin < 4; bin++)
 		density_major[bin] = density_stats[bin] = 0;
 
-	/* Use medium bitrate for scan */
-	set_bitrate(fd, 2);
-
-	/* we have to sample density 2 tracks more because they are sometimes on the edge of 1 and 2 by this routine.
-		also tracks > 35 should be scrutinized more */
-	for (i = 0; i < ( ((density == 2) || (track > 35 * 2)) ? 20 : 10); i++)
+	for (i = 0; i < 10; i++)
 	{
+		/* Use bitrate close to default for scan */
+		set_bitrate(fd, density);
+
 		send_mnib_cmd(fd, FL_SCANDENSITY);
 
 		/* Floppy sends statistic data in reverse bit-rate order */
