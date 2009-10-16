@@ -44,6 +44,8 @@ int verbose;
 int extended_parallel_test;
 int force_nosync;
 int ihs;
+int rawmode;
+BYTE fillbyte;
 
 BYTE density_map;
 float motor_speed;
@@ -102,6 +104,8 @@ main(int argc, char *argv[])
 	ihs = 0;
 	mode = MODE_READ_DISK;
 	density_map = DENSITY_STANDARD;
+	fillbyte = 0xff;
+	rawmode = 0;
 
 	// cache our arguments for logfile generation
 	strcpy(argcache, "");
@@ -120,6 +124,11 @@ main(int argc, char *argv[])
 			track_inc = 1;
 			end_track = 83;
 			printf("* Using halftracks\n");
+			break;
+
+		case 'r':
+			rawmode = 1;
+			printf("* Using raw mode\n");
 			break;
 
 		case 'I':
@@ -290,23 +299,7 @@ int disk2file(CBM_FILE fd, char *filename)
 	/* read data from drive to file */
 	motor_on(fd);
 
-	if (compare_extension(filename, "D64"))
-	{
-		//read_floppy(fd, track_buffer, track_density, track_length);
-		//write_d64(filename, track_buffer, track_density, track_length, 1);
-		printf("\nWARNING!\nReading to D64 is a lossy conversion.\n");
-		printf("All individual sector header and gap information is lost.\n");
-		printf("It is suggested you use the NIB format for archival.\n");
-	}
-	else if (compare_extension(filename, "G64"))
-	{
-		//read_floppy(fd, track_buffer, track_density, track_length);
-		//write_g64(filename, track_buffer, track_density, track_length, 1);
-		printf("\nWARNING!\nReading to G64 is a slightly lossy conversion.\n");
-		printf("Some track cycle information is lost.\n");
-		printf("It is suggested you use the NIB format for archival.\n");
-	}
-	else if (compare_extension(filename, "NB2"))
+	if (compare_extension(filename, "NB2"))
 	{
 		track_inc = 1;
 		write_nb2(fd, filename);

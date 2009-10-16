@@ -120,7 +120,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	return (density);
 }
 
-BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * errors)
+BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 {
 	BYTE buffer1[NIB_TRACK_LENGTH];
 	BYTE buffer2[NIB_TRACK_LENGTH];
@@ -128,12 +128,12 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 	BYTE cbuffer2[NIB_TRACK_LENGTH];
 	BYTE *cbufn, *cbufo, *bufn, *bufo;
 	BYTE align;
-	int leno, lenn, densn, i, l, badgcr, retries;
+	int leno, lenn, densn, i, l, badgcr, retries, errors;
     BYTE denso;
 	char errorstring[0x1000], diffstr[80];
 
 	badgcr = 0;
-	*errors = 0;
+	errors = 0;
 	retries = 1;
 	bufn = buffer1;
 	bufo = buffer2;
@@ -154,8 +154,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 
 		// Find track cycle and length
 		memset(cbufo, 0, NIB_TRACK_LENGTH);
-		leno = extract_GCR_track(cbufo, bufo, &align, force_align,
-		  capacity_min[denso & 3], capacity_max[denso & 3]);
+		leno = extract_GCR_track(cbufo, bufo, &align, force_align, capacity_min[denso & 3], capacity_max[denso & 3]);
 
 		// if we have a killer track, exit processing
 		if(denso & BM_FF_TRACK)
@@ -200,14 +199,14 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 		fprintf(fplog, "%d ", leno);
 
 		// check for CBM DOS errors
-		*errors = check_errors(cbufo, leno, halftrack, diskid, errorstring);
+		errors = check_errors(cbufo, leno, halftrack, diskid, errorstring);
 		fprintf(fplog, "%s", errorstring);
 
 		// if we got all good sectors we dont retry
-		if (*errors == 0) break;
+		if (errors == 0) break;
 
 		// if all bad sectors (protection) we only retry once
-		if (*errors == sector_map_cbm[halftrack/2])
+		if (errors == sector_map_cbm[halftrack/2])
 		{
 			if(l < (error_retries - 3))
 				l = error_retries - 3;
@@ -220,15 +219,15 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 
 	// If there are a lot of errors, the track probably doesn't contain
 	// any CBM sectors (protection)
-	if ((*errors == sector_map_cbm[halftrack/2]) || (halftrack > 70))
+	if ((errors == sector_map_cbm[halftrack/2]) || (halftrack > 70))
 	{
 		printf("[Non-Standard Format] ");
 		fprintf(fplog, "%s ", errorstring);
 	}
 	else
 	{
-		printf("[%d Errors] ", *errors);
-		fprintf(fplog, "[%d Errors] ", *errors);
+		printf("[%d Errors] ", errors);
+		fprintf(fplog, "[%d Errors] ", errors);
 	}
 
 	// Fix bad GCR in track for compare
@@ -250,8 +249,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 			densn = read_halftrack(fd, halftrack, bufn);
 
 			memset(cbufn, 0, NIB_TRACK_LENGTH);
-			lenn = extract_GCR_track(cbufn, bufn, &align, force_align,
-			  capacity_min[densn & 3], capacity_max[densn & 3]);
+			lenn = extract_GCR_track(cbufn, bufn, &align, force_align, capacity_min[densn & 3], capacity_max[densn & 3]);
 
 			printf("%d %.1f%%", lenn, ((float)lenn / (float)capacity[densn&3]) * 100);
 			fprintf(fplog, "%d ", lenn);
@@ -297,28 +295,28 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * er
 int
 read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
-    int track, errors = 0, total_errors = 0;
-    BYTE align;
-    BYTE dummy[NIB_TRACK_LENGTH];
+    int track;
+    //BYTE align;
+    //BYTE dummy[NIB_TRACK_LENGTH];
 
 	printf("\n");
 	fprintf(fplog,"\n");
 
-	get_disk_id(fd);
+	if(!rawmode) get_disk_id(fd);
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		// track_density[track] = read_halftrack(fd, track, track_ buffer + (track * NIB_TRACK_LENGTH));
-		track_density[track] = paranoia_read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH), &errors);
 
-		if ((track/2) <= 35) total_errors += errors;
+		if(rawmode)
+			 track_density[track] = read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH));
+		else
+			track_density[track] = paranoia_read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH));
 
-		track_length[track] = extract_GCR_track(dummy, track_buffer + (track * NIB_TRACK_LENGTH),
-			&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
+		//track_length[track] = extract_GCR_track(dummy, track_buffer + (track * NIB_TRACK_LENGTH),
+		//	&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
 	}
 
 	step_to_halftrack(fd, 18*2);
-	printf("\n\nTotal disk errors: %d\n",total_errors);
 
 	return 1;
 }

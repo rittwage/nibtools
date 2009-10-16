@@ -20,6 +20,7 @@
 
 extern int skip_halftracks;
 extern int verbose;
+extern BYTE fillbyte;
 
 int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment)
 {
@@ -700,7 +701,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	{
 		int raw_track_size[4] = { 6250, 6666, 7142, 7692 };
 
-		memset(&gcr_track[2], 0x00, G64_TRACK_MAXLEN);
+		memset(&gcr_track[2], fillbyte, G64_TRACK_MAXLEN);
 
 		gcr_track[0] = raw_track_size[speed_map_cbm[track/2]] % 256;
 		gcr_track[1] = raw_track_size[speed_map_cbm[track/2]] / 256;

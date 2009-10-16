@@ -45,7 +45,8 @@ int verbose = 0;
 float motor_speed;
 int skew = 0;
 int ihs = 0;
-int fillbyte;
+BYTE fillbyte;
+
 
 CBM_FILE fd;
 FILE *fplog;
@@ -284,8 +285,7 @@ main(int argc, char *argv[])
 			break;
 
 		case 's':
-			if (!(*argv)[2])
-				usage();
+			if (!(*argv)[2]) usage();
 			align_disk = 1;
 			printf("* Attempt soft track alignment\n");
 			skew = atoi((char *) (&(*argv)[2]));
@@ -296,6 +296,27 @@ main(int argc, char *argv[])
 			printf("* 1571 index hole sensor (use only for side 1)\n");
 			ihs = 1;
 			break;
+
+		case 'b':
+			// custom fillbyte
+			printf("* Custom fillbyte: ");
+			if ((*argv)[2] == '0')
+			{
+				printf("0x00\n");
+				fillbyte = 0x00;
+			}
+			if ((*argv)[2] == '5')
+			{
+				printf("0x55\n");
+				fillbyte = 0x55;
+			}
+			if ((*argv)[2] == 'f')
+			{
+				printf("0xFF\n");
+				fillbyte = 0xFF;
+			}
+			break;
+
 
 		default:
 			usage();

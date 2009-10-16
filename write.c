@@ -83,7 +83,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 			memset(rawtrack, 0x55, sizeof(rawtrack));
 		else
 		{
-			memset(rawtrack, 0x55, skew_map[track/2]);
+			memset(rawtrack, fillbyte, skew_map[track/2]);
 			memset(rawtrack + skew_map[track/2], fillbyte, (sizeof(rawtrack) - skew_map[track/2]));
 		}
 

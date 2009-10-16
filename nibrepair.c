@@ -37,6 +37,7 @@ int gap_match_length;\
 int cap_min_ignore;
 int skip_halftracks;
 int verbose = 0;
+BYTE fillbyte;
 
 /* local prototypes */
 int repair(void);
@@ -60,6 +61,7 @@ main(int argc, char **argv)
 	force_align = ALIGN_NONE;
 	gap_match_length = 7;
 	cap_min_ignore = 0;
+	fillbyte = 0xff;
 
 	fprintf(stdout,
 	  "\nnibrepair - converts a damaged NIB/NB2/G64 to a new 'repaired' G64 file.\n"

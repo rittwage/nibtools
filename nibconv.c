@@ -19,6 +19,7 @@ int _dowildcard = 1;
 BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
+BYTE fillbyte;
 int track_length[MAX_HALFTRACKS_1541 + 1];
 int start_track, end_track, track_inc;
 int reduce_sync, reduce_badgcr, reduce_gap;
@@ -27,6 +28,7 @@ int gap_match_length;
 int cap_min_ignore;
 int skip_halftracks;
 int verbose;
+
 
 int ARCH_MAINDECL
 main(int argc, char **argv)
@@ -49,6 +51,7 @@ main(int argc, char **argv)
 	gap_match_length = 7;
 	cap_min_ignore = 0;
 	verbose = 0;
+	fillbyte = 0xff;
 
 	fprintf(stdout,
 	  "\nnibconv - converts a CBM disk image from one format to another.\n"
@@ -170,6 +173,26 @@ main(int argc, char **argv)
 		case 'm':
 			printf("* Minimum capacity ignore on\n");
 			cap_min_ignore = 1;
+			break;
+
+		case 'b':
+			// custom fillbyte
+			printf("* Custom fillbyte: ");
+			if ((*argv)[2] == '0')
+			{
+				printf("0x00\n");
+				fillbyte = 0x00;
+			}
+			if ((*argv)[2] == '5')
+			{
+				printf("0x55\n");
+				fillbyte = 0x55;
+			}
+			if ((*argv)[2] == 'f')
+			{
+				printf("0xFF\n");
+				fillbyte = 0xFF;
+			}
 			break;
 
 		default:

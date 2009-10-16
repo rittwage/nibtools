@@ -4,7 +4,7 @@
  * based on MNIB by Markus Brenner <markus(at)brenner(dot)de>
  */
 
-#define VERSION "0.6.0 (Built "__DATE__" "__TIME__")"
+#define VERSION "0.6.1 (Built "__DATE__" "__TIME__")"
 
 #define FL_STEPTO      0x00
 #define FL_MOTOR       0x01
@@ -102,7 +102,7 @@ extern int interactive_mode;
 extern int gap_match_length;
 extern int cap_min_ignore;
 extern int verbose;
-extern int fillbyte;
+extern BYTE fillbyte;
 extern int skew;
 extern int ihs;
 extern int start_track, end_track, track_inc;
@@ -110,6 +110,7 @@ extern int fix_gcr, reduce_sync, reduce_gap, reduce_badgcr;
 extern int imagetype, auto_capacity_adjust;
 extern int extended_parallel_test;
 extern int force_nosync;
+extern int rawmode;
 
 /* common */
 void usage(void);
@@ -139,7 +140,7 @@ unsigned int md5_all_tracks(BYTE *track_buffer, int *track_length, unsigned char
 
 /* read.c */
 BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer);
-BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer, int * errors);
+BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer);
 int read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length);
 void write_nb2(CBM_FILE fd, char * filename);
 void get_disk_id(CBM_FILE fd);
