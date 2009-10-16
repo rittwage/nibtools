@@ -104,7 +104,7 @@ main(int argc, char *argv[])
 	ihs = 0;
 	mode = MODE_READ_DISK;
 	density_map = DENSITY_STANDARD;
-	fillbyte = 0xff;
+	fillbyte = 0x55;
 	rawmode = 0;
 
 	// cache our arguments for logfile generation

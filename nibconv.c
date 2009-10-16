@@ -51,7 +51,7 @@ main(int argc, char **argv)
 	gap_match_length = 7;
 	cap_min_ignore = 0;
 	verbose = 0;
-	fillbyte = 0xff;
+	fillbyte = 0x55;
 
 	fprintf(stdout,
 	  "\nnibconv - converts a CBM disk image from one format to another.\n"

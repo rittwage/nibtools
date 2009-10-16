@@ -61,7 +61,7 @@ main(int argc, char **argv)
 	force_align = ALIGN_NONE;
 	gap_match_length = 7;
 	cap_min_ignore = 0;
-	fillbyte = 0xff;
+	fillbyte = 0x55;
 
 	fprintf(stdout,
 	  "\nnibrepair - converts a damaged NIB/NB2/G64 to a new 'repaired' G64 file.\n"

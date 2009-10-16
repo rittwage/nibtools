@@ -94,7 +94,7 @@ main(int argc, char *argv[])
 	reduce_sync = 1;
 	reduce_badgcr = 0;
 	reduce_gap = 0;
-	fillbyte= 0xff;
+	fillbyte= 0x55;
 
 	fprintf(stdout,
 	  "\nnibscan - Commodore disk image scanner / comparator\n"
