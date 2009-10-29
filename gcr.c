@@ -1446,8 +1446,8 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 				if (b_badgcr)
 				{
 					total++;
-					//sbadgcr = S_BADGCR_ONCE_BAD;
-					sbadgcr = S_BADGCR_LOST;  /* aggressive */
+					sbadgcr = S_BADGCR_ONCE_BAD;
+					//sbadgcr = S_BADGCR_LOST;  /* aggressive */
 				}
 				break;
 

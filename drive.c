@@ -72,8 +72,7 @@ upload_code(CBM_FILE fd, BYTE drive)
 
 	printf("Uploading floppy-side code...\n");
 	ret = cbm_upload(fd, drive, 0x300, floppy_code, databytes);
-	if (ret < 0)
-		return (ret);
+	if (ret < 0) return (ret);
 	floppybytes = databytes;
 
 	return 0;
@@ -203,14 +202,13 @@ init_floppy(CBM_FILE fd, BYTE drive, int bump)
 
 	/*
 	 * Initialize media and switch drive to 1541 mode.
-	 * We initialize first to do the head seek to read the BAM after
-	 * the bump above.
+	 * We initialize first to do the head seek to read the BAM after the bump above.
 	 * Changed to perform the 1541 mode select first, or else it breaks on a 1571 (PR)
 	 */
 
 	printf("Initializing\n");
 	cbm_exec_command(fd, drive, "U0>M0", 0);
-	cbm_exec_command(fd, drive, "I0", 0);
+	//cbm_exec_command(fd, drive, "I0", 0);  /* test - this hangs on a completely non-CBM disk */
 
 	if (upload_code(fd, drive) < 0)
 	{
@@ -219,6 +217,7 @@ init_floppy(CBM_FILE fd, BYTE drive, int bump)
 	}
 
 	/* Begin executing drive code at $300 */
+	printf("Starting custom drive code...\n");
 	sprintf(cmd, "M-E%c%c", 0x00, 0x03);
 	cbm_exec_command(fd, drive, cmd, 5);
 	cbm_parallel_burst_read(fd);
