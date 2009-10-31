@@ -207,8 +207,11 @@ init_floppy(CBM_FILE fd, BYTE drive, int bump)
 	 */
 
 	printf("Initializing\n");
-	cbm_exec_command(fd, drive, "U0>M0", 0);
-	//cbm_exec_command(fd, drive, "I0", 0);  /* test - this hangs on a completely non-CBM disk */
+
+	if(drivetype == 1571)
+		cbm_exec_command(fd, drive, "U0>M0", 0);
+
+	cbm_exec_command(fd, drive, "I0", 0);  /* test - this hangs on a completely non-CBM disk */
 
 	if (upload_code(fd, drive) < 0)
 	{

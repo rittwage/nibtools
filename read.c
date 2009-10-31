@@ -298,8 +298,8 @@ int
 read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
     int track;
-    //BYTE align;
-    //BYTE dummy[NIB_TRACK_LENGTH];
+    BYTE align;
+    BYTE dummy[NIB_TRACK_LENGTH];
 
 	printf("\n");
 	fprintf(fplog,"\n");
@@ -310,12 +310,19 @@ read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 	{
 
 		if(rawmode)
-			 track_density[track] = read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH));
+		{
+			track_density[track] = read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH));
+
+			track_length[track] = extract_GCR_track(dummy, track_buffer + (track * NIB_TRACK_LENGTH),
+				&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
+
+			printf("%d ", track_length[track]);
+			fprintf(fplog, "%d ", track_length[track]);
+		}
 		else
 			track_density[track] = paranoia_read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH));
 
-		//track_length[track] = extract_GCR_track(dummy, track_buffer + (track * NIB_TRACK_LENGTH),
-		//	&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
+
 	}
 
 	step_to_halftrack(fd, 18*2);
