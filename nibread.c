@@ -167,7 +167,7 @@ main(int argc, char *argv[])
 			printf("* Disabling read of 'killer' tracks\n");
 			break;
 
-		case 'B':
+		case 'S':
 			if (!(*argv)[2]) usage();
 			start_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
 			printf("* Start track set to %d\n", start_track/2);

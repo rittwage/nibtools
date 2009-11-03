@@ -1457,8 +1457,15 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 					total++;
 					sbadgcr = S_BADGCR_LOST;
 
-					if(fix) fix_first_gcr(gcrdata, length, lastpos);
-					//if (fix) gcrdata[lastpos] = 0x00;  /* aggressive */
+					if(fix)
+						fix_first_gcr(gcrdata, length, lastpos);
+
+					/* aggressive
+					if (fix)
+						gcrdata[lastpos] = 0x00;
+					else
+						gcrdata[lastpos] = 0x55;
+					*/
 				}
 				else
 				{
@@ -1470,14 +1477,25 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 				if (b_badgcr || n_badgcr)
 				{
 					total++;
-					if (fix) gcrdata[lastpos] = 0x00;
+
+					if (fix)
+						gcrdata[lastpos] = 0x00;
+					else
+						gcrdata[lastpos] = 0x55;
 				}
 				else
 				{
 					sbadgcr = S_BADGCR_OK;
 
-					if(fix) fix_last_gcr(gcrdata, length, lastpos);
-					//if (fix) gcrdata[lastpos] = 0x00;   /* aggressive */
+					if(fix)
+						fix_last_gcr(gcrdata, length, lastpos);
+
+					 /* aggressive
+					if (fix)
+						gcrdata[lastpos] = 0x00;
+					else
+						gcrdata[lastpos] = 0x55;
+					*/
 				}
 				break;
 		}

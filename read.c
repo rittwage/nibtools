@@ -181,7 +181,6 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			printf("Short Read! (%d) ", leno);
 			fprintf(fplog, "[%d<%d!] ", leno, capacity_min[denso & 3] - CAP_MIN_ALLOWANCE);
 			//if(l < (error_retries - 3)) l = error_retries - 3;
-			l--;
 			continue;
 		}
 
@@ -192,7 +191,6 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			printf("Long Read! (%d) ", leno);
 			fprintf(fplog, "[%d>%d!] ", leno, capacity_max[denso & 3] + CAP_MIN_ALLOWANCE);
 			//if(l < (error_retries - 3)) l = error_retries - 3;
-			l--;
 			continue;
 		}
 
