@@ -251,22 +251,28 @@ main(int argc, char *argv[])
 			break;
 
 		case 'D':
-			if (!(*argv)[2])
-				usage();
+			if (!(*argv)[2]) usage();
 			drive = (BYTE) atoi((char *) (&(*argv)[2]));
 			printf("* Use Device %d\n", drive);
 			break;
 
 		case 'G':
-			if (!(*argv)[2])
-				usage();
+			if (!(*argv)[2]) usage();
 			gap_match_length = atoi((char *) (&(*argv)[2]));
 			printf("* Gap match length set to %d\n", gap_match_length);
 			break;
 
 		case 'f':
-			fix_gcr = 0;
-			printf("* Disabled bad GCR bit reproduction\n");
+			if ((*argv)[2] == 'f')
+			{
+				fix_gcr = 2;
+				printf("* Enabled more agressive bad GCR reproduction\n");
+			}
+			else
+			{
+				fix_gcr = 0;
+				printf("* Disabled bad GCR bit reproduction\n");
+			}
 			break;
 
 		case 'v':
@@ -503,7 +509,8 @@ usage(void)
 	     " -0: Enable bad GCR run reduction\n"
 	     " -r: Disable automatic sync reduction\n"
 	     " -c: Disable automatic capacity adjustment\n"
-	     " -f: Disable automatic bad GCR detection\n"
+	     " -f: Disable automatic bad GCR simulation\n"
+	     " -ff: Enable more aggressive bad GCR simulation\n"
 	     " -u: Unformat disk. (writes all 0 bits to surface)\n"
 	     " -v: Verbose (output more detailed track data)\n"
 	     " -G: Manual gap match length\n"

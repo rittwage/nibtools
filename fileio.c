@@ -837,6 +837,7 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, int *track_length, BYT
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		memcpy(nibdata,  track_buffer + (track * NIB_TRACK_LENGTH), sizeof(nibdata));
+		memset(track_buffer + (track * NIB_TRACK_LENGTH), 0x00, sizeof(nibdata));
 
 		/* process track cycle */
 		track_length[track] = extract_GCR_track(
@@ -852,9 +853,6 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, int *track_length, BYT
 		printf("%4.1f: (",(float) track / 2);
 		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-
-		//printf("%d:%d) %.1f%% ", track_density[track]&3, track_length[track],
-		//	((float)track_length[track] / (float)capacity[track_density[track]&3]) * 100);
 
 		printf("%d:%d) ", track_density[track]&3, track_length[track]);
 		printf("[align=%s]\n",alignments[track_alignment[track]]);

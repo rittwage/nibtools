@@ -512,6 +512,8 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, int cap_m
 
 	nib_track = *cycle_start;
 	stop_pos = nib_track + NIB_TRACK_LENGTH - gap_match_length;
+	//stop_pos = nib_track + cap_max + gap_match_length;
+
 	cycle_pos = NULL;
 
 	/* try to find a normal track cycle  */
@@ -565,14 +567,17 @@ find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, in
 
 	nib_track = *cycle_start;
 	start_pos = nib_track;
-	stop_pos = nib_track + NIB_TRACK_LENGTH - gap_match_length;
+	//stop_pos = nib_track + NIB_TRACK_LENGTH - gap_match_length;
+	stop_pos = nib_track + cap_max + gap_match_length;
 	cycle_pos = NULL;
+
+	printf("(MAX=%d!!) ",cap_max);
 
 	/* try to find a track cycle ignoring sync  */
 	for (p1 = start_pos; p1 < stop_pos; p1++)
 	{
 		/* now try to match it */
-		for (p2 = p1 + cap_min; p2 < stop_pos; p2++)
+		for (p2 = p1 + cap_min - gap_match_length; p2 < stop_pos; p2++)
 		{
 			/* try to match data */
 			if (memcmp(p1, p2, gap_match_length) != 0)
@@ -1457,15 +1462,10 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 					total++;
 					sbadgcr = S_BADGCR_LOST;
 
-					if(fix)
+					if(fix == 1)
 						fix_first_gcr(gcrdata, length, lastpos);
-
-					/* aggressive
-					if (fix)
+					else if (fix == 2)
 						gcrdata[lastpos] = 0x00;
-					else
-						gcrdata[lastpos] = 0x55;
-					*/
 				}
 				else
 				{
@@ -1478,24 +1478,17 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 				{
 					total++;
 
-					if (fix)
+					if (fix == 1)
 						gcrdata[lastpos] = 0x00;
-					else
-						gcrdata[lastpos] = 0x55;
 				}
 				else
 				{
 					sbadgcr = S_BADGCR_OK;
 
-					if(fix)
+					if(fix == 1)
 						fix_last_gcr(gcrdata, length, lastpos);
-
-					 /* aggressive
-					if (fix)
+					else if(fix == 2)
 						gcrdata[lastpos] = 0x00;
-					else
-						gcrdata[lastpos] = 0x55;
-					*/
 				}
 				break;
 		}

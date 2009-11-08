@@ -68,10 +68,18 @@ main(int argc, char **argv)
 	{
 		switch ((*argv)[1])
 		{
+
 		case 'f':
-			printf("* Bad GCR correction/simulation disabled\n");
-			fix_gcr = 0;
-			break;
+			if ((*argv)[2] == 'f')
+			{
+				fix_gcr = 2;
+				printf("* Enabled more agressive bad GCR reproduction\n");
+			}
+			else
+			{
+				fix_gcr = 0;
+				printf("* Disabled bad GCR bit reproduction\n");
+			}
 
 		case 'r':
 			printf("* Reduce sync disabled\n");
@@ -332,6 +340,8 @@ usage(void)
      " -g: Enable gap reduction\n"
      " -0: Enable bad GCR run reduction\n"
      " -r: Disable automatic sync reduction\n"
+	 " -f: Disable automatic bad GCR simulation\n"
+	 " -ff: Enable more aggressive bad GCR simulation\n"
      " -G: Manual gap match length\n");
 	exit(1);
 }
