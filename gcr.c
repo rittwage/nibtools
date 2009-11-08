@@ -567,8 +567,8 @@ find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, in
 
 	nib_track = *cycle_start;
 	start_pos = nib_track;
-	//stop_pos = nib_track + NIB_TRACK_LENGTH - gap_match_length;
-	stop_pos = nib_track + cap_max + gap_match_length;
+	stop_pos = nib_track + NIB_TRACK_LENGTH - gap_match_length;
+	//stop_pos = nib_track + cap_max + gap_match_length;
 	cycle_pos = NULL;
 
 	printf("(MAX=%d!!) ",cap_max);
