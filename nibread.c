@@ -46,6 +46,7 @@ int force_nosync;
 int ihs;
 int rawmode;
 BYTE fillbyte;
+int rpm_real;
 
 BYTE density_map;
 float motor_speed;
@@ -106,6 +107,7 @@ main(int argc, char *argv[])
 	density_map = DENSITY_STANDARD;
 	fillbyte = 0x55;
 	rawmode = 0;
+	rpm_real = 0;
 
 	// cache our arguments for logfile generation
 	strcpy(argcache, "");

@@ -28,6 +28,7 @@ int gap_match_length;
 int cap_min_ignore;
 int skip_halftracks;
 int verbose;
+int rpm_real;
 
 
 int ARCH_MAINDECL
@@ -52,6 +53,7 @@ main(int argc, char **argv)
 	cap_min_ignore = 0;
 	verbose = 0;
 	fillbyte = 0x55;
+	rpm_real = 0;
 
 	fprintf(stdout,
 	  "\nnibconv - converts a CBM disk image from one format to another.\n"
@@ -181,6 +183,11 @@ main(int argc, char **argv)
 		case 'm':
 			printf("* Minimum capacity ignore on\n");
 			cap_min_ignore = 1;
+			break;
+
+		case '3':
+			printf("* Simulate 'real' 300RPM track capacity\n");
+			rpm_real = 1;
 			break;
 
 		case 'b':
@@ -342,6 +349,7 @@ usage(void)
      " -r: Disable automatic sync reduction\n"
 	 " -f: Disable automatic bad GCR simulation\n"
 	 " -ff: Enable more aggressive bad GCR simulation\n"
+	 " -3: Compress track data to real 300rpm capacity\n"
      " -G: Manual gap match length\n");
 	exit(1);
 }

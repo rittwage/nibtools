@@ -571,7 +571,7 @@ find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, in
 	//stop_pos = nib_track + cap_max + gap_match_length;
 	cycle_pos = NULL;
 
-	//printf("(MAX=%d!!) ",cap_max);
+	printf("!");
 
 	/* try to find a track cycle ignoring sync  */
 	for (p1 = start_pos; p1 < stop_pos; p1++)
@@ -794,6 +794,14 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 	{
 		find_nondos_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
 		track_len = cycle_stop - cycle_start;
+	}
+
+	if(verbose)
+	{
+		if (track_len > cap_max)
+			printf("[LONG, max=%d>%d] ",cap_max, track_len);
+		if(track_len < cap_min)
+			printf("[SHORT, min=%d<%d] ",cap_min, track_len);
 	}
 
 	/* copy twice the data to work buffer */

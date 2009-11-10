@@ -111,6 +111,7 @@ extern int imagetype, auto_capacity_adjust;
 extern int extended_parallel_test;
 extern int force_nosync;
 extern int rawmode;
+extern int rpm_real;
 
 /* common */
 void usage(void);

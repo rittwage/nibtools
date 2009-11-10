@@ -18,10 +18,6 @@
 #include "crc.h"
 #include "md5.h"
 
-extern int skip_halftracks;
-extern int verbose;
-extern BYTE fillbyte;
-
 int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment)
 {
 	int track, nibsize, numtracks;
@@ -629,7 +625,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	DWORD gcr_track_p[MAX_HALFTRACKS_1541];
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
 	BYTE gcr_track[G64_TRACK_MAXLEN + 2];
-	int track, track_len, i;
+	int track, track_len;
 	FILE * fpout;
 	BYTE buffer[NIB_TRACK_LENGTH];
 
@@ -638,12 +634,6 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	/* when writing a G64 file, we don't care about the limitations of drive hardware
 		However, VICE currently ignores G64 header and hardcodes 7928 as the largest track size
 	*/
-
-	for(i =  0; i < 4; i++)
-	{
-		capacity[i] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
-		//capacity[i] = capacity_max[i];
-	}
 
 	fpout = fopen(filename, "wb");
 	if (fpout == NULL)
@@ -711,16 +701,27 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 
 		if(track_len == 0)
 		{
-			/* track doesn't exist: write blank track */
+			/* track doesn't exist: write unformatted track */
 			track_len = raw_track_size[speed_map_cbm[track/2]];
 			memset(buffer, 0, track_len);
 		}
 
 		/* process/compress GCR data */
-		//printf(" [badgcr: %d] ",check_bad_gcr(buffer, track_length[track+2], fix_gcr));
 		check_bad_gcr(buffer, track_length[track+2], fix_gcr);
-		if(track_len > G64_TRACK_MAXLEN)
-			track_len = compress_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
+
+		if(rpm_real)
+		{
+			if(track_len > raw_track_size[speed_map_cbm[track/2]])
+			{
+				capacity[speed_map_cbm[track/2]] = raw_track_size[speed_map_cbm[track/2]];
+				track_len = compress_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
+			}
+		}
+		else
+		{
+			if(track_len > G64_TRACK_MAXLEN)
+				track_len = compress_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
+		}
 
 		/* only unformatted tracks will be too large at this point, truncate */
 		if((track_len > G64_TRACK_MAXLEN) || (!track_len))

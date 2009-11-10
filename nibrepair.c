@@ -37,6 +37,7 @@ int gap_match_length;\
 int cap_min_ignore;
 int skip_halftracks;
 int verbose = 0;
+int rpm_real;
 BYTE fillbyte;
 
 /* local prototypes */
@@ -62,6 +63,7 @@ main(int argc, char **argv)
 	gap_match_length = 7;
 	cap_min_ignore = 0;
 	fillbyte = 0x55;
+	rpm_real = 0;
 
 	fprintf(stdout,
 	  "\nnibrepair - converts a damaged NIB/NB2/G64 to a new 'repaired' G64 file.\n"

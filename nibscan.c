@@ -50,6 +50,7 @@ int advanced_info;
 int gap_match_length;
 int cap_min_ignore;
 int verbose = 0;
+int rpm_real = 0;
 BYTE fillbyte;
 
 unsigned char md5_hash_result[16];
@@ -95,6 +96,7 @@ main(int argc, char *argv[])
 	reduce_badgcr = 0;
 	reduce_gap = 0;
 	fillbyte= 0x55;
+	rpm_real = 0;
 
 	fprintf(stdout,
 	  "\nnibscan - Commodore disk image scanner / comparator\n"
