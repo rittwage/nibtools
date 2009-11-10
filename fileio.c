@@ -713,19 +713,18 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		{
 			if(track_len > raw_track_size[speed_map_cbm[track/2]])
 			{
-				capacity[speed_map_cbm[track/2]] = raw_track_size[speed_map_cbm[track/2]];
+				capacity[speed_map_cbm[track/2]] = raw_track_size[speed_map_cbm[track/2]] + CAPACITY_MARGIN;
 				track_len = compress_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
 			}
 		}
 		else
 		{
 			if(track_len > G64_TRACK_MAXLEN)
+			{
+				capacity[speed_map_cbm[track/2]] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
 				track_len = compress_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
+			}
 		}
-
-		/* only unformatted tracks will be too large at this point, truncate */
-		if((track_len > G64_TRACK_MAXLEN) || (!track_len))
-			track_len = G64_TRACK_MAXLEN;
 
 		gcr_track[0] = track_len % 256;
 		gcr_track[1] = track_len / 256;
