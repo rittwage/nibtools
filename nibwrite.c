@@ -132,11 +132,6 @@ main(int argc, char *argv[])
 			printf("* End track set to %d\n", end_track/2);
 			break;
 
-		case 't':
-			align_disk = 1;
-			printf("* Attempt soft track alignment\n");
-			break;
-
 		case 'u':
 			mode = MODE_UNFORMAT_DISK;
 			break;
@@ -293,14 +288,25 @@ main(int argc, char *argv[])
 
 		case 's':
 			if (!(*argv)[2]) usage();
-			align_disk = 1;
-			printf("* Attempt soft track alignment\n");
+			if(!ihs) align_disk = 1;
 			skew = atoi((char *) (&(*argv)[2]));
+			if((skew > 200000) || (skew < 0))
+			{
+				printf("Skew must be between 1 and 200000us\n");
+				skew = 0;
+			}
+
 			printf("* Skew set to %dus\n",skew);
+			break;
+
+		case 't':
+			if(!ihs) align_disk = 1;
+			printf("* Attempt soft track alignment\n");
 			break;
 
 		case 'i':
 			printf("* 1571 index hole sensor (use only for side 1)\n");
+			align_disk = 0;
 			ihs = 1;
 			break;
 
@@ -310,7 +316,7 @@ main(int argc, char *argv[])
 			if ((*argv)[2] == '0')
 			{
 				printf("0x00\n");
-				fillbyte = 0x00;
+				fillbyte = 0x00;  /* this gets translated to 0x00 bytes*/
 			}
 			if ((*argv)[2] == '5')
 			{

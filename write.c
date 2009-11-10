@@ -18,16 +18,13 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 {
 	#define LEADER  0x100
 	int badgcr =0;
-	int track, length, i;
-	//BYTE density_original;
+	int track, length, i, skewbytes = 0;
 	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		/* double-check our sync-flag assumptions */
-		//density_original = track_density[track];
 		track_density[track] = check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
-		//if(track_density[track] != density_original) printf("\nOriginal density was %d, data seems to be %d\n", density_original, track_density[track]);
 
 		if(mode == MODE_WRITE_RAW)
 		{
@@ -72,9 +69,6 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 				continue;
 		}
 
-		/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
-		replace_bytes(track_buffer + (track * NIB_TRACK_LENGTH), length, 0x00, 0x01);
-
 		/* unformat track with 0x55 (01010101) or sync (11111111)
 		    some of this is the "leader" which is overwritten
 		    some 1571's don't like a lot of 0x00 bytes, they see phantom sync, etc.
@@ -82,17 +76,21 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		if((track_density[track] & BM_NO_SYNC) || (force_align == ALIGN_AUTOGAP))
 			memset(rawtrack, 0x55, sizeof(rawtrack));
 		else
-		{
-			memset(rawtrack, fillbyte, skew_map[track/2]);
-			memset(rawtrack + skew_map[track/2], fillbyte, (sizeof(rawtrack) - skew_map[track/2]));
-		}
+			memset(rawtrack, fillbyte, sizeof(rawtrack));
+
+		/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
+		replace_bytes(rawtrack, sizeof(rawtrack), 0x00, 0x01);
 
 		/* append real track data */
-		memcpy(rawtrack + LEADER + skew_map[track/2], track_buffer + (track * NIB_TRACK_LENGTH), length);
-		if(skew_map[track/2]) printf("{skew:%d}",skew_map[track/2]);
+		if(skew)
+		{
+			skewbytes = skew * (capacity[track_density[track] & 3] / 200000);
+			printf(" {skew=%d} ", skewbytes);
+		}
+		memcpy(rawtrack + LEADER + skewbytes,  track_buffer + (track * NIB_TRACK_LENGTH), length);
 
 		/* handle short tracks that won't 'loop overwrite' existing data */
-		if(length + LEADER + skew_map[track/2] < capacity[track_density[track] & 3] - CAPACITY_MARGIN)
+		if(length + LEADER + skewbytes < capacity[track_density[track] & 3] - CAPACITY_MARGIN)
 		{
 				printf("[pad:%d]", (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - length);
 				length = capacity[track_density[track] & 3] - CAPACITY_MARGIN;
@@ -112,7 +110,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 
 			cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
 
-			if (!cbm_parallel_burst_write_track(fd, rawtrack, length + LEADER + skew_map[track/2]))
+			if (!cbm_parallel_burst_write_track(fd, rawtrack, length + LEADER + skewbytes))
 			{
 				//putchar('?');
 				fflush(stdin);
