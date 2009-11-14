@@ -78,9 +78,6 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		else
 			memset(rawtrack, fillbyte, sizeof(rawtrack));
 
-		/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
-		replace_bytes(rawtrack, sizeof(rawtrack), 0x00, 0x01);
-
 		/* append real track data */
 		if(skew)
 		{
@@ -95,6 +92,9 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 				printf("[pad:%d]", (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - length);
 				length = capacity[track_density[track] & 3] - CAPACITY_MARGIN;
 		}
+
+		/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
+		replace_bytes(rawtrack, sizeof(rawtrack), 0x00, 0x01);
 
 		/* step to destination track and set density */
 		step_to_halftrack(fd, track);
