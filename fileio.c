@@ -765,13 +765,13 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	/* process and compress track data (if needed) */
 	if (length > 0)
 	{
-		/* If our track contains sync, we reduce to a minimum of 24 bits
+		/* If our track contains sync, we reduce to a minimum of 32 bits
 		   less is too short for some loaders including CBM, but only 10 bits are technically required */
 		orglen = length;
 		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (!(density & BM_NO_SYNC)) && (reduce_sync) )
 		{
 			/* reduce sync marks within the track */
-			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 3, 0xff);
+			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, reduce_sync, 0xff);
 
 			if (length < orglen)
 				printf("rsync:%d ", orglen - length);

@@ -83,9 +83,9 @@ main(int argc, char *argv[])
 	end_track = 82;
 	track_inc = 2;
 
-	reduce_sync = 1;
+	reduce_sync = 4;
 	reduce_badgcr = 0;
-	reduce_gap = 0;
+	reduce_gap = 1;
 	fix_gcr = 1;
 	align_disk = 0;
 	auto_capacity_adjust = 1;
@@ -232,8 +232,11 @@ main(int argc, char *argv[])
 			break;
 
 		case 'r':
-			reduce_sync = 0;
-			printf("* Disabled 'reduce sync' option\n");
+			reduce_sync = atoi((char *) (&(*argv)[2]));
+			if(reduce_sync)
+				printf("* Reduce sync to %d bytes\n", reduce_sync);
+			else
+				printf("* Disabled sync reduction\n");
 			break;
 
 		case '0':
@@ -242,8 +245,8 @@ main(int argc, char *argv[])
 			break;
 
 		case 'g':
-			reduce_gap = 1;
-			printf("* Enabled 'reduce gaps' option\n");
+			reduce_gap = 0;
+			printf("* Disabled 'reduce gaps' option\n");
 			break;
 
 		case 'D':
@@ -512,7 +515,7 @@ usage(void)
 	     " -p[x]: Custom protection handlers (advanced users only)\n"
 	     " -s[n]: Manual track skew (in microseconds)\n"
 	     " -t: Enable timer-based track alignment\n"
-	     " -g: Enable gap reduction\n"
+	     " -g: Disable gap reduction\n"
 	     " -0: Enable bad GCR run reduction\n"
 	     " -r: Disable automatic sync reduction\n"
 	     " -c: Disable automatic capacity adjustment\n"
