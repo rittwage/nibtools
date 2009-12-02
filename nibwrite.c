@@ -83,9 +83,9 @@ main(int argc, char *argv[])
 	end_track = 82;
 	track_inc = 2;
 
-	reduce_sync = 4;
+	reduce_sync = 3;
 	reduce_badgcr = 0;
-	reduce_gap = 1;
+	reduce_gap = 0;
 	fix_gcr = 1;
 	align_disk = 0;
 	auto_capacity_adjust = 1;
@@ -161,6 +161,7 @@ main(int argc, char *argv[])
 			{
 				printf("GMA/SecuriSpeed\n");
 				reduce_sync = 0;
+				reduce_gap = 0;
 				fix_gcr = 0;
 				force_align = ALIGN_AUTOGAP;
 			}
@@ -245,8 +246,8 @@ main(int argc, char *argv[])
 			break;
 
 		case 'g':
-			reduce_gap = 0;
-			printf("* Disabled 'reduce gaps' option\n");
+			reduce_gap = 1;
+			printf("* Enabled 'reduce gaps' option\n");
 			break;
 
 		case 'D':
@@ -298,7 +299,6 @@ main(int argc, char *argv[])
 				printf("Skew must be between 1 and 200000us\n");
 				skew = 0;
 			}
-
 			printf("* Skew set to %dus\n",skew);
 			break;
 
@@ -332,7 +332,6 @@ main(int argc, char *argv[])
 				fillbyte = 0xFF;
 			}
 			break;
-
 
 		default:
 			usage();
@@ -515,7 +514,7 @@ usage(void)
 	     " -p[x]: Custom protection handlers (advanced users only)\n"
 	     " -s[n]: Manual track skew (in microseconds)\n"
 	     " -t: Enable timer-based track alignment\n"
-	     " -g: Disable gap reduction\n"
+	     " -g: Enable gap reduction\n"
 	     " -0: Enable bad GCR run reduction\n"
 	     " -r: Disable automatic sync reduction\n"
 	     " -c: Disable automatic capacity adjustment\n"

@@ -511,7 +511,7 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, int cap_m
 	BYTE *p1, *p2;		/* local pointers for comparisons */
 
 	nib_track = *cycle_start;
-	stop_pos = nib_track + NIB_TRACK_LENGTH - gap_match_length;
+	stop_pos = nib_track + NIB_TRACK_LENGTH + gap_match_length;
 	//stop_pos = nib_track + cap_max + gap_match_length;
 
 	cycle_pos = NULL;
@@ -541,7 +541,7 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, int cap_m
 					break;
 			}
 
-			if (cycle_pos != NULL && check_valid_data(data_pos, gap_match_length) )
+			if (cycle_pos != NULL)
 			{
 				*cycle_start = start_pos;
 				*cycle_stop = cycle_pos;
@@ -586,7 +586,7 @@ find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, in
 				cycle_pos = p2;
 
 			/* we found one! */
-			if (cycle_pos != NULL && check_valid_data(cycle_pos, gap_match_length) )
+			if ( (cycle_pos != NULL) && (check_valid_data(cycle_pos, gap_match_length)) )
 			{
 				*cycle_start = p1;
 				*cycle_stop = cycle_pos;

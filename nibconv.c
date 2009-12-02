@@ -43,7 +43,7 @@ main(int argc, char **argv)
 	end_track = 42 * 2;
 	track_inc = 2;
 	fix_gcr = 1;
-	reduce_sync = 4;
+	reduce_sync = 3;
 	reduce_badgcr = 0;
 	reduce_gap = 0;
 	skip_halftracks = 0;
@@ -126,6 +126,7 @@ main(int argc, char **argv)
 			{
 				printf("GMA/SecuriSpeed\n");
 				reduce_sync = 0;
+				reduce_gap = 0;
 				fix_gcr = 0;
 				force_align = ALIGN_AUTOGAP;
 			}

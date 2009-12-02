@@ -92,7 +92,7 @@ main(int argc, char *argv[])
 	gap_match_length = 7;
 	cap_min_ignore = 0;
 	mode = 0;
-	reduce_sync = 4;
+	reduce_sync = 3;
 	reduce_badgcr = 0;
 	reduce_gap = 0;
 	fillbyte= 0x55;
@@ -182,8 +182,9 @@ main(int argc, char *argv[])
 			else if ((*argv)[2] == 'g')
 			{
 				printf("GMA/SecuriSpeed\n");
-				//reduce_sync = 0;
-				//reduce_badgcr = 1;
+				reduce_sync = 0;
+				reduce_gap = 0;
+				reduce_badgcr = 1;
 			}
 			else if ((*argv)[2] == 'v')
 			{
