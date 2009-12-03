@@ -59,7 +59,7 @@ main(int argc, char **argv)
 	rpm_real = 0;
 
 	/* default is to reduce sync */
-	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541);
+	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541 + 1);
 
 	fprintf(stdout,
 	  "\nnibconv - converts a CBM disk image from one format to another.\n"

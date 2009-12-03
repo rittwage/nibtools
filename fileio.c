@@ -62,20 +62,20 @@ void parseargs(char *argv[])
 			if ((*argv)[2] == 'x')
 			{
 				printf("V-MAX!\n");
-				memset(align_map, ALIGN_VMAX, MAX_TRACKS_1541);
+				memset(align_map, ALIGN_VMAX, MAX_TRACKS_1541+1);
 				fix_gcr = 0;
 			}
 			else if ((*argv)[2] == 'c')
 			{
 				printf("V-MAX! (CINEMAWARE)\n");
-				memset(align_map, ALIGN_VMAX_CW, MAX_TRACKS_1541);
+				memset(align_map, ALIGN_VMAX_CW, MAX_TRACKS_1541+1);
 				fix_gcr = 0;
 			}
 			else if ((*argv)[2] == 'g')
 			{
 				printf("GMA/SecuriSpeed\n"); /* turn off reduction for track > 36 */
 
-				for(count = 36; count <= MAX_TRACKS_1541; count ++)
+				for(count = 36; count <= MAX_TRACKS_1541+1; count ++)
 				{
 					reduce_map[count] = REDUCE_NONE;
 					align_map[count] = ALIGN_AUTOGAP;
@@ -85,14 +85,14 @@ void parseargs(char *argv[])
 			else if ((*argv)[2] == 'v')
 			{
 				printf("VORPAL (NEWER)\n");
-				memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541);
+				memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541+1);
 			}
 			else if ((*argv)[2] == 'r')
 			{
 				printf("RAPIDLOK\n"); /* don't reduce sync, but everything else */
 				for(count = 1; count <= MAX_TRACKS_1541; count ++)
 					reduce_map[count] = REDUCE_BAD & REDUCE_GAP;
-				memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541);
+				memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541+1);
 			}
 			else
 				printf("Unknown protection handler\n");
@@ -104,32 +104,32 @@ void parseargs(char *argv[])
 			if ((*argv)[2] == '0')
 			{
 				printf("sector 0\n");
-				memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541);
+				memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541+1);
 			}
 			else if ((*argv)[2] == 'g')
 			{
 				printf("gap\n");
-				memset(align_map, ALIGN_GAP, MAX_TRACKS_1541);
+				memset(align_map, ALIGN_GAP, MAX_TRACKS_1541+1);
 			}
 			else if ((*argv)[2] == 'w')
 			{
 				printf("longest bad GCR run\n");
-				memset(align_map, ALIGN_BADGCR, MAX_TRACKS_1541);
+				memset(align_map, ALIGN_BADGCR, MAX_TRACKS_1541+1);
 			}
 			else if ((*argv)[2] == 's')
 			{
 				printf("longest sync\n");
-				memset(align_map, ALIGN_LONGSYNC, MAX_TRACKS_1541);
+				memset(align_map, ALIGN_LONGSYNC, MAX_TRACKS_1541+1);
 			}
 			else if ((*argv)[2] == 'a')
 			{
 				printf("autogap\n");
-				memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541);
+				memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541+1);
 			}
 			else if ((*argv)[2] == 'n')
 			{
 				printf("raw (no alignment, use NIB start)\n");
-				memset(align_map, ALIGN_RAW, MAX_TRACKS_1541);
+				memset(align_map, ALIGN_RAW, MAX_TRACKS_1541+1);
 			}
 			else
 				printf("Unknown alignment parameter\n");
@@ -257,7 +257,7 @@ void parseargs(char *argv[])
 
 int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment)
 {
-	int track, nibsize, numtracks;
+	int track, nibsize, numtracks, temp_track_inc;
 	int header_entry = 0;
 	char header[0x100];
 	FILE *fpin;
@@ -291,7 +291,7 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		if(numtracks * 2 < end_track)
 			end_track = (numtracks * 2);
 
-		track_inc = 2;
+		temp_track_inc = 2;
 	}
 	else
 	{
@@ -300,7 +300,7 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		if(numtracks < end_track)
 			end_track = numtracks;
 
-		track_inc = 1;
+		temp_track_inc = 1;
 	}
 
 	printf("\n%d track image (filesize = %d bytes)\n", numtracks, nibsize);
@@ -311,7 +311,7 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		return 0;
 	}
 
-	for (track = 2; track <= end_track; track += track_inc)
+	for (track = 2; track <= end_track; track += temp_track_inc)
 	{
 		/* get density from header or use default */
 		track_density[track] = (BYTE)(header[0x10 + (header_entry * 2) + 1]);
@@ -328,7 +328,7 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment)
 {
-	int track, pass_density, pass, nibsize, numtracks;
+	int track, pass_density, pass, nibsize, numtracks, temp_track_inc;
 	int header_entry = 0;
 	char header[0x100];
 	BYTE nibdata[0x2000];
@@ -341,7 +341,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 	printf("\nReading NB2 file...");
 
-	track_inc = 1;  /* all nb2 files contain halftracks */
+	temp_track_inc = 1;  /* all nb2 files contain halftracks */
 
 	if ((fpin = fopen(filename, "rb")) == NULL)
 	{
@@ -371,7 +371,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		if(numtracks * 2 < end_track)
 			end_track = (numtracks * 2);
 
-		track_inc = 2;
+		temp_track_inc = 2;
 	}
 	else
 	{
@@ -380,13 +380,13 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		if(numtracks < end_track)
 			end_track = numtracks;
 
-		track_inc = 1;
+		temp_track_inc = 1;
 	}
 	printf("\n%d track image (filesize = %d bytes)\n", numtracks, nibsize);
 
 	/* get disk id */
 	rewind(fpin);
-	if(track_inc == 2)
+	if(temp_track_inc == 2)
 		fseek(fpin, sizeof(header) + (17 * NIB_TRACK_LENGTH * 16) + (8 * NIB_TRACK_LENGTH), SEEK_SET);
 	else
 		fseek(fpin, sizeof(header) + (17 * 2 * NIB_TRACK_LENGTH * 16) + (8 * NIB_TRACK_LENGTH), SEEK_SET);
@@ -406,7 +406,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		return 0;
 	}
 
-	for (track = 2; track <= end_track; track += track_inc)
+	for (track = 2; track <= end_track; track += temp_track_inc)
 	{
 		/* get density from header or use default */
 		track_density[track] = (BYTE)(header[0x10 + (header_entry * 2) + 1]);
@@ -466,7 +466,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
-	int track, g64maxtrack;
+	int track, g64maxtrack, temp_track_inc;
 	int dens_pointer = 0;
 	int g64tracks, g64size, numtracks;
 	BYTE header[0x2ac];
@@ -505,7 +505,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		if(numtracks * 2 < end_track)
 			end_track = (numtracks * 2);
 
-		track_inc = 2;
+		temp_track_inc = 2;
 	}
 	else
 	{
@@ -514,7 +514,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		if(numtracks < end_track)
 			end_track = numtracks;
 
-		track_inc = 1;
+		temp_track_inc = 1;
 	}
 
 	rewind(fpin);
@@ -525,11 +525,11 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 	printf("\nG64: %d total bytes = %d tracks of %d bytes each\n", g64size, numtracks, g64maxtrack);
 
-	for (track = 2; track <= end_track; track += track_inc)
+	for (track = 2; track <= end_track; track += temp_track_inc)
 	{
 		/* get density from header */
 		track_density[track] = header[0x9 + 0x153 + dens_pointer];
-		dens_pointer += (4 * track_inc);
+		dens_pointer += (4 * temp_track_inc);
 
 		/* get length */
 		fread(length_record, 2, 1, fpin);
@@ -641,7 +641,7 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 		track_length[track*2] = sector_map[track] * SECTOR_SIZE;
 
 		// use default densities for D64
-		track_density[track*2] = speed_map[track-1];
+		track_density[track*2] = speed_map[track];
 
 		// write track
 		memcpy(track_buffer + (track * 2 * NIB_TRACK_LENGTH), gcrdata, track_length[track*2]);
@@ -787,12 +787,12 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		{
 			find_track_cycle(
 				&cycle_start, &cycle_stop,
-				capacity_min[speed_map[(track/2)-1]],
-				capacity_max[speed_map[(track/2)-1]]
+				capacity_min[speed_map[(track/2)]],
+				capacity_max[speed_map[(track/2)]]
 				);
 		}
 
-		printf("%.2d (%d):" ,track/2, capacity[speed_map[(track/2)-1]]);
+		printf("%.2d (%d):" ,track/2, capacity[speed_map[track/2]]);
 
 		for (sector = 0; sector < sector_map[track/2]; sector++)
 		{

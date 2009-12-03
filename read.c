@@ -43,7 +43,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	}
 	else	 if(force_density)
 	{
-		density = speed_map[(halftrack / 2) - 1];
+		density = speed_map[halftrack/2];
 		printf("{DEFAULT }");
 	}
 	else
@@ -56,8 +56,8 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	printf("(%d",density&3);
 	fprintf(fplog,"(%d",density&3);
 
-	if ( (density&3) != speed_map[(halftrack / 2) - 1])
-		printf("!=%d", speed_map[(halftrack / 2) - 1]);
+	if ( (density&3) != speed_map[halftrack/2])
+		printf("!=%d", speed_map[halftrack/2]);
 
 	if(density & BM_FF_TRACK)
 	{

@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 	align = ALIGN_NONE;
 
 	/* default is to reduce sync */
-	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541);
+	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541 + 1);
 
 	// cache our arguments for logfile generation
 	strcpy(argcache, "");

@@ -522,7 +522,7 @@ scandisk(void)
 				printf(":KILLER");
 
 			// establish default density and warn
-			defdensity = speed_map[(track / 2) - 1];
+			defdensity = speed_map[track/2];
 
 			if ((track_density[track] & 3) != defdensity)
 			{
