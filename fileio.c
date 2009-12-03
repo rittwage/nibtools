@@ -993,7 +993,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	/* user display */
 	printf("\n%4.1f: (", (float) halftrack / 2);
 	printf("%d", density & 3);
-	if ( (density&3) != speed_map[(halftrack / 2) - 1]) printf("!");
+	if ( (density&3) != speed_map[halftrack/2]) printf("!");
 	printf(":%d) ", length);
 	if (density & BM_NO_SYNC) printf("NOSYNC ");
 	if (density & BM_FF_TRACK) printf("KILLER ");
