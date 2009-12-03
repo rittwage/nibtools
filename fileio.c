@@ -18,6 +18,243 @@
 #include "crc.h"
 #include "md5.h"
 
+extern int drive;
+
+void parseargs(char *argv[])
+{
+	int count;
+
+	// parse arguments
+	switch ((*argv)[1])
+	{
+		case 'h':
+			track_inc = 1;
+			//start_track = 1;  /* my drive knocks on this track - PJR */
+			end_track = 83;
+			printf("* Using halftracks\n");
+			break;
+
+		case 'S':
+			if (!(*argv)[2]) usage();
+			start_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
+			printf("* Start track set to %d\n", start_track/2);
+			break;
+
+		case 'E':
+			if (!(*argv)[2]) usage();
+			end_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
+			printf("* End track set to %d\n", end_track/2);
+			break;
+
+		case 'u':
+			mode = MODE_UNFORMAT_DISK;
+			break;
+
+		case 'R':
+			// hidden secret raw track file writing mode
+			printf("* Raw track dump write mode\n");
+			mode = MODE_WRITE_RAW;
+			break;
+
+		case 'p':
+			// custom protection handling
+			printf("* Custom copy protection handler: ");
+			if ((*argv)[2] == 'x')
+			{
+				printf("V-MAX!\n");
+				memset(align_map, ALIGN_VMAX, MAX_TRACKS_1541);
+				fix_gcr = 0;
+			}
+			else if ((*argv)[2] == 'c')
+			{
+				printf("V-MAX! (CINEMAWARE)\n");
+				memset(align_map, ALIGN_VMAX_CW, MAX_TRACKS_1541);
+				fix_gcr = 0;
+			}
+			else if ((*argv)[2] == 'g')
+			{
+				printf("GMA/SecuriSpeed\n"); /* turn off reduction for track > 36 */
+
+				for(count = 36; count <= MAX_TRACKS_1541; count ++)
+				{
+					reduce_map[count] = REDUCE_NONE;
+					align_map[count] = ALIGN_AUTOGAP;
+				}
+				fix_gcr = 0;
+			}
+			else if ((*argv)[2] == 'v')
+			{
+				printf("VORPAL (NEWER)\n");
+				memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541);
+			}
+			else if ((*argv)[2] == 'r')
+			{
+				printf("RAPIDLOK\n"); /* don't reduce sync, but everything else */
+				for(count = 1; count <= MAX_TRACKS_1541; count ++)
+					reduce_map[count] = REDUCE_BAD & REDUCE_GAP;
+				memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541);
+			}
+			else
+				printf("Unknown protection handler\n");
+			break;
+
+		case 'a':
+			// custom alignment handling
+			printf("* Custom alignment: ");
+			if ((*argv)[2] == '0')
+			{
+				printf("sector 0\n");
+				memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541);
+			}
+			else if ((*argv)[2] == 'g')
+			{
+				printf("gap\n");
+				memset(align_map, ALIGN_GAP, MAX_TRACKS_1541);
+			}
+			else if ((*argv)[2] == 'w')
+			{
+				printf("longest bad GCR run\n");
+				memset(align_map, ALIGN_BADGCR, MAX_TRACKS_1541);
+			}
+			else if ((*argv)[2] == 's')
+			{
+				printf("longest sync\n");
+				memset(align_map, ALIGN_LONGSYNC, MAX_TRACKS_1541);
+			}
+			else if ((*argv)[2] == 'a')
+			{
+				printf("autogap\n");
+				memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541);
+			}
+			else if ((*argv)[2] == 'n')
+			{
+				printf("raw (no alignment, use NIB start)\n");
+				memset(align_map, ALIGN_RAW, MAX_TRACKS_1541);
+			}
+			else
+				printf("Unknown alignment parameter\n");
+			break;
+
+		case 'r':
+			reduce_sync = atoi((char *) (&(*argv)[2]));
+			if(reduce_sync)
+			{
+				printf("* Reduce sync to %d bytes\n", reduce_sync);
+			}
+			else
+			{
+				printf("* Disabled sync reduction\n");
+				memset(reduce_map, REDUCE_NONE, MAX_TRACKS_1541);
+			}
+			break;
+
+		case '0':
+			printf("* Reduce bad GCR enabled\n");
+			for(count = 1; count <= MAX_TRACKS_1541; count ++)
+				reduce_map[count] &= REDUCE_BAD;
+			break;
+
+		case 'g':
+			printf("* Reduce gaps enabled\n");
+			for(count = 1; count <= MAX_TRACKS_1541; count ++)
+				reduce_map[count] &= REDUCE_GAP;
+			break;
+
+		case 'D':
+			if (!(*argv)[2]) usage();
+			drive = (BYTE) atoi((char *) (&(*argv)[2]));
+			printf("* Use Device %d\n", drive);
+			break;
+
+		case 'G':
+			if (!(*argv)[2]) usage();
+			gap_match_length = atoi((char *) (&(*argv)[2]));
+			printf("* Gap match length set to %d\n", gap_match_length);
+			break;
+
+		case 'f':
+			if ((*argv)[2] == 'f')
+			{
+				fix_gcr = 2;
+				printf("* Enabled more agressive bad GCR reproduction\n");
+			}
+			else
+			{
+				fix_gcr = 0;
+				printf("* Disabled bad GCR bit reproduction\n");
+			}
+			break;
+
+		case 'v':
+			verbose = 1;
+			printf("* Verbose mode on\n");
+			break;
+
+		case 'm':
+			auto_capacity_adjust = 0;
+			printf("* Disabled automatic capacity adjustment\n");
+			break;
+
+		case 'c':
+			printf("* Minimum capacity ignore on\n");
+			cap_min_ignore = 1;
+			break;
+
+		case 's':
+			if (!(*argv)[2]) usage();
+			if(!ihs) align_disk = 1;
+			skew = atoi((char *) (&(*argv)[2]));
+			if((skew > 200000) || (skew < 0))
+			{
+				printf("Skew must be between 1 and 200000us\n");
+				skew = 0;
+			}
+			printf("* Skew set to %dus\n",skew);
+			break;
+
+		case 't':
+			if(!ihs) align_disk = 1;
+			printf("* Attempt soft track alignment\n");
+			break;
+
+		case 'i':
+			printf("* 1571 index hole sensor (use only for side 1)\n");
+			align_disk = 0;
+			ihs = 1;
+			break;
+
+		case 'b':
+			// custom fillbyte
+			printf("* Custom fillbyte: ");
+			if ((*argv)[2] == '0')
+			{
+				printf("0x00\n");
+				fillbyte = 0x00;  /* this gets translated to 0x00 bytes*/
+			}
+			if ((*argv)[2] == '5')
+			{
+				printf("0x55\n");
+				fillbyte = 0x55;
+			}
+			if ((*argv)[2] == 'f')
+			{
+				printf("0xFF\n");
+				fillbyte = 0xFF;
+			}
+			break;
+
+		case '3':
+			printf("* Simulate 'real' 300RPM track capacity\n");
+			rpm_real = 1;
+			break;
+
+		default:
+			usage();
+			break;
+	}
+}
+
+
 int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment)
 {
 	int track, nibsize, numtracks;
@@ -194,7 +431,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 
 					length = extract_GCR_track(tmpdata, nibdata,
 						&track_alignment[track],
-						force_align,
+						track/2,
 						capacity_min[track_density[track]&3],
 						capacity_max[track_density[track]&3]);
 
@@ -381,7 +618,7 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 		memset(gcrdata, 0x55, sizeof(gcrdata));
 		errorstring[0] = '\0';
 
-		for (sector = 0; sector < sector_map_cbm[track]; sector++)
+		for (sector = 0; sector < sector_map[track]; sector++)
 		{
 			// get error and increase reference pointer in errorinfo
 			error = errorinfo[sector_ref++];
@@ -401,10 +638,10 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 		}
 
 		// calculate track length
-		track_length[track*2] = sector_map_cbm[track] * SECTOR_SIZE;
+		track_length[track*2] = sector_map[track] * SECTOR_SIZE;
 
 		// use default densities for D64
-		track_density[track*2] = speed_map_cbm[track-1];
+		track_density[track*2] = speed_map[track-1];
 
 		// write track
 		memcpy(track_buffer + (track * 2 * NIB_TRACK_LENGTH), gcrdata, track_length[track*2]);
@@ -550,14 +787,14 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		{
 			find_track_cycle(
 				&cycle_start, &cycle_stop,
-				capacity_min[speed_map_cbm[(track/2)-1]],
-				capacity_max[speed_map_cbm[(track/2)-1]]
+				capacity_min[speed_map[(track/2)-1]],
+				capacity_max[speed_map[(track/2)-1]]
 				);
 		}
 
-		printf("%.2d (%d):" ,track/2, capacity[speed_map_cbm[(track/2)-1]]);
+		printf("%.2d (%d):" ,track/2, capacity[speed_map[(track/2)-1]]);
 
-		for (sector = 0; sector < sector_map_cbm[track/2]; sector++)
+		for (sector = 0; sector < sector_map[track/2]; sector++)
 		{
 			printf("%d", sector);
 
@@ -693,8 +930,8 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 
 		memset(&gcr_track[2], fillbyte, G64_TRACK_MAXLEN);
 
-		gcr_track[0] = raw_track_size[speed_map_cbm[track/2]] % 256;
-		gcr_track[1] = raw_track_size[speed_map_cbm[track/2]] / 256;
+		gcr_track[0] = raw_track_size[speed_map[track/2]] % 256;
+		gcr_track[1] = raw_track_size[speed_map[track/2]] / 256;
 
 		memcpy(buffer, track_buffer + ((track+2) * NIB_TRACK_LENGTH), track_length[track+2]);
 		track_len = track_length[track+2];
@@ -702,7 +939,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		if(track_len == 0)
 		{
 			/* track doesn't exist: write unformatted track */
-			track_len = raw_track_size[speed_map_cbm[track/2]];
+			track_len = raw_track_size[speed_map[track/2]];
 			memset(buffer, 0, track_len);
 		}
 
@@ -711,9 +948,9 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 
 		if(rpm_real)
 		{
-			if(track_len > raw_track_size[speed_map_cbm[track/2]])
+			if(track_len > raw_track_size[speed_map[track/2]])
 			{
-				capacity[speed_map_cbm[track/2]] = raw_track_size[speed_map_cbm[track/2]] + CAPACITY_MARGIN;
+				capacity[speed_map[track/2]] = raw_track_size[speed_map[track/2]] + CAPACITY_MARGIN;
 				track_len = compress_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
 			}
 		}
@@ -721,7 +958,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		{
 			if(track_len > G64_TRACK_MAXLEN)
 			{
-				capacity[speed_map_cbm[track/2]] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+				capacity[speed_map[track/2]] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
 				track_len = compress_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
 			}
 		}
@@ -756,7 +993,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	/* user display */
 	printf("\n%4.1f: (", (float) halftrack / 2);
 	printf("%d", density & 3);
-	if ( (density&3) != speed_map_cbm[(halftrack / 2) - 1]) printf("!");
+	if ( (density&3) != speed_map[(halftrack / 2) - 1]) printf("!");
 	printf(":%d) ", length);
 	if (density & BM_NO_SYNC) printf("NOSYNC ");
 	if (density & BM_FF_TRACK) printf("KILLER ");
@@ -768,7 +1005,8 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 		/* If our track contains sync, we reduce to a minimum of 32 bits
 		   less is too short for some loaders including CBM, but only 10 bits are technically required */
 		orglen = length;
-		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (!(density & BM_NO_SYNC)) && (reduce_sync) )
+		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (!(density & BM_NO_SYNC)) &&
+			(reduce_map[halftrack/2] & REDUCE_SYNC) )
 		{
 			/* reduce sync marks within the track */
 			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, reduce_sync, 0xff);
@@ -779,7 +1017,8 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 
 		/* reduce bad GCR runs */
 		orglen = length;
-		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (reduce_badgcr) )
+		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) &&
+			(reduce_map[halftrack/2] & REDUCE_BAD) )
 		{
 			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 0, 0x00);
 
@@ -789,7 +1028,8 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 
 		/* reduce sector gaps -  they occur at the end of every sector and vary from 4-19 bytes, typically  */
 		orglen = length;
-		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (reduce_gap) )
+		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) &&
+			(reduce_map[halftrack/2] & REDUCE_GAP) )
 		{
 			length = reduce_gaps(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN);
 
@@ -844,7 +1084,7 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, int *track_length, BYT
 			track_buffer + (track * NIB_TRACK_LENGTH),
 			nibdata,
 			&track_alignment[track],
-			force_align,
+			track/2,
 			capacity_min[track_density[track]&3],
 			capacity_max[track_density[track]&3]
 		);
@@ -970,7 +1210,7 @@ unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 	index = 0;
 	for (track = start_track; track <= 35*2; track += 2)
 	{
-		for (sector = 0; sector < sector_map_cbm[track/2]; sector++)
+		for (sector = 0; sector < sector_map[track/2]; sector++)
 		{
 			memset(rawdata, 0, sizeof(rawdata));
 
@@ -1063,7 +1303,7 @@ unsigned int md5_all_tracks(BYTE *track_buffer, int *track_length, unsigned char
 	index = 0;
 	for (track = start_track; track <= 35*2; track += 2)
 	{
-		for (sector = 0; sector < sector_map_cbm[track/2]; sector++)
+		for (sector = 0; sector < sector_map[track/2]; sector++)
 		{
 			memset(rawdata, 0, sizeof(rawdata));
 

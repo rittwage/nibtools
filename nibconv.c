@@ -11,8 +11,8 @@
 #include <fcntl.h>
 
 #include "mnibarch.h"
-#include "gcr.h"
 #include "nibtools.h"
+#include "gcr.h"
 
 int _dowildcard = 1;
 
@@ -29,7 +29,12 @@ int cap_min_ignore;
 int skip_halftracks;
 int verbose;
 int rpm_real;
-
+int drive;
+int auto_capacity_adjust;
+int skew;
+int align_disk;
+int ihs;
+int mode;
 
 int ARCH_MAINDECL
 main(int argc, char **argv)
@@ -44,8 +49,6 @@ main(int argc, char **argv)
 	track_inc = 2;
 	fix_gcr = 1;
 	reduce_sync = 3;
-	reduce_badgcr = 0;
-	reduce_gap = 0;
 	skip_halftracks = 0;
 	align = ALIGN_NONE;
 	force_align = ALIGN_NONE;
@@ -54,6 +57,9 @@ main(int argc, char **argv)
 	verbose = 0;
 	fillbyte = 0x55;
 	rpm_real = 0;
+
+	/* default is to reduce sync */
+	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541);
 
 	fprintf(stdout,
 	  "\nnibconv - converts a CBM disk image from one format to another.\n"
@@ -67,158 +73,7 @@ main(int argc, char **argv)
 	}
 
 	while (--argc && (*(++argv)[0] == '-'))
-	{
-		switch ((*argv)[1])
-		{
-
-		case 'f':
-			if ((*argv)[2] == 'f')
-			{
-				fix_gcr = 2;
-				printf("* Enabled more agressive bad GCR reproduction\n");
-			}
-			else
-			{
-				fix_gcr = 0;
-				printf("* Disabled bad GCR bit reproduction\n");
-			}
-
-		case 'r':
-			reduce_sync = atoi((char *) (&(*argv)[2]));
-			if(reduce_sync)
-				printf("* Reduce sync to %d bytes\n", reduce_sync);
-			else
-				printf("* Disabled sync reduction\n");
-			break;
-
-		case '0':
-			printf("* Reduce bad GCR enabled\n");
-			reduce_badgcr = 1;
-			break;
-
-		case 'g':
-			printf("* Reduce gaps enabled\n");
-			reduce_gap = 1;
-			break;
-
-		case 'G':
-			if (!(*argv)[2]) usage();
-			gap_match_length = atoi((char *) (&(*argv)[2]));
-			printf("* Gap match length set to %d\n", gap_match_length);
-			break;
-
-		case 'p':
-			// custom protection handling
-			printf("* Custom copy protection handler: ");
-			if ((*argv)[2] == 'x')
-			{
-				printf("V-MAX!\n");
-				force_align = ALIGN_VMAX;
-				fix_gcr = 0;
-			}
-			else if ((*argv)[2] == 'c')
-			{
-				printf("V-MAX! (CINEMAWARE)\n");
-				force_align = ALIGN_VMAX_CW;
-				fix_gcr = 0;
-			}
-			else if ((*argv)[2] == 'g')
-			{
-				printf("GMA/SecuriSpeed\n");
-				reduce_sync = 0;
-				reduce_gap = 0;
-				fix_gcr = 0;
-				force_align = ALIGN_AUTOGAP;
-			}
-			else if ((*argv)[2] == 'v')
-			{
-				printf("VORPAL (NEWER)\n");
-				force_align = ALIGN_AUTOGAP;
-			}
-			else if ((*argv)[2] == 'r')
-			{
-				printf("RAPIDLOK\n");
-				reduce_sync = 0;
-				reduce_badgcr = 1;
-				reduce_gap = 1;
-				force_align = ALIGN_SEC0;
-			}
-			else
-				printf("Unknown protection handler\n");
-			break;
-
-		case 'a':
-			// custom alignment handling
-			printf("ARG: Custom alignment = ");
-			if ((*argv)[2] == '0')
-			{
-				printf("sector 0\n");
-				force_align = ALIGN_SEC0;
-			}
-			else if ((*argv)[2] == 'w')
-			{
-				printf("longest bad gcr run\n");
-				force_align = ALIGN_BADGCR;
-			}
-			else if ((*argv)[2] == 's')
-			{
-				printf("longest sync\n");
-				force_align = ALIGN_LONGSYNC;
-			}
-			else if ((*argv)[2] == 'a')
-			{
-				printf("autogap\n");
-				force_align = ALIGN_AUTOGAP;
-			}
-			else
-				printf("Unknown alignment parameter\n");
-			break;
-
-		case 'h':
-			printf("* Skipping halftracks\n");
-			skip_halftracks = 1;
-			break;
-
-		case 'v':
-			printf("* Verbose mode (more detailed track info)\n");
-			verbose = 1;
-			break;
-
-		case 'm':
-			printf("* Minimum capacity ignore on\n");
-			cap_min_ignore = 1;
-			break;
-
-		case '3':
-			printf("* Simulate 'real' 300RPM track capacity\n");
-			rpm_real = 1;
-			break;
-
-		case 'b':
-			// custom fillbyte
-			printf("* Custom fillbyte: ");
-			if ((*argv)[2] == '0')
-			{
-				printf("0x00\n");
-				fillbyte = 0x00;
-			}
-			if ((*argv)[2] == '5')
-			{
-				printf("0x55\n");
-				fillbyte = 0x55;
-			}
-			if ((*argv)[2] == 'f')
-			{
-				printf("0xFF\n");
-				fillbyte = 0xFF;
-			}
-			break;
-
-		default:
-			usage();
-			break;
-		}
-	}
+		parseargs(argv);
 
 	if(argc < 1)	usage();
 

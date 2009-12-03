@@ -26,10 +26,10 @@
 int _dowildcard = 1;
 
 BYTE *track_buffer;
+BYTE fillbyte;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 int track_length[MAX_HALFTRACKS_1541 + 1];
-
 int start_track, end_track, track_inc;
 int reduce_sync, reduce_badgcr, reduce_gap;
 int fix_gcr, align, force_align;
@@ -38,7 +38,12 @@ int cap_min_ignore;
 int skip_halftracks;
 int verbose = 0;
 int rpm_real;
-BYTE fillbyte;
+int ihs;
+int drive;
+int auto_capacity_adjust;
+int align_disk;
+int skew;
+int mode;
 
 /* local prototypes */
 int repair(void);
@@ -77,123 +82,7 @@ main(int argc, char **argv)
 	}
 
 	while (--argc && (*(++argv)[0] == '-'))
-	{
-		switch ((*argv)[1])
-		{
-		case 'f':
-			printf("* Fix bad GCR\n");
-			fix_gcr = 1;
-			break;
-
-		case 'r':
-			reduce_sync = atoi((char *) (&(*argv)[2]));
-			if(reduce_sync)
-				printf("* Reduce sync to %d bytes\n", reduce_sync);
-			else
-				printf("* Disabled sync reduction\n");
-			break;
-
-		case '0':
-			printf("* Reduce bad GCR enabled\n");
-			reduce_badgcr = 1;
-			break;
-
-		case 'g':
-			printf("* Reduce gaps enabled\n");
-			reduce_gap = 1;
-			break;
-
-		case 'G':
-			if (!(*argv)[2]) usage();
-			gap_match_length = atoi((char *) (&(*argv)[2]));
-			printf("* Gap match length set to %d\n", gap_match_length);
-			break;
-
-		case 'p':
-			// custom protection handling
-			printf("* Custom copy protection handler: ");
-			if ((*argv)[2] == 'x')
-			{
-				printf("V-MAX!\n");
-				force_align = ALIGN_VMAX;
-				fix_gcr = 0;
-			}
-			else if ((*argv)[2] == 'c')
-			{
-				printf("V-MAX! (CINEMAWARE)\n");
-				force_align = ALIGN_VMAX_CW;
-				fix_gcr = 0;
-			}
-			else if ((*argv)[2] == 'g')
-			{
-				printf("GMA/SecuriSpeed\n");
-				reduce_sync = 0;
-				reduce_gap = 0;
-				reduce_badgcr = 1;
-			}
-			else if ((*argv)[2] == 'v')
-			{
-				printf("VORPAL (NEWER)\n");
-				force_align = ALIGN_AUTOGAP;
-			}
-			else if ((*argv)[2] == 'r')
-			{
-				printf("RAPIDLOK\n");
-				reduce_sync = 0;
-				reduce_badgcr = 1;
-				reduce_gap = 1;
-			}
-			else
-				printf("Unknown protection handler\n");
-			break;
-
-		case 'a':
-			// custom alignment handling
-			printf("ARG: Custom alignment = ");
-			if ((*argv)[2] == '0')
-			{
-				printf("sector 0\n");
-				force_align = ALIGN_SEC0;
-			}
-			else if ((*argv)[2] == 'w')
-			{
-				printf("longest bad gcr run\n");
-				force_align = ALIGN_BADGCR;
-			}
-			else if ((*argv)[2] == 's')
-			{
-				printf("longest sync\n");
-				force_align = ALIGN_LONGSYNC;
-			}
-			else if ((*argv)[2] == 'a')
-			{
-				printf("autogap\n");
-				force_align = ALIGN_AUTOGAP;
-			}
-			else
-				printf("Unknown alignment parameter\n");
-			break;
-
-		case 'h':
-			printf("* Skipping halftracks\n");
-			skip_halftracks = 1;
-			break;
-
-		case 'v':
-			printf("* Verbose mode (more detailed track info)\n");
-			verbose = 1;
-			break;
-
-		case 'm':
-			printf("* Minimum capacity ignore on\n");
-			cap_min_ignore = 1;
-			break;
-
-		default:
-			usage();
-			break;
-		}
-	}
+		parseargs(argv);
 
 	if(argc < 1)	usage();
 	strcpy(inname, argv[0]);
@@ -259,7 +148,7 @@ int repair(void)
 
 	for (track = start_track; track <= 35*2 /*end_track*/; track += track_inc)
 	{
-		for (sector = 0; sector < sector_map_cbm[track/2]; sector++)
+		for (sector = 0; sector < sector_map[track/2]; sector++)
 		{
 				errorcode = repair_GCR_sector(track_buffer + (track * NIB_TRACK_LENGTH),
 																		track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],

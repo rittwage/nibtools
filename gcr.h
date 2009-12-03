@@ -107,22 +107,26 @@ speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 #define BM_NO_SYNC     0x40
 #define BM_FF_TRACK    0x80
 
-#define ALIGN_NONE			0
-#define ALIGN_GAP			1
-#define ALIGN_SEC0			2
+#define ALIGN_NONE					0
+#define ALIGN_GAP					1
+#define ALIGN_SEC0					2
 #define ALIGN_LONGSYNC		3
 #define ALIGN_BADGCR			4
-#define ALIGN_VMAX			5
-#define ALIGN_AUTOGAP		6
+#define ALIGN_VMAX					5
+#define ALIGN_AUTOGAP			6
 #define ALIGN_VMAX_CW		7
 #define ALIGN_RAW 8
 
-#define GCR_MASK_BAD_FIRST 0
-#define GCR_MASK_BAD_LAST 1
+#define REDUCE_NONE   0x00
+#define REDUCE_SYNC	0x10
+#define REDUCE_GAP		0x20
+#define REDUCE_BAD		0x40
 
 /* global variables */
-extern BYTE sector_map_cbm[];
-extern BYTE speed_map_cbm[];
+extern BYTE sector_map[];
+extern BYTE speed_map[];
+extern BYTE align_map[];
+extern BYTE reduce_map[];
 extern int capacity[];
 extern int capacity_min[];
 extern int capacity_max[];\
@@ -145,7 +149,7 @@ BYTE convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_end, BYTE * d64_sector, int
 void convert_sector_to_GCR(BYTE * buffer, BYTE * ptr, int track, int sector, BYTE * diskID, int error);
 BYTE * find_sector_gap(BYTE * work_buffer, int tracklen, size_t * p_sectorlen);
 BYTE * find_sector0(BYTE * work_buffer, int tracklen, size_t * p_sectorlen);
-int extract_GCR_track(BYTE * destination, BYTE * source, BYTE *align, int force_align, size_t cap_min, size_t cap_max);
+int extract_GCR_track(BYTE * destination, BYTE * source, BYTE *align, int halftrack, size_t cap_min, size_t cap_max);
 int replace_bytes(BYTE * buffer, int length, BYTE srcbyte, BYTE dstbyte);
 int check_bad_gcr(BYTE * gcrdata, int length, int fix);
 BYTE check_sync_flags(BYTE * gcrdata, int density, int length);

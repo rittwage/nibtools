@@ -4,7 +4,7 @@
  * based on MNIB by Markus Brenner <markus(at)brenner(dot)de>
  */
 
-#define VERSION "0.6.2 (Built "__DATE__" "__TIME__")"
+#define VERSION "0.6.3 (Built "__DATE__" "__TIME__")"
 
 #define FL_STEPTO      0x00
 #define FL_MOTOR       0x01
@@ -23,29 +23,6 @@
 #define FL_INITTRACK 0x0e
 #define FL_VERIFY_CODE 0x0f
 #define FL_ZEROTRACK 0x10
-
-/*
-#define FL_READIHS 0x03
-#define FL_WRITEIHS 0x04
-#define FL_STEPTO      0x00
-#define FL_MOTOR       0x01
-#define FL_RESET       0x02
-#define FL_READNORMAL  0x03
-#define FL_WRITESYNC   0x04
-#define FL_DENSITY     0x05
-#define FL_SCANKILLER  0x06
-#define FL_SCANDENSITY 0x07
-#define FL_READWOSYNC  0x08
-#define FL_READMOTOR   0x09
-#define FL_TEST        0x0a
-#define FL_WRITENOSYNC 0x0b
-#define FL_CAPACITY    0x0c
-#define FL_INITTRACK   0x0d
-#define FL_FINDSYNC    0x0e
-#define FL_READMARKER  0x0f
-#define FL_VERIFY_CODE 0x10
-#define FL_ZEROTRACK 0x11
-*/
 
 #define DISK_NORMAL    0
 
@@ -87,14 +64,13 @@ extern char bitrate_range[4];
 extern char bitrate_value[4];
 extern char density_branch[4];
 extern BYTE density_map;
-extern BYTE speed_map_rapidlok[];
 extern BYTE skew_map[];
+extern BYTE fillbyte;
 extern FILE * fplog;
 extern float motor_speed;
 extern int mode;
 extern int read_killer;
 extern int error_retries;
-extern int force_align;
 extern int align_disk;
 extern int force_density;
 extern int track_match;
@@ -102,16 +78,16 @@ extern int interactive_mode;
 extern int gap_match_length;
 extern int cap_min_ignore;
 extern int verbose;
-extern BYTE fillbyte;
 extern int skew;
 extern int ihs;
 extern int start_track, end_track, track_inc;
-extern int fix_gcr, reduce_sync, reduce_gap, reduce_badgcr;
+extern int fix_gcr, reduce_sync;
 extern int imagetype, auto_capacity_adjust;
 extern int extended_parallel_test;
 extern int force_nosync;
 extern int rawmode;
 extern int rpm_real;
+extern int drive;
 
 /* common */
 void usage(void);
@@ -124,6 +100,7 @@ int loadimage(char * filename);
 int writeimage(CBM_FILE fd);
 
 /* fileio.c */
+void parseargs(char *argv[]);
 int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment);
 int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment);
 int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);

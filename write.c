@@ -32,8 +32,8 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 			printf("\n%4.1f: (", (float) track / 2);
 			printf("%d", track_density[track] & 3);
 
-			if ( (track_density[track]&3) != speed_map_cbm[(track / 2) - 1])
-				printf("!=%d", speed_map_cbm[(track / 2) - 1]);
+			if ( (track_density[track]&3) != speed_map[(track / 2) - 1])
+				printf("!=%d", speed_map[(track / 2) - 1]);
 
 			printf(":%d) ", length);
 
@@ -73,7 +73,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		    some of this is the "leader" which is overwritten
 		    some 1571's don't like a lot of 0x00 bytes, they see phantom sync, etc.
 		*/
-		if((track_density[track] & BM_NO_SYNC) || (force_align == ALIGN_AUTOGAP))
+		if(track_density[track] & BM_NO_SYNC)
 			memset(rawtrack, 0x55, sizeof(rawtrack));
 		else
 			memset(rawtrack, fillbyte, sizeof(rawtrack));

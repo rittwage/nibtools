@@ -27,9 +27,9 @@ BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 int track_length[MAX_HALFTRACKS_1541 + 1];
 
 int start_track, end_track, track_inc;
-int reduce_sync, reduce_badgcr, reduce_gap;
+int reduce_sync;
 int fix_gcr, aggressive_gcr;
-int align, force_align;
+int align;
 unsigned int lpt[4];
 int lpt_num;
 int drivetype;
@@ -45,6 +45,7 @@ int verbose = 0;
 float motor_speed;
 int skew = 0;
 int ihs = 0;
+int drive;
 BYTE fillbyte;
 int rpm_real;
 
@@ -84,8 +85,6 @@ main(int argc, char *argv[])
 	track_inc = 2;
 
 	reduce_sync = 3;
-	reduce_badgcr = 0;
-	reduce_gap = 0;
 	fix_gcr = 1;
 	align_disk = 0;
 	auto_capacity_adjust = 1;
@@ -98,7 +97,9 @@ main(int argc, char *argv[])
 
 	mode = MODE_WRITE_DISK;
 	align = ALIGN_NONE;
-	force_align = ALIGN_NONE;
+
+	/* default is to reduce sync */
+	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541);
 
 	// cache our arguments for logfile generation
 	strcpy(argcache, "");
@@ -108,238 +109,10 @@ main(int argc, char *argv[])
 		strcat(argcache," ");
 	}
 
-	// parse arguments
 	while (--argc && (*(++argv)[0] == '-'))
-	{
-		switch ((*argv)[1])
-		{
-		case 'h':
-			track_inc = 1;
-			//start_track = 1;  /* my drive knocks on this track - PJR */
-			end_track = 83;
-			printf("* Using halftracks\n");
-			break;
+		parseargs(argv);
 
-		case 'S':
-			if (!(*argv)[2]) usage();
-			start_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
-			printf("* Start track set to %d\n", start_track/2);
-			break;
-
-		case 'E':
-			if (!(*argv)[2]) usage();
-			end_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
-			printf("* End track set to %d\n", end_track/2);
-			break;
-
-		case 'u':
-			mode = MODE_UNFORMAT_DISK;
-			break;
-
-		case 'R':
-			// hidden secret raw track file writing mode
-			printf("* Raw track dump write mode\n");
-			mode = MODE_WRITE_RAW;
-			break;
-
-		case 'p':
-			// custom protection handling
-			printf("* Custom copy protection handler: ");
-			if ((*argv)[2] == 'x')
-			{
-				printf("V-MAX!\n");
-				force_align = ALIGN_VMAX;
-				fix_gcr = 0;
-			}
-			else if ((*argv)[2] == 'c')
-			{
-				printf("V-MAX! (CINEMAWARE)\n");
-				force_align = ALIGN_VMAX_CW;
-				fix_gcr = 0;
-			}
-			else if ((*argv)[2] == 'g')
-			{
-				printf("GMA/SecuriSpeed\n");
-				reduce_sync = 0;
-				reduce_gap = 0;
-				fix_gcr = 0;
-				force_align = ALIGN_AUTOGAP;
-			}
-			else if ((*argv)[2] == 'v')
-			{
-				printf("VORPAL (NEWER)\n");
-				force_align = ALIGN_AUTOGAP;
-			}
-			else if ((*argv)[2] == 'r')
-			{
-				printf("RAPIDLOK\n");
-				reduce_sync = 0;
-				reduce_badgcr = 1;
-				reduce_gap = 1;
-				force_align = ALIGN_SEC0;
-			}
-			else if ((*argv)[2] == 'm')
-			{
-				printf("Magic Bytes/Time Warp/Rainbow Arts (earlier)\n");
-				reduce_sync = 0;
-				reduce_gap = 1;
-				fillbyte=0x55;
-			}
-			else if ((*argv)[2] == 'f')
-			{
-				printf("'FAT' Tracks\n");
-				force_align = ALIGN_SEC0;
-				fillbyte = 0x55;
-			}
-			else
-				printf("Unknown protection handler\n");
-			break;
-
-		case 'a':
-			// custom alignment handling
-			printf("* Custom alignment: ");
-			if ((*argv)[2] == '0')
-			{
-				printf("sector 0\n");
-				force_align = ALIGN_SEC0;
-			}
-			else if ((*argv)[2] == 'g')
-			{
-				printf("gap\n");
-				force_align = ALIGN_GAP;
-			}
-			else if ((*argv)[2] == 'w')
-			{
-				printf("longest bad GCR run\n");
-				force_align = ALIGN_BADGCR;
-			}
-			else if ((*argv)[2] == 's')
-			{
-				printf("longest sync\n");
-				force_align = ALIGN_LONGSYNC;
-			}
-			else if ((*argv)[2] == 'a')
-			{
-				printf("autogap\n");
-				force_align = ALIGN_AUTOGAP;
-			}
-			else if ((*argv)[2] == 'n')
-			{
-				printf("raw (no alignment, use NIB start)\n");
-				force_align = ALIGN_RAW;
-			}
-			else
-				printf("Unknown alignment parameter\n");
-			break;
-
-		case 'r':
-			reduce_sync = atoi((char *) (&(*argv)[2]));
-			if(reduce_sync)
-				printf("* Reduce sync to %d bytes\n", reduce_sync);
-			else
-				printf("* Disabled sync reduction\n");
-			break;
-
-		case '0':
-			reduce_badgcr = 1;
-			printf("* Enabled 'reduce bad GCR' option\n");
-			break;
-
-		case 'g':
-			reduce_gap = 1;
-			printf("* Enabled 'reduce gaps' option\n");
-			break;
-
-		case 'D':
-			if (!(*argv)[2]) usage();
-			drive = (BYTE) atoi((char *) (&(*argv)[2]));
-			printf("* Use Device %d\n", drive);
-			break;
-
-		case 'G':
-			if (!(*argv)[2]) usage();
-			gap_match_length = atoi((char *) (&(*argv)[2]));
-			printf("* Gap match length set to %d\n", gap_match_length);
-			break;
-
-		case 'f':
-			if ((*argv)[2] == 'f')
-			{
-				fix_gcr = 2;
-				printf("* Enabled more agressive bad GCR reproduction\n");
-			}
-			else
-			{
-				fix_gcr = 0;
-				printf("* Disabled bad GCR bit reproduction\n");
-			}
-			break;
-
-		case 'v':
-			verbose = 1;
-			printf("* Verbose mode on\n");
-			break;
-
-		case 'm':
-			auto_capacity_adjust = 0;
-			printf("* Disabled automatic capacity adjustment\n");
-			break;
-
-		case 'c':
-			printf("* Minimum capacity ignore on\n");
-			cap_min_ignore = 1;
-			break;
-
-		case 's':
-			if (!(*argv)[2]) usage();
-			if(!ihs) align_disk = 1;
-			skew = atoi((char *) (&(*argv)[2]));
-			if((skew > 200000) || (skew < 0))
-			{
-				printf("Skew must be between 1 and 200000us\n");
-				skew = 0;
-			}
-			printf("* Skew set to %dus\n",skew);
-			break;
-
-		case 't':
-			if(!ihs) align_disk = 1;
-			printf("* Attempt soft track alignment\n");
-			break;
-
-		case 'i':
-			printf("* 1571 index hole sensor (use only for side 1)\n");
-			align_disk = 0;
-			ihs = 1;
-			break;
-
-		case 'b':
-			// custom fillbyte
-			printf("* Custom fillbyte: ");
-			if ((*argv)[2] == '0')
-			{
-				printf("0x00\n");
-				fillbyte = 0x00;  /* this gets translated to 0x00 bytes*/
-			}
-			if ((*argv)[2] == '5')
-			{
-				printf("0x55\n");
-				fillbyte = 0x55;
-			}
-			if ((*argv)[2] == 'f')
-			{
-				printf("0xFF\n");
-				fillbyte = 0xFF;
-			}
-			break;
-
-		default:
-			usage();
-			break;
-		}
-	}
 	printf("\n");
-
 	if (argc > 0)	strcpy(filename, argv[0]);
 
 #ifdef DJGPP
@@ -411,7 +184,6 @@ loadimage(char * filename)
 	char *dotpos, *pathpos;
 	int iszip = 0;
 	int retval = 0;
-	int i;
 
 	/* unzip image if possible */
 	if (compare_extension(filename, "ZIP"))
@@ -450,25 +222,12 @@ loadimage(char * filename)
 	{
 		retval = read_nib(filename, track_buffer, track_density, track_length, track_alignment);
 		if(retval)
-		{
-			if(force_align == ALIGN_RAW)
-			{
-				for(i=start_track; i<=end_track;i+=track_inc)
-				{
-					track_length[i] = capacity_max[track_density[i]];
-					track_alignment[i] = ALIGN_RAW;
-				}
-			}
-			else
-			{
-				align_tracks(track_buffer, track_density, track_length, track_alignment);
-			}
-		}
+			align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
 		retval = read_nb2(filename, track_buffer, track_density, track_length, track_alignment);
-		if((retval) && (force_align != ALIGN_RAW))
+		if(retval)
 			align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else

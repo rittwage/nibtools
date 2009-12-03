@@ -30,7 +30,7 @@ int reduce_sync, reduce_badgcr, reduce_gap;
 int fix_gcr, aggressive_gcr;
 int start_track, end_track, track_inc;
 int read_killer;
-int align, force_align;
+int align;
 int error_retries;
 int drivetype;
 int imagetype;
@@ -44,6 +44,10 @@ int verbose;
 int extended_parallel_test;
 int force_nosync;
 int ihs;
+int drive;
+int auto_capacity_adjust;
+int align_disk;
+int skew;
 int rawmode;
 BYTE fillbyte;
 int rpm_real;
@@ -99,12 +103,10 @@ main(int argc, char *argv[])
 	extended_parallel_test = 0;
 	force_nosync = 0;
 	align = ALIGN_NONE;
-	force_align = ALIGN_NONE;
 	gap_match_length = 7;
 	cap_min_ignore = 0;
 	ihs = 0;
 	mode = MODE_READ_DISK;
-	density_map = DENSITY_STANDARD;
 	fillbyte = 0x55;
 	rawmode = 0;
 	rpm_real = 0;
@@ -160,7 +162,6 @@ main(int argc, char *argv[])
 
 		case 'd':
 			force_density = 1;
-			density_map = DENSITY_STANDARD;
 			printf("* Forcing default density\n");
 			break;
 
@@ -202,19 +203,6 @@ main(int argc, char *argv[])
 			if (!(*argv)[2]) usage();
 			error_retries = atoi((char *) (&(*argv)[2]));
 			printf("* Read retries set to %d\n", error_retries);
-			break;
-
-		case 'p': // custom protection handling
-			printf("* Custom copy protection handler: ");
-			if ((*argv)[2] == 'r')
-			{
-				printf("RAPIDLOK\n");
-				force_density = 1;
-				density_map = DENSITY_RAPIDLOK;
-				error_retries = 1;
-			}
-			else
-				printf("Unknown protection handler\n");
 			break;
 
 		case 'm':
@@ -351,7 +339,6 @@ usage(void)
 	     " -m: Disable minimum capacity check\n"
 	     " -V: Verbose (output more detailed track data)\n"
 	     " -h: Read halftracks\n"
-		 " -p: Custom protection handling (see documentation)\n"
 	     " -t: Extended parallel port tests\n"
 	     );
 	exit(1);

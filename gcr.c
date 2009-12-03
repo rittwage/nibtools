@@ -25,7 +25,7 @@
 #include "prot.h"
 #include "crc.h"
 
-BYTE sector_map_cbm[MAX_TRACKS_1541 + 1] = {
+BYTE sector_map[MAX_TRACKS_1541 + 1] = {
 	0,
 	21, 21, 21, 21, 21, 21, 21, 21, 21, 21,	/*  1 - 10 */
 	21, 21, 21, 21, 21, 21, 21, 19, 19, 19,	/* 11 - 20 */
@@ -34,13 +34,28 @@ BYTE sector_map_cbm[MAX_TRACKS_1541 + 1] = {
 	17, 17, 17, 17, 17, 17, 17				/* 36 - 42 (non-standard) */
 };
 
-
-BYTE speed_map_cbm[MAX_TRACKS_1541] = {
+BYTE speed_map[MAX_TRACKS_1541] = {
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,	/*  1 - 10 */
 	3, 3, 3, 3, 3, 3, 3, 2, 2, 2,	/* 11 - 20 */
 	2, 2, 2, 2, 1, 1, 1, 1, 1, 1,	/* 21 - 30 */
 	0, 0, 0, 0, 0,					/* 31 - 35 */
 	0, 0, 0, 0, 0, 0, 0				/* 36 - 42 (non-standard) */
+};
+
+BYTE align_map[MAX_TRACKS_1541] = {
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/*  1 - 10 */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 11 - 20 */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 21 - 30 */
+	0, 0, 0, 0, 0, 0,					/* 31 - 35 */
+	0,	0, 0, 0, 0, 0						/* 37 - 42  */
+};
+
+BYTE reduce_map[MAX_TRACKS_1541] = {
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/*  1 - 10 */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 11 - 20 */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 21 - 30 */
+	0, 0, 0, 0, 0, 0,					/* 31 - 35 */
+	0,	0, 0, 0, 0, 0						/* 37 - 42  */
 };
 
 char alignments[][20] = { "NONE", "GAP", "SEC0", "SYNC", "BADGCR", "VMAX", "AUTO", "VMAX-CW"};
@@ -753,7 +768,7 @@ int check_formatted(BYTE *gcrdata)
    [Input]  destination buffer, source buffer
    [Return] length of copied track fragment
 */
-int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_align, size_t cap_min, size_t cap_max)
+int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_t cap_min, size_t cap_max)
 {
 	BYTE work_buffer[NIB_TRACK_LENGTH*2];	/* working buffer */
 	BYTE *cycle_start;	/* start position of cycle */
@@ -816,48 +831,48 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int force_al
 	}
 
 	//* forced track alignments */
-	if (force_align != ALIGN_NONE)
+	if (align_map[track] != ALIGN_NONE)
 	{
-		if (force_align == ALIGN_VMAX_CW)
+		if (align_map[track] == ALIGN_VMAX_CW)
 		{
 			*align = ALIGN_VMAX_CW;
 			marker_pos = align_vmax_cw(work_buffer, track_len);
 
 			if(!marker_pos)
-				force_align = ALIGN_VMAX;
+				align_map[track] = ALIGN_VMAX;
 		}
 
-		if (force_align == ALIGN_VMAX)
+		if (align_map[track] == ALIGN_VMAX)
 		{
 			*align = ALIGN_VMAX;
 			marker_pos = align_vmax(work_buffer, track_len);
 		}
 
-		if (force_align == ALIGN_AUTOGAP)
+		if (align_map[track] == ALIGN_AUTOGAP)
 		{
 			*align = ALIGN_AUTOGAP;
 			marker_pos = auto_gap(work_buffer, track_len);
 		}
 
-		if (force_align == ALIGN_LONGSYNC)
+		if (align_map[track] == ALIGN_LONGSYNC)
 		{
 			*align = ALIGN_LONGSYNC;
 			marker_pos = find_long_sync(work_buffer, track_len);
 		}
 
-		if (force_align == ALIGN_BADGCR)
+		if (align_map[track] == ALIGN_BADGCR)
 		{
 			*align = ALIGN_BADGCR;
 			marker_pos = find_bad_gap(work_buffer, track_len);
 		}
 
-		if (force_align == ALIGN_GAP)
+		if (align_map[track] == ALIGN_GAP)
 		{
 			*align = ALIGN_GAP;
 			marker_pos = find_sector_gap(work_buffer, track_len, &sectorgap_len);
 		}
 
-		if (force_align == ALIGN_SEC0)
+		if (align_map[track] == ALIGN_SEC0)
 		{
 			*align = ALIGN_SEC0;;
 			marker_pos = find_sector0(work_buffer, track_len, &sector0_len);
@@ -1214,7 +1229,7 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 		return 0;
 
 	// check for sector matches
-	for (sector = 0; sector < sector_map_cbm[track / 2]; sector++)
+	for (sector = 0; sector < sector_map[track / 2]; sector++)
 	{
 		numsecs++;
 
@@ -1325,7 +1340,7 @@ check_errors(BYTE * gcrdata, int length, int track, BYTE * id, char * errorstrin
 	errors = 0;
 	errorstring[0] = '\0';
 
-	for (sector = 0; sector < sector_map_cbm[track/2]; sector++)
+	for (sector = 0; sector < sector_map[track/2]; sector++)
 	{
 		errorcode = convert_GCR_sector(gcrdata, gcrdata + length, secbuf, (track/2), sector, id);
 
@@ -1351,7 +1366,7 @@ check_empty(BYTE * gcrdata, int length, int track, BYTE * id, char * errorstring
 	errorstring[0] = '\0';
 	temp_errorstring[0] = '\0';
 
-	for (sector = 0; sector < sector_map_cbm[track / 2]; sector++)
+	for (sector = 0; sector < sector_map[track / 2]; sector++)
 	{
 		errorcode = convert_GCR_sector(gcrdata, gcrdata + length, secbuf, (track / 2), sector, id);
 

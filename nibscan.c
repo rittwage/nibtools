@@ -36,6 +36,7 @@ BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_density2[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment2[MAX_HALFTRACKS_1541 + 1];
+BYTE fillbyte;
 
 int fat_tracks[MAX_HALFTRACKS_1541 + 1];
 int rapidlok_tracks[MAX_HALFTRACKS_1541 + 1];
@@ -51,7 +52,12 @@ int gap_match_length;
 int cap_min_ignore;
 int verbose = 0;
 int rpm_real = 0;
-BYTE fillbyte;
+int drive;
+int auto_capacity_adjust;
+int skew;
+int align_disk;
+int ihs;
+
 
 unsigned char md5_hash_result[16];
 unsigned char md5_hash_result2[16];
@@ -119,130 +125,7 @@ main(int argc, char *argv[])
 	}
 
 	while (--argc && (*(++argv)[0] == '-'))
-	{
-		switch ((*argv)[1])
-		{
-
-		case 'r':
-			reduce_sync = atoi((char *) (&(*argv)[2]));
-			if(reduce_sync)
-				printf("* Reduce sync to %d bytes\n", reduce_sync);
-			else
-				printf("* Disabled sync reduction\n");
-			break;
-
-		case '0':
-			printf("* Reduce bad GCR enabled\n");
-			reduce_badgcr = 1;
-			break;
-
-		case 'g':
-			printf("* Reduce gaps enabled\n");
-			reduce_gap = 1;
-			break;
-
-		case 'w':
-			printf("* Wait for keypress disabled\n");
-			waitkey = 1;
-			break;
-
-		case 'v':
-			printf("* Verbose mode (more detailed track info)\n");
-			advanced_info = 1;
-			verbose = 1;
-			break;
-
-		case 'G':
-			if (!(*argv)[2])
-				usage();
-			gap_match_length = atoi((char *) (&(*argv)[2]));
-			printf("* Gap match length set to %d\n", gap_match_length);
-			break;
-
-		case 'f':
-			printf("* Bad GCR correction/simulation disabled\n");
-			fix_gcr = 0;
-			break;
-
-		case 'p':
-			// custom protection handling
-			printf("* Custom copy protection handler: ");
-			if ((*argv)[2] == 'x')
-			{
-				printf("V-MAX!\n");
-				force_align = ALIGN_VMAX;
-				fix_gcr= 0;
-			}
-			else if ((*argv)[2] == 'c')
-			{
-				printf("V-MAX! (CINEMAWARE)\n");
-				force_align = ALIGN_VMAX_CW;
-				fix_gcr = 0;
-			}
-			else if ((*argv)[2] == 'g')
-			{
-				printf("GMA/SecuriSpeed\n");
-				reduce_sync = 0;
-				reduce_gap = 0;
-				reduce_badgcr = 1;
-			}
-			else if ((*argv)[2] == 'v')
-			{
-				printf("VORPAL (NEWER)\n");
-				force_align = ALIGN_AUTOGAP;
-			}
-			else if ((*argv)[2] == 'r')
-			{
-				printf("RAPIDLOK\n");
-				//reduce_sync = 1;
-				//reduce_badgcr = 1;
-				force_align = ALIGN_SEC0;
-			}
-			else
-				printf("Unknown protection handler\n");
-			break;
-
-		case 'a':
-			// custom alignment handling
-			printf("* Custom alignment: ");
-			if ((*argv)[2] == '0')
-			{
-				printf("sector 0\n");
-				force_align = ALIGN_SEC0;
-			}
-			else if ((*argv)[2] == 'w')
-			{
-				printf("longest bad GCR run\n");
-				force_align = ALIGN_BADGCR;
-			}
-			else if ((*argv)[2] == 's')
-			{
-				printf("longest sync\n");
-				force_align = ALIGN_LONGSYNC;
-			}
-			else if ((*argv)[2] == 'a')
-			{
-				printf("autogap\n");
-				force_align = ALIGN_AUTOGAP;
-			}
-			else if ((*argv)[2] == 'n')
-			{
-				printf("raw (no alignment, use NIB start)\n");
-				force_align = ALIGN_RAW;
-			}
-			else
-				printf("Unknown alignment parameter\n");
-			break;
-
-		case 'm':
-			printf("* Minimum capacity ignore on\n");
-			cap_min_ignore = 1;
-			break;
-
-		default:
-			break;
-		}
-	}
+		parseargs(argv);
 
 	if (argc < 0)	usage();
 	strcpy(file1, argv[0]);
@@ -514,9 +397,9 @@ compare_disks(void)
 				printf("%s", errorstring);
 
 				sec_total += sec_match;
-				numsecs += sector_map_cbm[track/2];
+				numsecs += sector_map[track/2];
 
-				if (sec_match == sector_map_cbm[track/2])
+				if (sec_match == sector_map[track/2])
 				{
 					trk_total++;
 					printf("[*DATA MATCH*]\n");
@@ -639,7 +522,7 @@ scandisk(void)
 				printf(":KILLER");
 
 			// establish default density and warn
-			defdensity = speed_map_cbm[(track / 2) - 1];
+			defdensity = speed_map[(track / 2) - 1];
 
 			if ((track_density[track] & 3) != defdensity)
 			{

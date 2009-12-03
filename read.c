@@ -41,15 +41,10 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	{
 		density = scan_track(fd, halftrack);
 	}
-	else	 if(force_density && density_map == DENSITY_STANDARD)
+	else	 if(force_density)
 	{
-		density = speed_map_cbm[(halftrack / 2) - 1];
+		density = speed_map[(halftrack / 2) - 1];
 		printf("{DEFAULT }");
-	}
-	else if(force_density && density_map == DENSITY_RAPIDLOK)
-	{
-		density = speed_map_rapidlok[(halftrack / 2) - 1];
-		printf("{RAPIDLOK}");
 	}
 	else
 	{
@@ -61,8 +56,8 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	printf("(%d",density&3);
 	fprintf(fplog,"(%d",density&3);
 
-	if ( (density&3) != speed_map_cbm[(halftrack / 2) - 1])
-		printf("!=%d", speed_map_cbm[(halftrack / 2) - 1]);
+	if ( (density&3) != speed_map[(halftrack / 2) - 1])
+		printf("!=%d", speed_map[(halftrack / 2) - 1]);
 
 	if(density & BM_FF_TRACK)
 	{
@@ -154,7 +149,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 		// Find track cycle and length
 		memset(cbufo, 0, NIB_TRACK_LENGTH);
-		leno = extract_GCR_track(cbufo, bufo, &align, force_align, capacity_min[denso & 3], capacity_max[denso & 3]);
+		leno = extract_GCR_track(cbufo, bufo, &align, halftrack/2, capacity_min[denso & 3], capacity_max[denso & 3]);
 
 		// if we have a killer track, exit processing
 		if(denso & BM_FF_TRACK)
@@ -206,7 +201,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		if (errors == 0) break;
 
 		// if all bad sectors (protection) we only retry once
-		if (errors == sector_map_cbm[halftrack/2])
+		if (errors == sector_map[halftrack/2])
 		{
 			if(l < (error_retries - 3))
 				l = error_retries - 3;
@@ -219,7 +214,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 	// If there are a lot of errors, the track probably doesn't contain
 	// any CBM sectors (protection)
-	if ((errors == sector_map_cbm[halftrack/2]) || (halftrack > 70))
+	if ((errors == sector_map[halftrack/2]) || (halftrack > 70))
 	{
 		printf("[Non-Standard Format] ");
 		fprintf(fplog, "%s ", errorstring);
@@ -249,7 +244,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			densn = read_halftrack(fd, halftrack, bufn);
 
 			memset(cbufn, 0, NIB_TRACK_LENGTH);
-			lenn = extract_GCR_track(cbufn, bufn, &align, force_align, capacity_min[densn & 3], capacity_max[densn & 3]);
+			lenn = extract_GCR_track(cbufn, bufn, &align, halftrack/2, capacity_min[densn & 3], capacity_max[densn & 3]);
 
 			printf("%d %.1f%%", lenn, ((float)lenn / (float)capacity[densn&3]) * 100);
 			fprintf(fplog, "%d ", lenn);
@@ -269,7 +264,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 			// compare sector data
 			if (compare_sectors(cbufo, cbufn, leno, lenn, diskid, diskid, halftrack, errorstring) ==
-				sector_map_cbm[halftrack/2])
+				sector_map[halftrack/2])
 			{
 				printf("[Sectors Match] ");
 				fprintf(fplog, "[Sectors Match] ");
@@ -312,7 +307,7 @@ read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 			track_density[track] = read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH));
 
 			track_length[track] = extract_GCR_track(dummy, track_buffer + (track * NIB_TRACK_LENGTH),
-				&align, force_align, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
+				&align, track/2, capacity_min[track_density[track]&3], capacity_max[track_density[track]&3]);
 
 			printf("%d ", track_length[track]);
 			fprintf(fplog, "%d ", track_length[track]);
