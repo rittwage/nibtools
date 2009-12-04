@@ -791,9 +791,6 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, s
 	badgap_pos = NULL;
 	marker_pos = NULL;
 
-	/* fix halftrack calculations */
-	if(track%2) track -=1;
-
 	/* ignore minumum capacity by RPM/density */
 	if(!cap_min_ignore)
 		cap_min -= CAP_MIN_ALLOWANCE;

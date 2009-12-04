@@ -86,6 +86,7 @@ void parseargs(char *argv[])
 			{
 				printf("VORPAL (NEWER)\n");
 				memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541+1);
+				align_map[18] = ALIGN_NONE;
 			}
 			else if ((*argv)[2] == 'r')
 			{
