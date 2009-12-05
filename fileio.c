@@ -74,7 +74,6 @@ void parseargs(char *argv[])
 			else if ((*argv)[2] == 'g')
 			{
 				printf("GMA/SecuriSpeed\n"); /* turn off reduction for track > 36 */
-
 				for(count = 36; count <= MAX_TRACKS_1541+1; count ++)
 				{
 					reduce_map[count] = REDUCE_NONE;
@@ -92,7 +91,7 @@ void parseargs(char *argv[])
 			{
 				printf("RAPIDLOK\n"); /* don't reduce sync, but everything else */
 				for(count = 1; count <= MAX_TRACKS_1541; count ++)
-					reduce_map[count] = REDUCE_BAD & REDUCE_GAP;
+					reduce_map[count] = REDUCE_BAD | REDUCE_GAP;
 				memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541+1);
 			}
 			else
@@ -145,20 +144,21 @@ void parseargs(char *argv[])
 			else
 			{
 				printf("* Disabled sync reduction\n");
-				memset(reduce_map, REDUCE_NONE, MAX_TRACKS_1541);
+				for(count = 1; count <= MAX_TRACKS_1541; count ++)
+				reduce_map[count] |= ~REDUCE_SYNC;
 			}
 			break;
 
 		case '0':
 			printf("* Reduce bad GCR enabled\n");
 			for(count = 1; count <= MAX_TRACKS_1541; count ++)
-				reduce_map[count] &= REDUCE_BAD;
+				reduce_map[count] |= REDUCE_BAD;
 			break;
 
 		case 'g':
 			printf("* Reduce gaps enabled\n");
 			for(count = 1; count <= MAX_TRACKS_1541; count ++)
-				reduce_map[count] &= REDUCE_GAP;
+				reduce_map[count] |= REDUCE_GAP;
 			break;
 
 		case 'D':
@@ -998,6 +998,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	printf(":%d) ", length);
 	if (density & BM_NO_SYNC) printf("NOSYNC ");
 	if (density & BM_FF_TRACK) printf("KILLER ");
+	printf("{%x} ",reduce_map[halftrack/2]);
 	printf("[");
 
 	/* process and compress track data (if needed) */

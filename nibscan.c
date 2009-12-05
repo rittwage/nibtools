@@ -124,6 +124,9 @@ main(int argc, char *argv[])
 		exit(0);
 	}
 
+	/* default is to reduce sync */
+	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541 + 1);
+
 	while (--argc && (*(++argv)[0] == '-'))
 		parseargs(argv);
 

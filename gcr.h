@@ -117,10 +117,10 @@ speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 #define ALIGN_VMAX_CW		7
 #define ALIGN_RAW 8
 
-#define REDUCE_NONE   0x00
-#define REDUCE_SYNC	0x10
-#define REDUCE_GAP		0x20
-#define REDUCE_BAD		0x40
+#define REDUCE_NONE   0x0
+#define REDUCE_SYNC	0x1
+#define REDUCE_GAP		0x2
+#define REDUCE_BAD		0x4
 
 /* global variables */
 extern BYTE sector_map[];
