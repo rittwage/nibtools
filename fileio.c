@@ -145,7 +145,7 @@ void parseargs(char *argv[])
 			{
 				printf("* Disabled sync reduction\n");
 				for(count = 1; count <= MAX_TRACKS_1541; count ++)
-				reduce_map[count] |= ~REDUCE_SYNC;
+				reduce_map[count] ^= REDUCE_SYNC;
 			}
 			break;
 
@@ -998,7 +998,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	printf(":%d) ", length);
 	if (density & BM_NO_SYNC) printf("NOSYNC ");
 	if (density & BM_FF_TRACK) printf("KILLER ");
-	printf("{%x} ",reduce_map[halftrack/2]);
+	//printf("{%x} ",reduce_map[halftrack/2]);
 	printf("[");
 
 	/* process and compress track data (if needed) */
