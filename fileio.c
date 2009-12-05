@@ -145,7 +145,7 @@ void parseargs(char *argv[])
 			{
 				printf("* Disabled sync reduction\n");
 				for(count = 1; count <= MAX_TRACKS_1541; count ++)
-				reduce_map[count] ^= REDUCE_SYNC;
+				reduce_map[count] &= ~REDUCE_SYNC;
 			}
 			break;
 
