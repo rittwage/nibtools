@@ -18,8 +18,6 @@
 #include "crc.h"
 #include "md5.h"
 
-extern int drive;
-
 void parseargs(char *argv[])
 {
 	int count;
@@ -59,44 +57,48 @@ void parseargs(char *argv[])
 		case 'p':
 			// custom protection handling
 			printf("* Custom copy protection handler: ");
-			if ((*argv)[2] == 'x')
+			switch((*argv)[2])
 			{
-				printf("V-MAX!\n");
-				memset(align_map, ALIGN_VMAX, MAX_TRACKS_1541+1);
-				fix_gcr = 0;
+				case 'x':
+					printf("V-MAX!\n");
+					memset(align_map, ALIGN_VMAX, MAX_TRACKS_1541+1);
+					fix_gcr = 0;
+					break;
+
+				case 'c':
+					printf("V-MAX! (CINEMAWARE)\n");
+					memset(align_map, ALIGN_VMAX_CW, MAX_TRACKS_1541+1);
+					fix_gcr = 0;
+					break;
+
+				case 'g':
+				case 'm':
+					printf("SecuriSpeed/Early Rainbow Arts\n"); /* turn off reduction for track > 36 */
+					for(count = 36; count <= MAX_TRACKS_1541+1; count ++)
+					{
+						reduce_map[count] = REDUCE_NONE;
+						align_map[count] = ALIGN_AUTOGAP;
+					}
+					fix_gcr = 0;
+					break;
+
+				case 'v':
+					printf("VORPAL (NEWER)\n");
+					memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541+1);
+					align_map[18] = ALIGN_NONE;
+					break;
+
+				case'r':
+					printf("RAPIDLOK\n"); /* don't reduce sync, but everything else */
+					for(count = 1; count <= MAX_TRACKS_1541; count ++)
+						reduce_map[count] = REDUCE_BAD | REDUCE_GAP;
+					memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541+1);
+					break;
+
+				default:
+					printf("Unknown protection handler\n");
+					break;
 			}
-			else if ((*argv)[2] == 'c')
-			{
-				printf("V-MAX! (CINEMAWARE)\n");
-				memset(align_map, ALIGN_VMAX_CW, MAX_TRACKS_1541+1);
-				fix_gcr = 0;
-			}
-			else if ((*argv)[2] == 'g')
-			{
-				printf("GMA/SecuriSpeed\n"); /* turn off reduction for track > 36 */
-				for(count = 36; count <= MAX_TRACKS_1541+1; count ++)
-				{
-					reduce_map[count] = REDUCE_NONE;
-					align_map[count] = ALIGN_AUTOGAP;
-				}
-				fix_gcr = 0;
-			}
-			else if ((*argv)[2] == 'v')
-			{
-				printf("VORPAL (NEWER)\n");
-				memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541+1);
-				align_map[18] = ALIGN_NONE;
-			}
-			else if ((*argv)[2] == 'r')
-			{
-				printf("RAPIDLOK\n"); /* don't reduce sync, but everything else */
-				for(count = 1; count <= MAX_TRACKS_1541; count ++)
-					reduce_map[count] = REDUCE_BAD | REDUCE_GAP;
-				memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541+1);
-			}
-			else
-				printf("Unknown protection handler\n");
-			break;
 
 		case 'a':
 			// custom alignment handling
