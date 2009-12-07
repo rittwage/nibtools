@@ -99,6 +99,7 @@ void parseargs(char *argv[])
 					printf("Unknown protection handler\n");
 					break;
 			}
+			break;
 
 		case 'a':
 			// custom alignment handling
