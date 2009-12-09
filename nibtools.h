@@ -45,8 +45,8 @@
 // tested extensively with Pete's Newtronics mech-based 1541.
 //#define CAPACITY_MARGIN 11	// works with FL_WRITENOSYNC
 //#define CAPACITY_MARGIN 13	// works with both FL_WRITESYNC and FL_WRITENOSYNC
-//#define CAPACITY_MARGIN 16		// safe value
-#define CAPACITY_MARGIN 10 // better measurement allows better margins
+#define CAPACITY_MARGIN 16		// safe value
+//#define CAPACITY_MARGIN 10 // some drives allow better margins
 
 #define MODE_READ_DISK     	0
 #define MODE_WRITE_DISK    	1

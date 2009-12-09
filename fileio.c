@@ -177,15 +177,15 @@ void parseargs(char *argv[])
 			break;
 
 		case 'f':
-			if ((*argv)[2] == 'f')
-			{
-				fix_gcr = 2;
-				printf("* Enabled more agressive bad GCR reproduction\n");
-			}
-			else
+			if (!(*argv)[2])
 			{
 				fix_gcr = 0;
 				printf("* Disabled bad GCR bit reproduction\n");
+			}
+			else
+			{
+				atoi((char *) (&(*argv)[2]));
+				printf("* Enabled level %d bad GCR reproduction.\n", fix_gcr);
 			}
 			break;
 
@@ -948,7 +948,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 		}
 
 		/* process/compress GCR data */
-		check_bad_gcr(buffer, track_length[track+2], fix_gcr);
+		check_bad_gcr(buffer, track_length[track+2]);
 
 		if(rpm_real)
 		{

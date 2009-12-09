@@ -540,7 +540,7 @@ scandisk(void)
 			if (fix_gcr)
 			{
 				badgcr_tracks[track] =
-				  check_bad_gcr(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track], 1);
+				  check_bad_gcr(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track]);
 
 				if (badgcr_tracks[track])
 				{

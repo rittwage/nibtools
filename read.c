@@ -226,7 +226,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	}
 
 	// Fix bad GCR in track for compare
-	badgcr = check_bad_gcr(cbufo, leno, 1);
+	badgcr = check_bad_gcr(cbufo, leno);
 
 	if(track_match)
 	{
@@ -250,7 +250,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			fprintf(fplog, "%d ", lenn);
 
 			// fix bad GCR in track for compare
-			badgcr = check_bad_gcr(cbufn, lenn, 1);
+			badgcr = check_bad_gcr(cbufn, lenn);
 
 			// compare raw gcr data, unreliable
 			if (compare_tracks(cbufo, cbufn, leno, lenn, 1, errorstring))

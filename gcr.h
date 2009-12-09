@@ -151,7 +151,7 @@ BYTE * find_sector_gap(BYTE * work_buffer, int tracklen, size_t * p_sectorlen);
 BYTE * find_sector0(BYTE * work_buffer, int tracklen, size_t * p_sectorlen);
 int extract_GCR_track(BYTE * destination, BYTE * source, BYTE *align, int halftrack, size_t cap_min, size_t cap_max);
 int replace_bytes(BYTE * buffer, int length, BYTE srcbyte, BYTE dstbyte);
-int check_bad_gcr(BYTE * gcrdata, int length, int fix);
+int check_bad_gcr(BYTE * gcrdata, int length);
 BYTE check_sync_flags(BYTE * gcrdata, int density, int length);
 void bitshift(BYTE * gcrdata, int length, int bits);
 int check_errors(BYTE * gcrdata, int length, int track, BYTE * id, char * errorstring);

@@ -1450,8 +1450,11 @@ is_bad_gcr(BYTE * gcrdata, size_t length, size_t pos)
  * fix_first, fix_last not used because while "correct", the real hardware
  * is not this precise and it fails the protection checks sometimes.
  */
+
+ extern int fix_gcr;
+
 int
-check_bad_gcr(BYTE * gcrdata, int length, int fix)
+check_bad_gcr(BYTE * gcrdata, int length)
 {
 	/* state machine definitions */
 	enum ebadgcr { S_BADGCR_OK, S_BADGCR_ONCE_BAD, S_BADGCR_LOST };
@@ -1477,43 +1480,45 @@ check_bad_gcr(BYTE * gcrdata, int length, int fix)
 				if (b_badgcr)
 				{
 					total++;
-					sbadgcr = S_BADGCR_ONCE_BAD;
-					//sbadgcr = S_BADGCR_LOST;  /* aggressive */
+
+					if(fix_gcr > 2)
+						sbadgcr = S_BADGCR_LOST;  /* most aggressive */
+					else
+						sbadgcr = S_BADGCR_ONCE_BAD;
 				}
 				break;
 
 			case S_BADGCR_ONCE_BAD:
-				if (b_badgcr || n_badgcr)
+				if (b_badgcr) // || n_badgcr)
 				{
 					total++;
 					sbadgcr = S_BADGCR_LOST;
 
-					if(fix == 1)
+					if(fix_gcr > 1)
 						fix_first_gcr(gcrdata, length, lastpos);
-					else if (fix == 2)
+					else if (fix_gcr > 2)
 						gcrdata[lastpos] = 0x00;
 				}
 				else
-				{
 					sbadgcr = S_BADGCR_OK;
-				}
+
 				break;
 
 			case S_BADGCR_LOST:
-				if (b_badgcr || n_badgcr)
+				if (b_badgcr) // || n_badgcr)
 				{
 					total++;
 
-					if (fix == 1)
+					if (fix_gcr)
 						gcrdata[lastpos] = 0x00;
 				}
 				else
 				{
 					sbadgcr = S_BADGCR_OK;
 
-					if(fix == 1)
+					if(fix_gcr > 1)
 						fix_last_gcr(gcrdata, length, lastpos);
-					else if(fix == 2)
+					else if(fix_gcr > 2)
 						gcrdata[lastpos] = 0x00;
 				}
 				break;

@@ -50,7 +50,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		}
 		else
 		{
-			badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track], fix_gcr);
+			badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
 			length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
 			printf(" [badgcr: %d] ", badgcr);
 		}
@@ -219,15 +219,17 @@ adjust_target(CBM_FILE fd)
 	int i, j;
 	unsigned int cap[DENSITY_SAMPLES];
 	int run_total;
-	//BYTE track_dens[4] = { 35*2, 30*2, 24*2, 17*2 };
+	BYTE track_dens[4] = { 35*2, 30*2, 24*2, 17*2 };
 
 	printf("\nTesting track capacity at each density\n");
 	printf("--------------------------------------------------\n");
 
 	for (i = 0; i <= 3; i++)
 	{
-		//step_to_halftrack(fd, track_dens[i]);
-		step_to_halftrack(fd, start_track);
+		if( (start_track < track_dens[i]) && (end_track > track_dens[i]))
+			step_to_halftrack(fd, track_dens[i]);
+		else
+			step_to_halftrack(fd, start_track);
 
 		set_bitrate(fd, i);
 
@@ -259,6 +261,12 @@ adjust_target(CBM_FILE fd)
 
 	printf("--------------------------------------------------\n");
 	printf("Drive motor speed average: %.2f RPM.\n", motor_speed);
+
+	if( (motor_speed > 310) || (motor_speed < 295))
+	{
+		printf("\n\nERROR!\nDrive speed out of range.\nCheck motor, write-protect, or bad media.\n");
+		exit(0);
+	}
 }
 
 void

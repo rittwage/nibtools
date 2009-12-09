@@ -27,7 +27,7 @@ BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 int track_length[MAX_HALFTRACKS_1541 + 1];
 
 int reduce_sync, reduce_badgcr, reduce_gap;
-int fix_gcr, aggressive_gcr;
+int fix_gcr;
 int start_track, end_track, track_inc;
 int read_killer;
 int align;
