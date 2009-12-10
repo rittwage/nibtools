@@ -817,9 +817,9 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, s
 	if(verbose)
 	{
 		if (track_len > cap_max)
-			printf("[LONG, max=%d>%d] ",cap_max, track_len);
+			printf("[LONG, max=%d>%d] ",(int)cap_max, (int)track_len);
 		if(track_len < cap_min)
-			printf("[SHORT, min=%d<%d] ",cap_min, track_len);
+			printf("[SHORT, min=%d<%d] ",(int)cap_min, (int)track_len);
 	}
 
 	/* copy twice the data to work buffer */

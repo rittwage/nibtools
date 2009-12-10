@@ -135,7 +135,7 @@ main(int argc, char *argv[])
 			printf("* Using raw mode\n");
 			break;
 
-		case 'I':
+		case 'i':
 			printf("* 1571 index hole sensor (use only for side 1)\n");
 			ihs = 1;
 			break;
@@ -155,7 +155,7 @@ main(int argc, char *argv[])
 			printf("* Extended parallel port testing\n");
 			break;
 
-		case 'i':
+		case 'I':
 			interactive_mode = 1;
 			printf("* Interactive mode\n");
 			break;

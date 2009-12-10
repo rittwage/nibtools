@@ -11,8 +11,9 @@
 #include <fcntl.h>
 
 #include "mnibarch.h"
-#include "nibtools.h"
 #include "gcr.h"
+#include "nibtools.h"
+
 
 int _dowildcard = 1;
 
