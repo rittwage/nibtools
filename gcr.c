@@ -1094,13 +1094,12 @@ check_sync_flags(BYTE *gcrdata, int density, int length)
 int
 compare_tracks(BYTE *track1, BYTE *track2, int length1, int length2, int same_disk, char *outputstring)
 {
-	int match, j, k, sync_diff, presync_diff;
-	int gap_diff, badgcr_diff, size_diff;
+	int match, j, k, sync_diff, presync_diff, gap_diff, badgcr_diff, size_diff, byte_match, byte_diff;
 	char tmpstr[256];
 
 	match = 0;
-	j = 0;
-	k = 0;
+	byte_match = 0;
+	byte_diff =0;
 	sync_diff = 0;
 	presync_diff = 0;
 	gap_diff = 0;
@@ -1108,17 +1107,14 @@ compare_tracks(BYTE *track1, BYTE *track2, int length1, int length2, int same_di
 	size_diff= 0;
 	outputstring[0] = '\0';
 
-	if (length1 == length2 && 0 == memcmp(track1, track2, length1))
-		match = 1;
-
-	else if (length1 > 0 && length2 > 0)
+	if (length1 > 0 && length2 > 0)
 	{
-		for (j = k = 0; j < length2 && k < length1; j++, k++)
+		for (j = k = 0; (j < length2) && (k < length1); j++, k++)
 		{
-			if (track1[j] == track2[k])
+			// we ignore sync length differences
+			if ((track1[j] == 0xff) && (track2[k] == 0xff) )
 				continue;
 
-			// we ignore sync length differences
 			if (track1[j] == 0xff)
 			{
 				sync_diff++;
@@ -1133,46 +1129,67 @@ compare_tracks(BYTE *track1, BYTE *track2, int length1, int length2, int same_di
 				continue;
 			}
 
-			// we ignore start of sync differences
-			if (j < length1 - 1 && k < length2 - 1)
+			// we ignore pre-sync differences
+			if ( (track1[j] != 0xff) && (track1[j+1] == 0xff) )
 			{
-				if ((track1[j] & 0x01) == 0x01 && track1[j + 1] == 0xff)
-				{
-					presync_diff++;
-					k--;
-					continue;
-				}
+				presync_diff++;
+				k--;
+				continue;
+			}
 
-				if ((track2[k] & 0x01) == 0x01 && track2[k + 1] == 0xff)
-				{
-					presync_diff++;
-					j--;
-					continue;
-				}
+			if ( (track2[k] != 0xff)  && (track2[k+1] == 0xff) )
+			{
+				presync_diff++;
+				j--;
+				continue;
 			}
 
 			// we ignore bad gcr bytes
-			if (is_bad_gcr(track1, length1, j) ||
-			  is_bad_gcr(track2, length2, k))
+			if (is_bad_gcr(track1, length1, j))
 			{
 				badgcr_diff++;
-				j++;
-				k++;
+				k--;
+				continue;
+			}
+			if (is_bad_gcr(track2, length2, k))
+			{
+				badgcr_diff++;
+				j--;
+				continue;
+			}
+
+			if (track1[j] == track2[k])
+			{
+				byte_match++;
 				continue;
 			}
 
 			// it just didn't work out. :)
-			break;
+			//printf("(%.2x,%.2x)\n",track1[j],track2[k]);
+			byte_diff++;
 		}
 
-		if (j < length1 - 1 || k < length2 - 1)
+		if ( (j < length1 - 1) || (k < length2 - 1))
 			size_diff++;
 
 		// we got to the end of one of them OK and not all sync/bad gcr
-		if ((j >= length1 - 1 || k >= length2 - 1) &&
-		  (sync_diff < 0x100 && badgcr_diff < 0x100))
+		if ((j >= length1 - 1 || k >= length2 - 1) && (sync_diff < 0x100 && badgcr_diff < 0x100))
 			match = 1;
 	}
+
+	if(byte_match)
+	{
+			sprintf(tmpstr, "(match:%d)", byte_match);
+			strcat(outputstring, tmpstr);
+	}
+
+	if(byte_diff)
+	{
+			sprintf(tmpstr, "(diff:%d)", byte_diff);
+			strcat(outputstring, tmpstr);
+	}
+	else
+		match = 1;
 
 	if (sync_diff)
 	{
