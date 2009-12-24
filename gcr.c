@@ -529,15 +529,15 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, int cap_m
 	BYTE *p1, *p2;		/* local pointers for comparisons */
 
 	nib_track = *cycle_start;
-	stop_pos = nib_track + NIB_TRACK_LENGTH + gap_match_length;
-	//stop_pos = nib_track + cap_max + gap_match_length;
+	//stop_pos = nib_track + NIB_TRACK_LENGTH + gap_match_length;
+	stop_pos = nib_track + cap_max + gap_match_length;
 
 	cycle_pos = NULL;
 
 	/* try to find a normal track cycle  */
 	for (start_pos = nib_track;; find_sync(&start_pos, stop_pos))
 	{
-		if ((data_pos = start_pos) >= stop_pos)
+		if ((data_pos = start_pos + cap_min) >= stop_pos)
 			break;	/* no cycle found */
 
 		while (find_sync(&data_pos, stop_pos))
