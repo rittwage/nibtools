@@ -4,18 +4,19 @@
  *  as published by the Free Software Foundation; either version
  *  2 of the License, or (at your option) any later version.
  *
- *  Copyright 1999-2005 Michael Klein <michael(dot)klein(at)puffin(dot)lb(dot)shuttle(dot)de>
- *  Copyright 2001-2005 Spiro Trikaliotis
- *  Copyright 2006 Wolfgang Moser (http://d81.de)
+ *  Copyright 1999-2005           Michael Klein <michael(dot)klein(at)puffin(dot)lb(dot)shuttle(dot)de>
+ *  Copyright 2001-2005,2008-2009 Spiro Trikaliotis
+ *  Copyright 2006                Wolfgang Moser (http://d81.de)
+ *  Copyright 2009                Arnd <arnd(at)jonnz(dot)de>
  */
 
-/*! ************************************************************** 
+/*! **************************************************************
 ** \file include/opencbm.h \n
 ** \author Michael Klein <michael(dot)klein(at)puffin(dot)lb(dot)shuttle(dot)de> \n
-** \version $Id: opencbm.h,v 1.1.1.1 2007/01/21 17:15:35 peter Exp $ \n
+** \version $Id$ \n
 ** \authors With modifications to fit on Windows from
 **    Spiro Trikaliotis \n
-** \authors With additions from Wolfgang Moser \n
+** \authors With additions from Wolfgang Moser and Arnd \n
 ** \n
 ** \brief DLL interface for accessing the driver
 **
@@ -50,14 +51,14 @@ extern "C" {
 #define CBMAPIDECL __cdecl /*!< On Windows, we need c-type function declarations */
 # define __u_char unsigned char /*!< __u_char as unsigned char */
 # define CBM_FILE HANDLE /*!< The "file descriptor" for an opened driver */
-# define CBM_FILE_INVALID INVALID_HANDLE_VALUE
+# define CBM_FILE_INVALID INVALID_HANDLE_VALUE /*!< An invalid "file descriptor" (CBM_FILE) */
 
 #elif defined(__MSDOS__)
 
   /* we have MS-DOS */
 
 #include <stdlib.h>
-                                                         
+
 # define EXTERN extern /*!< EXTERN is not defined on MS-DOS */
 # define CBMAPIDECL /*!< CBMAPIDECL is a dummy on MS-DOS */
 # define WINAPI /*!< WINAPI is a dummy on MS-DOS */
@@ -78,7 +79,12 @@ extern void vdd_usleep(CBM_FILE f, unsigned int howlong);
 # define CBMAPIDECL /*!< CBMAPIDECL is a dummy on Linux */
 # define WINAPI /*!< WINAPI is a dummy on Linux */
 # define CBM_FILE int /*!< The "file descriptor" for an opened driver */
-# define CBM_FILE_INVALID ((CBM_FILE)-1)
+# define CBM_FILE_INVALID ((CBM_FILE)-1) /*!< An invalid "file descriptor" (CBM_FILE) */
+
+/* On Macs we need to define the __u_char */
+#ifdef __APPLE__
+typedef unsigned char __u_char;
+#endif
 
 #endif
 
@@ -89,7 +95,7 @@ extern void vdd_usleep(CBM_FILE f, unsigned int howlong);
 #define IEC_RESET  0x08 /*!< Specify the RESET line */
 
 /*! Specifies the type of a device for cbm_identify() */
-enum cbm_device_type_e 
+enum cbm_device_type_e
 {
     cbm_dt_unknown = -1, /*!< The device could not be identified */
     cbm_dt_cbm1541,      /*!< The device is a VIC 1541 */
@@ -108,12 +114,14 @@ enum cbm_cable_type_e
 
 /*! \todo FIXME: port isn't used yet */
 EXTERN int CBMAPIDECL cbm_driver_open(CBM_FILE *f, int port);
+EXTERN int CBMAPIDECL cbm_driver_open_ex(CBM_FILE *f, char * adapter);
 EXTERN void CBMAPIDECL cbm_driver_close(CBM_FILE f);
 EXTERN void CBMAPIDECL cbm_lock(CBM_FILE f);
 EXTERN void CBMAPIDECL cbm_unlock(CBM_FILE f);
 
 /*! \todo FIXME: port isn't used yet */
 EXTERN const char * CBMAPIDECL cbm_get_driver_name(int port);
+EXTERN const char * CBMAPIDECL cbm_get_driver_name_ex(char * adapter);
 
 EXTERN int CBMAPIDECL cbm_listen(CBM_FILE f, __u_char dev, __u_char secadr);
 EXTERN int CBMAPIDECL cbm_talk(CBM_FILE f, __u_char dev, __u_char secadr);
@@ -173,14 +181,23 @@ EXTERN int CBMAPIDECL gcr_4_to_5_encode(const unsigned char *source, unsigned ch
 EXTERN int CBMAPIDECL cbm_get_debugging_buffer(CBM_FILE HandleDevice, char *buffer, size_t len);
 #endif
 
+EXTERN int CBMAPIDECL cbm_iec_dbg_read (CBM_FILE HandleDevice);
+EXTERN int CBMAPIDECL cbm_iec_dbg_write(CBM_FILE HandleDevice, unsigned char Value);
+
 /* functions specifically for parallel burst */
 
 EXTERN __u_char CBMAPIDECL cbm_parallel_burst_read(CBM_FILE f);
 EXTERN void CBMAPIDECL cbm_parallel_burst_write(CBM_FILE f, __u_char c);
+EXTERN int CBMAPIDECL cbm_parallel_burst_read_n(CBM_FILE HandleDevice, __u_char *Buffer, unsigned int Length);
+EXTERN int CBMAPIDECL cbm_parallel_burst_write_n(CBM_FILE HandleDevice, __u_char *Buffer, unsigned int Length);
 EXTERN int CBMAPIDECL  cbm_parallel_burst_read_track(CBM_FILE f, __u_char *buffer, unsigned int length);
+EXTERN int CBMAPIDECL  cbm_parallel_burst_read_track_var(CBM_FILE f, __u_char *buffer, unsigned int length);
 EXTERN int CBMAPIDECL cbm_parallel_burst_write_track(CBM_FILE f, __u_char *buffer, unsigned int length);
 
 /* parallel burst functions end */
+
+/* get function address of the plugin */
+EXTERN void * CBMAPIDECL cbm_get_plugin_function_address(const char * Functionname);
 
 #ifdef __cplusplus
 }

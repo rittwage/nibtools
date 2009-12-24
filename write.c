@@ -104,9 +104,9 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 		for (i = 0; i < 10; i ++)
 		{
 			if(ihs)
-				send_mnib_cmd(fd, FL_WRITEIHS);
+				send_mnib_cmd(fd, FL_WRITEIHS, NULL, 0);
 			else
-				send_mnib_cmd(fd, FL_WRITENOSYNC);
+				send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
 
 			cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
 
@@ -135,7 +135,7 @@ void kill_track(CBM_FILE fd, int track)
 
 	// write 0xFF $2000 times
 	memset(trackbuf, 0xff, NIB_TRACK_LENGTH);
-	send_mnib_cmd(fd, FL_WRITENOSYNC);
+	send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
 	cbm_parallel_burst_write(fd, 0x00);
 	cbm_parallel_burst_write_track(fd, trackbuf, NIB_TRACK_LENGTH);
 
@@ -208,7 +208,7 @@ unformat_track(CBM_FILE fd, int track)
 	step_to_halftrack(fd, track);
 
 	// write all $0 bytes
-	send_mnib_cmd(fd, FL_ZEROTRACK);
+	send_mnib_cmd(fd, FL_ZEROTRACK, NULL, 0);
 	cbm_parallel_burst_read(fd);
 }
 
@@ -284,11 +284,9 @@ init_aligned_disk(CBM_FILE fd)
 	printf("\nWiping/Unformatting disk\n");
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		send_mnib_cmd(fd, FL_STEPTO);
-		cbm_parallel_burst_write(fd, (BYTE)track);
-		cbm_parallel_burst_read(fd);
+		step_to_halftrack(fd, track);
 
-		send_mnib_cmd(fd, FL_WRITENOSYNC);
+		send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
 		cbm_parallel_burst_write(fd, 0);
 		cbm_parallel_burst_write_track(fd, pattern, 0x2000);
 		cbm_parallel_burst_read(fd);
@@ -298,13 +296,11 @@ init_aligned_disk(CBM_FILE fd)
 	printf("Aligning syncs\n");
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		send_mnib_cmd(fd, FL_STEPTO);
-		cbm_parallel_burst_write(fd, (BYTE)track);
-		cbm_parallel_burst_read(fd);
+		step_to_halftrack(fd, track);
 
 		msleep( (int) (((200000 - 20000 + skew) * 300) / motor_speed) );
 
-		send_mnib_cmd(fd, FL_WRITENOSYNC);
+		send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
 		cbm_parallel_burst_write(fd, 0);
 		cbm_parallel_burst_write_track(fd, sync, sizeof(sync));
 		cbm_parallel_burst_read(fd);

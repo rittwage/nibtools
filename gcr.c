@@ -1225,8 +1225,7 @@ compare_tracks(BYTE *track1, BYTE *track2, int length1, int length2, int same_di
 }
 
 int
-compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
-  BYTE * id1, BYTE * id2, int track, char * outputstring)
+compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2, BYTE * id1, BYTE * id2, int track, char * outputstring)
 {
 	int sec_match, numsecs;
 	int sector, error1, error2, empty;
@@ -1244,9 +1243,14 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2,
 
 	crcInit();
 
-	// ignore dead tracks
-	if (!length1 || !length2 || length1 + length2 == 0x4000)
+	/* ignore dead tracks
+	if ( (length1 == 0) ||
+		 (length2 == 0) ||
+		 (length1 == NIB_TRACK_LENGTH) ||
+		 (length2 == NIB_TRACK_LENGTH)
+		)
 		return 0;
+	*/
 
 	// check for sector matches
 	for (sector = 0; sector < sector_map[track / 2]; sector++)

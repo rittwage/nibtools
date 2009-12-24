@@ -88,13 +88,13 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	{
 		// read track
 		if((ihs) && (!(density & BM_NO_SYNC)))
-			send_mnib_cmd(fd, FL_READIHS);
+			send_mnib_cmd(fd, FL_READIHS, NULL, 0);
 		else
 		{
 			if ((density & BM_NO_SYNC) || (density & BM_FF_TRACK) || (force_nosync))
-				send_mnib_cmd(fd, FL_READWOSYNC);
+				send_mnib_cmd(fd, FL_READWOSYNC, NULL, 0);
 			else
-				send_mnib_cmd(fd, FL_READNORMAL);
+				send_mnib_cmd(fd, FL_READNORMAL, NULL, 0);
 		}
 		cbm_parallel_burst_read(fd);
 
@@ -380,7 +380,7 @@ write_nb2(CBM_FILE fd, char * filename)
 
 				for (i = 0; i < 10; i++)
 				{
-					send_mnib_cmd(fd, FL_READWOSYNC);
+					send_mnib_cmd(fd, FL_READWOSYNC, NULL, 0);
 					cbm_parallel_burst_read(fd);
 
 					if (!cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
@@ -473,8 +473,8 @@ scan_track(CBM_FILE fd, int track)
 	BYTE density_stats[4], iStatsMax; /* total occurrences */
 
 	/* Scan for killer track */
-	density = set_default_bitrate(fd, track);
-	send_mnib_cmd(fd, FL_SCANKILLER);
+	density = (BYTE)set_default_bitrate(fd, track);
+	send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
 	killer_info = cbm_parallel_burst_read(fd);
 
 	if (killer_info & BM_FF_TRACK)
@@ -488,7 +488,7 @@ scan_track(CBM_FILE fd, int track)
 		/* Use bitrate close to default for scan */
 		set_bitrate(fd, density);
 
-		send_mnib_cmd(fd, FL_SCANDENSITY);
+		send_mnib_cmd(fd, FL_SCANDENSITY, NULL, 0);
 
 		/* Floppy sends statistic data in reverse bit-rate order */
 		for (bin = 3; bin >= 0; bin--)
@@ -541,7 +541,7 @@ rescan:
 
 	for(i=0; i<3; i++)
 	{
-		send_mnib_cmd(fd, FL_SCANKILLER);
+		send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
 		killer_info = cbm_parallel_burst_read(fd);
 
 		if (killer_info & BM_NO_SYNC)

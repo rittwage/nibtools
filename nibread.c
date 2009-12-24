@@ -242,7 +242,10 @@ main(int argc, char *argv[])
 		return 0;
 #else
 	/* under Linux we have to open the device via cbm4linux */
-	cbm_driver_open(&fd, 0);
+	if (cbm_driver_open(&fd, 0) != 0) {
+		printf("Is your X-cable properly configured?\n");
+		exit(0);
+	}
 #endif
 
 	/* Once the drive is accessed, we need to close out state when exiting */
