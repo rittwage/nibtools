@@ -34,7 +34,7 @@ handle_exit(void)
 	// Perform UI and wait a short while before the hard reset.
 	send_mnib_cmd(fd, FL_RESET, NULL, 0);
 	delay(50);
-	printf("\nResetting drive... ");
+	printf("\nResetting drive...\n");
 	cbm_reset(fd);
 #ifndef DJGPP
 	cbm_driver_close(fd);
