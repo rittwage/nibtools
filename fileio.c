@@ -1248,7 +1248,6 @@ unsigned int md5_dir_track(BYTE *track_buffer, int *track_length, unsigned char 
 
 	crcInit();
 	memset(data, 0, sizeof(data));
-	memset(result, 0, sizeof(result));
 
 	/* get disk id */
 	if (!extract_id(track_buffer + (18*2 * NIB_TRACK_LENGTH), id))
@@ -1296,7 +1295,6 @@ unsigned int md5_all_tracks(BYTE *track_buffer, int *track_length, unsigned char
 
 	crcInit();
 	memset(data, 0, sizeof(data));
-	memset(result, 0, sizeof(result));
 
 	/* get disk id */
 	if (!extract_id(track_buffer + (18*2 * NIB_TRACK_LENGTH), id))

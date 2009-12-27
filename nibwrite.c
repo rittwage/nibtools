@@ -21,7 +21,7 @@ char bitrate_range[4] = { 43 * 2, 31 * 2, 25 * 2, 18 * 2 };
 char bitrate_value[4] = { 0x00, 0x20, 0x40, 0x60 };
 char density_branch[4] = { 0xb1, 0xb5, 0xb7, 0xb9 };
 
-BYTE *track_buffer;
+BYTE track_buffer[(MAX_HALFTRACKS_1541 + 1) * NIB_TRACK_LENGTH];
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 int track_length[MAX_HALFTRACKS_1541 + 1];
@@ -66,12 +66,6 @@ main(int argc, char *argv[])
 
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
-
-	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH)))
-	{
-		printf("could not allocate memory for buffers.\n");
-		exit(0);
-	}
 
 #ifdef DJGPP
 	fd = 1;

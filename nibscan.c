@@ -190,9 +190,11 @@ main(int argc, char *argv[])
 	/* MD5 */
 	printf("\n");
 
+	memset(md5_hash_result, 0 , sizeof(md5_hash_result));
 	md5_dir_track(track_buffer, track_length, md5_hash_result);
 	if(mode==1)
 	{
+		memset(md5_hash_result2, 0 , sizeof(md5_hash_result2));
 		md5_dir_track(track_buffer2, track_length2, md5_hash_result2);
 		if( memcmp(md5_hash_result, md5_hash_result2, 16 ) == 0 )
 			printf( "*MATCH*\n" );
@@ -202,9 +204,11 @@ main(int argc, char *argv[])
 
 	printf("\n");
 
+	memset(md5_hash_result, 0 , sizeof(md5_hash_result));
 	md5_all_tracks(track_buffer, track_length, md5_hash_result);
 	if(mode==1)
 	{
+		memset(md5_hash_result2, 0 , sizeof(md5_hash_result2));
 		md5_all_tracks(track_buffer2, track_length2, md5_hash_result2);
 		if( memcmp(md5_hash_result, md5_hash_result2, 16 ) == 0 )
 			printf( "*MATCH*\n" );
