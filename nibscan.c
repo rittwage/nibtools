@@ -261,12 +261,12 @@ load_image(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_l
 		retval = read_g64(filename, track_buffer, track_density, track_length);
 	else if (compare_extension(filename, "NIB"))
 	{
-		retval = read_nib(filename, track_buffer, track_density, track_length, track_alignment);
+		retval = read_nib(filename, track_buffer, track_density, track_length);
 		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
-		retval = read_nb2(filename, track_buffer, track_density, track_length, track_alignment);
+		retval = read_nb2(filename, track_buffer, track_density, track_length);
 		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else

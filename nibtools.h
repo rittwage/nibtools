@@ -101,8 +101,8 @@ int writeimage(CBM_FILE fd);
 
 /* fileio.c */
 void parseargs(char *argv[]);
-int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment);
-int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment);
+int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
+int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
 int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
 int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
 int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);

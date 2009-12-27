@@ -105,13 +105,13 @@ main(int argc, char **argv)
 	}
 	else if (compare_extension(inname, "NIB"))
 	{
-		if(!read_nib(inname, track_buffer, track_density, track_length, track_alignment))
+		if(!read_nib(inname, track_buffer, track_density, track_length))
 			exit(0);
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(inname, "NB2"))
 	{
-		if(!read_nb2(inname, track_buffer, track_density, track_length, track_alignment))
+		if(!read_nb2(inname, track_buffer, track_density, track_length))
 			exit(0);
 	}
 	else if (compare_extension(inname, "D64"))

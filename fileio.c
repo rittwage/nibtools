@@ -259,7 +259,7 @@ void parseargs(char *argv[])
 }
 
 
-int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment)
+int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
 	int track, nibsize, numtracks, temp_track_inc;
 	int header_entry = 0;
@@ -330,15 +330,15 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 	return 1;
 }
 
-int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment)
+int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
 {
 	int track, pass_density, pass, nibsize, numtracks, temp_track_inc;
 	int header_entry = 0;
 	char header[0x100];
 	BYTE nibdata[0x2000];
 	BYTE tmpdata[0x2000];
+	BYTE diskid[2], dummy;
 	FILE *fpin;
-	BYTE diskid[2];
 	int errors, best_err, best_pass;
 	int length, best_len;
 	char errorstring[0x1000];
@@ -434,7 +434,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 					fread(nibdata, NIB_TRACK_LENGTH, 1, fpin);
 
 					length = extract_GCR_track(tmpdata, nibdata,
-						&track_alignment[track],
+						&dummy,
 						track/2,
 						capacity_min[track_density[track]&3],
 						capacity_max[track_density[track]&3]);
