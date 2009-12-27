@@ -529,8 +529,9 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, int cap_m
 	BYTE *p1, *p2;		/* local pointers for comparisons */
 
 	nib_track = *cycle_start;
-	//stop_pos = nib_track + NIB_TRACK_LENGTH + gap_match_length;
-	stop_pos = nib_track + cap_max + gap_match_length;
+	//stop_pos = nib_track + NIB_TRACK_LENGTH;
+	//stop_pos = nib_track + cap_max;
+	stop_pos = nib_track + cap_max + CAP_MIN_ALLOWANCE;
 
 	cycle_pos = NULL;
 
@@ -585,8 +586,8 @@ find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, in
 
 	nib_track = *cycle_start;
 	start_pos = nib_track;
-	stop_pos = nib_track + NIB_TRACK_LENGTH - gap_match_length;
-	//stop_pos = nib_track + cap_max + gap_match_length;
+	stop_pos = nib_track + NIB_TRACK_LENGTH;
+	//stop_pos = nib_track + cap_max;
 	cycle_pos = NULL;
 
 	printf("!");
@@ -830,7 +831,7 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, s
 	if(verbose)
 	{
 		sector0_pos = find_sector0(work_buffer, track_len, &sector0_len);
-		printf("{sec0=%.4d;len=%d} ",(sector0_pos - work_buffer), (int)sector0_len);
+		printf("{sec0=%.4d;len=%d} ",(sector0_pos - work_buffer), sector0_len);
 	}
 
 	//* forced track alignments */
