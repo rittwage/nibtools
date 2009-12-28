@@ -589,7 +589,7 @@ find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min,
 	stop_pos = nib_track + NIB_TRACK_LENGTH;
 	//stop_pos = nib_track + cap_max;
 
-	printf("!");
+	//printf("!");
 
 	/* try to find a track cycle ignoring sync  */
 	for (p1 = start_pos; p1 < stop_pos; p1++)
