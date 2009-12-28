@@ -590,12 +590,13 @@ scandisk(void)
 			}
 			*/
 
-			/* check for FAT track */
+			/* check for FAT track
 			if (track < end_track - track_inc)
 			{
 				fat_tracks[track] = check_fat(track);
 				if (fat_tracks[track]) totalfat++;
 			}
+			*/
 
 			/* check for regular disk errors
 				"second half" of fat track will always have header

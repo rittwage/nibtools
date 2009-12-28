@@ -529,11 +529,9 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 	BYTE *p1, *p2;		/* local pointers for comparisons */
 
 	nib_track = *cycle_start;
-	//stop_pos = nib_track + NIB_TRACK_LENGTH;
-	//stop_pos = nib_track + cap_max;
-	stop_pos = nib_track + cap_max + CAP_MIN_ALLOWANCE;
-
 	cycle_pos = NULL;
+	stop_pos = nib_track + NIB_TRACK_LENGTH;
+	//stop_pos = nib_track + cap_max;
 
 	/* try to find a normal track cycle  */
 	for (start_pos = nib_track;; find_sync(&start_pos, stop_pos))
@@ -576,19 +574,20 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 }
 
 size_t
-find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min)
+find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t cap_max)
 {
 	BYTE *nib_track;	/* start of nibbled track data */
 	BYTE *start_pos;	/* start of periodic area */
 	BYTE *cycle_pos;	/* start of cycle repetition */
 	BYTE *stop_pos;		/* maximum position allowed for cycle */
 	BYTE *p1, *p2;		/* local pointers for comparisons */
+	int test;
 
 	nib_track = *cycle_start;
+	cycle_pos = NULL;
 	start_pos = nib_track;
 	stop_pos = nib_track + NIB_TRACK_LENGTH;
 	//stop_pos = nib_track + cap_max;
-	cycle_pos = NULL;
 
 	printf("!");
 
@@ -609,6 +608,12 @@ find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min)
 			{
 				*cycle_start = p1;
 				*cycle_stop = cycle_pos;
+
+				printf("[cycle:");
+				for(test=0; test<gap_match_length; test++)
+					printf("%.2x",cycle_pos[test]);
+				printf("] ");
+
 				return (cycle_pos - p1);
 			}
 		}
@@ -625,23 +630,18 @@ check_valid_data(BYTE * data, int matchlen)
 {
 	/* makes a simple assumption whether this is good data to match track cycle overlap */
 
-	int i, redund = 0;
+	int i;
 
 	for (i = 0; i < matchlen; i++)
 	{
-		//if (data[i] == data[i+matchlen])
-		if ( (data[i] == data[i + 1]) ||
-			(data[i] == data[i + 2]) ||
-			(data[i] == data[i + 3]) ||
-			(data[i] == data[i + 4]) )
+		/* repeating bytes */
+		if ((data[i] == data[i+1]) && (data[i+1] == data[i+2])) return 0;
 
-		redund++;
+		/* check we aren't matching gap data (GCR equivalent of 555555 or AAAAAA) */
+		if((data[i] == 0x52) && (data[i+1] == 0xd4) && (data[i+2] == 0xb5)) return 0;
+		if((data[i] == 0x2d) && (data[i+1] == 0x4b) && (data[i+2] == 0x52)) return 0;
 	}
-
-	if (redund > 1)
-		return 0;
-	else
-		return 1;
+	return 1;
 }
 
 BYTE *
@@ -805,16 +805,19 @@ size_t extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track
 	memset(work_buffer, 0, sizeof(work_buffer));
 	memcpy(work_buffer, cycle_start, NIB_TRACK_LENGTH);
 
-	/* find cycle */
-	find_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
+	/* find cycle
+	   My routines that match the whole track instead works
+	   better and faster than the old sector by sector method now
+	*/
+	find_nondos_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
 	track_len = cycle_stop - cycle_start;
 
-	/* second pass to find a cycle in track w/o syncs */
-	if (track_len > cap_max || track_len < cap_min)
-	{
-		find_nondos_track_cycle(&cycle_start, &cycle_stop, cap_min);
-		track_len = cycle_stop - cycle_start;
-	}
+	/* second pass to find a cycle in track w/o syncs or CBM DOS (or other oddities) */
+	//if ((track_len > cap_max) || (track_len < cap_min))
+	//{
+	//	find_nondos_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
+	//	track_len = cycle_stop - cycle_start;
+	//}
 
 	if(verbose)
 	{
@@ -1478,7 +1481,7 @@ is_bad_gcr(BYTE * gcrdata, size_t length, size_t pos)
  * all known disks that use this for protection break out
  * of it with $55, $AA, or $FF byte.
  *
- * fix_first, fix_last not used because while "correct", the real hardware
+ * fix_first, fix_last not used normally because while "correct", the real hardware
  * is not this precise and it fails the protection checks sometimes.
  */
 
