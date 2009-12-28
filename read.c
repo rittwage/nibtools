@@ -123,13 +123,18 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	BYTE cbuffer2[NIB_TRACK_LENGTH];
 	BYTE *cbufn, *cbufo, *bufn, *bufo;
 	BYTE align;
-	int leno, lenn, densn, i, l, badgcr, retries, errors;
-    BYTE denso;
+	size_t leno, lenn;
+	BYTE denso, densn;
+	size_t i, l, badgcr, retries, errors;
 	char errorstring[0x1000], diffstr[80];
 
 	badgcr = 0;
 	errors = 0;
 	retries = 1;
+	denso = 0;
+	densn = 0;
+	leno = 0;
+	lenn = 0;
 	bufn = buffer1;
 	bufo = buffer2;
 	cbufn = cbuffer1;
@@ -142,7 +147,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		error_retries = 1;
 
 	// First pass at normal track read
-	for (l = 0; l < error_retries; l++)
+	for (l = 0; l < error_retries; l ++)
 	{
 		memset(bufo, 0, NIB_TRACK_LENGTH);
 		denso = read_halftrack(fd, halftrack, bufo);
@@ -288,7 +293,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 }
 
 int
-read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length)
+read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
     int track;
     BYTE align;

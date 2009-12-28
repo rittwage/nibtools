@@ -14,11 +14,13 @@
 #include "nibtools.h"
 
 void
-master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length)
+master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
 	#define LEADER  0x100
-	int badgcr =0;
-	int track, length, i, skewbytes = 0;
+	int track, i;
+	size_t badgcr =0;
+	size_t skewbytes = 0;
+	size_t length;
 	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
 
 	for (track = start_track; track <= end_track; track += track_inc)
@@ -110,7 +112,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_len
 
 			cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
 
-			if (!cbm_parallel_burst_write_track(fd, rawtrack, length + LEADER + skewbytes))
+			if (!cbm_parallel_burst_write_track(fd, rawtrack, (unsigned int)(length + LEADER + skewbytes)))
 			{
 				//putchar('?');
 				fflush(stdin);
@@ -144,13 +146,13 @@ void kill_track(CBM_FILE fd, int track)
 }
 
 void
-write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length)
+write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
 	int track;
 	BYTE density;
 	BYTE trackbuf[NIB_TRACK_LENGTH];
 	char testfilename[16];
-	FILE *trkin;
+	FILE *trkin = '\0';
 	int length;
 
 	motor_on(fd);
@@ -162,7 +164,9 @@ write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_lengt
 		for (density = 0; density <= 3; density++)
 		{
 			sprintf(testfilename, "raw/tr%.1fd%d", (float) track/2, density);
-			if ((trkin = fopen(testfilename, "rb"))) break;
+
+			trkin = fopen(testfilename, "rb");
+			if (!trkin) break;
 		}
 
 		if (trkin)

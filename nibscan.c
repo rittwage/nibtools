@@ -21,26 +21,26 @@ int imagetype, mode;
 int align, force_align;
 char bitrate_range[4] = { 43 * 2, 31 * 2, 25 * 2, 18 * 2 };
 
-int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
+int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 int compare_disks(void);
 int scandisk(void);
-int raw_track_info(BYTE *gcrdata, int length, char *outputstring);
-int check_fat(int track);
-int check_rapidlok(int track);
+int raw_track_info(BYTE *gcrdata, size_t length);
+size_t check_fat(int track);
+size_t check_rapidlok(int track);
 
 BYTE *track_buffer;
 BYTE *track_buffer2;
-int track_length[MAX_HALFTRACKS_1541 + 1];
-int track_length2[MAX_HALFTRACKS_1541 + 1];
+size_t track_length[MAX_HALFTRACKS_1541 + 1];
+size_t track_length2[MAX_HALFTRACKS_1541 + 1];
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_density2[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment2[MAX_HALFTRACKS_1541 + 1];
 BYTE fillbyte;
 
-int fat_tracks[MAX_HALFTRACKS_1541 + 1];
-int rapidlok_tracks[MAX_HALFTRACKS_1541 + 1];
-int badgcr_tracks[MAX_HALFTRACKS_1541 + 1];
+size_t fat_tracks[MAX_HALFTRACKS_1541 + 1];
+size_t rapidlok_tracks[MAX_HALFTRACKS_1541 + 1];
+size_t badgcr_tracks[MAX_HALFTRACKS_1541 + 1];
 
 int fix_gcr;
 int reduce_sync;
@@ -57,7 +57,6 @@ int auto_capacity_adjust;
 int skew;
 int align_disk;
 int ihs;
-
 
 unsigned char md5_hash_result[16];
 unsigned char md5_hash_result2[16];
@@ -88,6 +87,7 @@ main(int argc, char *argv[])
 {
 	char file1[256];
 	char file2[256];
+	int i;
 
 	start_track = 1 * 2;
 	end_track = 42 * 2;
@@ -111,13 +111,15 @@ main(int argc, char *argv[])
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
 
-	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH)))
+	track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH);
+	if(!track_buffer)
 	{
 		printf("could not allocate buffer memory\n");
 		exit(0);
 	}
 
-	if(!(track_buffer2 = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH)))
+	track_buffer2 = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH);
+	if(!track_buffer2)
 	{
 		printf("could not allocate buffer memory\n");
 		free(track_buffer);
@@ -163,57 +165,80 @@ main(int argc, char *argv[])
 	}
 
 	/* CRC32 */
-	printf("\n");
-
 	crc = crc_dir_track(track_buffer, track_length);
+	printf("\nBAM/DIR CRC:\t0x%X\n", crc);
+
 	if(mode==1)
 	{
 		crc2 = crc_dir_track(track_buffer2, track_length2);
+		printf("BAM/DIR CRC(2):\t0x%X", crc2);
+
 		if( crc == crc2 )
-			printf( "*MATCH*\n" );
+			printf( "\t*match*\n" );
 		else
-			printf("*no match*\n");
+			printf("\t*NO match*\n");
 	}
 
-	printf("\n");
-
 	crc = crc_all_tracks(track_buffer, track_length);
+	printf("Full CRC:\t0x%X\n", crc);
+
 	if(mode==1)
 	{
 		crc2 = crc_all_tracks(track_buffer2, track_length2);
-		if( crc == crc2 )
-			printf( "*MATCH*\n" );
-		else
-			printf("*no match*\n");
-	}
+		printf("Full CRC(2):\t0x%X", crc2);
 
-	/* MD5 */
+		if( crc == crc2 )
+			printf( "\t*match*\n" );
+		else
+			printf("\t*NO match*\n");
+	}
 	printf("\n");
 
+	/* MD5 */
 	memset(md5_hash_result, 0 , sizeof(md5_hash_result));
 	md5_dir_track(track_buffer, track_length, md5_hash_result);
+
+	printf("BAM/DIR MD5:\t0x");
+	for (i = 0; i < 16; i++)
+	 	printf ("%02x", md5_hash_result[i]);
+	printf("\n");
+
 	if(mode==1)
 	{
 		memset(md5_hash_result2, 0 , sizeof(md5_hash_result2));
 		md5_dir_track(track_buffer2, track_length2, md5_hash_result2);
-		if( memcmp(md5_hash_result, md5_hash_result2, 16 ) == 0 )
-			printf( "*MATCH*\n" );
-		else
-			printf("*no match*\n");
-	}
 
-	printf("\n");
+		printf("BAM/DIR MD5(2):\t0x");
+		for (i = 0; i < 16; i++)
+		 	printf ("%02x", md5_hash_result2[i]);;
+
+		if( memcmp(md5_hash_result, md5_hash_result2, 16 ) == 0 )
+			printf( "\t*match*\n" );
+		else
+			printf("\t*NO match*\n");
+	}
 
 	memset(md5_hash_result, 0 , sizeof(md5_hash_result));
 	md5_all_tracks(track_buffer, track_length, md5_hash_result);
+
+	printf("Full MD5:\t0x");
+	for (i = 0; i < 16; i++)
+		printf ("%02x", md5_hash_result[i]);
+	printf("\n");
+
 	if(mode==1)
 	{
 		memset(md5_hash_result2, 0 , sizeof(md5_hash_result2));
 		md5_all_tracks(track_buffer2, track_length2, md5_hash_result2);
+
+		printf("Full MD5(2):\t0x");
+		for (i = 0; i < 16; i++)
+			printf ("%02x", md5_hash_result2[i]);
+
 		if( memcmp(md5_hash_result, md5_hash_result2, 16 ) == 0 )
-			printf( "*MATCH*\n" );
+			printf( "\t*match*\n" );
 		else
-			printf("*no match*\n");
+			printf("\t*NO match*\n");
 	}
 
 	free(track_buffer);
@@ -223,7 +248,7 @@ main(int argc, char *argv[])
 }
 
 int
-load_image(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
+load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
 	char command[256];
 	char pathname[256];
@@ -285,15 +310,15 @@ int
 compare_disks(void)
 {
 	int track;
-	int numtracks = 0;
-	int numsecs = 0;
-	int gcr_match = 0;
-	int sec_match = 0;
-	int dens_mismatch = 0;
-	int gcr_total = 0;
-	int sec_total = 0;
-	int trk_total = 0;
-	int errors_d1 = 0, errors_d2 = 0;
+	size_t numtracks = 0;
+	size_t numsecs = 0;
+	size_t gcr_match = 0;
+	size_t sec_match = 0;
+	size_t dens_mismatch = 0;
+	size_t gcr_total = 0;
+	size_t sec_total = 0;
+	size_t trk_total = 0;
+	size_t errors_d1 = 0, errors_d2 = 0;
 	char gcr_mismatches[256];
 	char sec_mismatches[256];
 	char gcr_matches[256];
@@ -471,12 +496,12 @@ scandisk(void)
 	int track = 0;
 	int totalfat = 0;
 	int totalrl = 0;
-	int totalgcr = 0;
+	size_t totalgcr = 0;
 	int total_wrong_density = 0;
-	int empty = 0, temp_empty = 0;
-	int errors = 0, temp_errors = 0;
+	size_t empty = 0, temp_empty = 0;
+	size_t errors = 0, temp_errors = 0;
 	int defdensity;
-	int length;
+	size_t length;
 	char errorstring[0x1000];
 	char testfilename[16];
 	FILE *trkout;
@@ -598,7 +623,7 @@ scandisk(void)
 			}
 
 			if (advanced_info)
-					raw_track_info(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track], errorstring);
+					raw_track_info(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track]);
 
 			printf("\n");
 		}
@@ -625,17 +650,17 @@ scandisk(void)
 }
 
 int
-raw_track_info(BYTE * gcrdata, int length, char *outputstring)
+raw_track_info(BYTE * gcrdata, size_t length)
 {
-	int sync_cnt = 0;
-	int sync_len[NIB_TRACK_LENGTH];
+	size_t sync_cnt = 0;
+	size_t sync_len[NIB_TRACK_LENGTH];
 	/*
 	int gap_cnt = 0;
 	int gap_len[NIB_TRACK_LENGTH];
 	*/
-	int bad_cnt = 0;
-	int bad_len[NIB_TRACK_LENGTH];
-	int i, locked;
+	size_t bad_cnt = 0;
+	size_t bad_len[NIB_TRACK_LENGTH];
+	size_t i, locked;
 
 	memset(sync_len, 0, sizeof(sync_len));
 	/* memset(gap_len, 0, sizeof(gap_len)); */
@@ -715,9 +740,9 @@ raw_track_info(BYTE * gcrdata, int length, char *outputstring)
 	return 1;
 }
 
-int check_fat(int track)
+size_t check_fat(int track)
 {
-	int fat = 0;
+	size_t fat = 0;
 	char errorstring[0x1000];
 
 	if (track_length[track] > 0 && track_length[track+2] > 0)
@@ -737,14 +762,14 @@ int check_fat(int track)
 	this is innaccurate!
 */
 
-int check_rapidlok(int track)
+size_t check_rapidlok(int track)
 {
-	int i;
-	int end_key = 0;
-	int end_sync = 0;
-	int synclen = 0;
-	int keylen = 0;		// extra sector with # of 0x7b
-	int tlength = track_length[track];
+	size_t i;
+	size_t end_key = 0;
+	size_t end_sync = 0;
+	size_t synclen = 0;
+	size_t keylen = 0;		// extra sector with # of 0x7b
+	size_t tlength = track_length[track];
 	BYTE *gcrdata = track_buffer + (track * NIB_TRACK_LENGTH);
 
 	// extra sector is at the end.

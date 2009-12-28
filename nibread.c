@@ -24,14 +24,14 @@ char density_branch[4] = { 0xb1, 0xb5, 0xb7, 0xb9 };
 BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
-int track_length[MAX_HALFTRACKS_1541 + 1];
+size_t track_length[MAX_HALFTRACKS_1541 + 1];
 
+size_t error_retries;
 int reduce_sync, reduce_badgcr, reduce_gap;
 int fix_gcr;
 int start_track, end_track, track_inc;
 int read_killer;
 int align;
-int error_retries;
 int drivetype;
 int imagetype;
 int mode;
@@ -73,7 +73,8 @@ main(int argc, char *argv[])
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
 
-	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH)))
+	track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH);
+	if(!track_buffer)
 	{
 		printf("could not allocate memory for buffers.\n");
 		exit(0);

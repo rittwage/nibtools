@@ -259,7 +259,7 @@ void parseargs(char *argv[])
 }
 
 
-int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
+int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
 	int track, nibsize, numtracks, temp_track_inc;
 	int header_entry = 0;
@@ -330,17 +330,17 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 	return 1;
 }
 
-int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
+int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
-	int track, pass_density, pass, nibsize, numtracks, temp_track_inc;
+	int track, pass_density, pass, nibsize, temp_track_inc, numtracks;
 	int header_entry = 0;
 	char header[0x100];
 	BYTE nibdata[0x2000];
 	BYTE tmpdata[0x2000];
 	BYTE diskid[2], dummy;
 	FILE *fpin;
-	int errors, best_err, best_pass;
-	int length, best_len;
+	size_t errors, best_err, best_pass;
+	size_t length, best_len;
 	char errorstring[0x1000];
 
 	printf("\nReading NB2 file...");
@@ -417,6 +417,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 		header_entry++;
 
 		best_pass = 0;
+		best_err = 0;
 		best_len = 0;  /* unused for now */
 
 		printf("\n%4.1f:",(float) track / 2);
@@ -468,7 +469,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 	return 1;
 }
 
-int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
+int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
 	int track, g64maxtrack, temp_track_inc;
 	int dens_pointer = 0;
@@ -560,7 +561,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track
 }
 
 int
-read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
+read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
 	int track, sector, sector_ref;
 	BYTE buffer[256];
@@ -668,7 +669,7 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_len
 	return 1;
 }
 
-int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
+int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
     /*	writes contents of buffers into NIB file, with header and density information
     	this is only called by nibread, so it does not extract/compress the track
@@ -742,7 +743,7 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *trac
 
 
 int
-write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
+write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
     /*	writes contents of buffers into D64 file, with errorblock information (if detected) */
 
@@ -858,7 +859,7 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 
 
 int
-write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length)
+write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
 	/* writes contents of buffers into G64 file, with header and density information */
 
@@ -866,14 +867,16 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	DWORD gcr_track_p[MAX_HALFTRACKS_1541];
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
 	BYTE gcr_track[G64_TRACK_MAXLEN + 2];
-	int track, track_len;
+	size_t track_len;
+	int track;
 	FILE * fpout;
 	BYTE buffer[NIB_TRACK_LENGTH];
 
 	printf("\nWriting G64 file...");
 
 	/* when writing a G64 file, we don't care about the limitations of drive hardware
-		However, VICE currently ignores G64 header and hardcodes 7928 as the largest track size
+		However, VICE currently ignores G64 header and hardcodes 7928 as the largest track size,
+		and also requires it to be 84 tracks no matter if they're used or not.
 	*/
 
 	fpout = fopen(filename, "wb");
@@ -886,7 +889,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	/* Create G64 header */
 	strcpy((char *) header, "GCR-1541");
 	header[8] = 0;	/* G64 version */
-	header[9] = (BYTE) 84; // end_track;	/* Number of Halftracks  (VICE can't handle non-84 track images) */
+	header[9] = 84; // end_track;	/* Number of Halftracks  (VICE can't handle non-84 track images) */
 	header[10] = (BYTE) (G64_TRACK_MAXLEN % 256);	/* Size of each stored track */
 	header[11] = (BYTE) (G64_TRACK_MAXLEN / 256);
 
@@ -928,14 +931,14 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	}
 
 	/* shuffle raw GCR between formats */
-	for (track = 0; track < 84 /*end_track*/; track += track_inc)
+	for (track = 0; track < MAX_HALFTRACKS_1541; track += track_inc)
 	{
-		int raw_track_size[4] = { 6250, 6666, 7142, 7692 };
+		size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
 
 		memset(&gcr_track[2], fillbyte, G64_TRACK_MAXLEN);
 
-		gcr_track[0] = raw_track_size[speed_map[track/2]] % 256;
-		gcr_track[1] = raw_track_size[speed_map[track/2]] / 256;
+		gcr_track[0] = (BYTE) (raw_track_size[speed_map[track/2]] % 256);
+		gcr_track[1] = (BYTE) (raw_track_size[speed_map[track/2]] / 256);
 
 		memcpy(buffer, track_buffer + ((track+2) * NIB_TRACK_LENGTH), track_length[track+2]);
 		track_len = track_length[track+2];
@@ -967,8 +970,8 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 			}
 		}
 
-		gcr_track[0] = track_len % 256;
-		gcr_track[1] = track_len / 256;
+		gcr_track[0] = (BYTE) (track_len % 256);
+		gcr_track[1] = (BYTE) (track_len / 256);
 
 		// copy back our realigned track
 		memcpy(gcr_track+2, buffer, track_len);
@@ -984,10 +987,10 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_le
 	return 1;
 }
 
-int
-compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
+size_t
+compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_t length)
 {
-	int orglen;
+	size_t orglen;
 	BYTE gcrdata[NIB_TRACK_LENGTH];
 
 	/* copy to spare buffer */
@@ -1070,7 +1073,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, int length)
 	return length;
 }
 
-int align_tracks(BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment)
+int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, BYTE *track_alignment)
 {
 	int track;
 	BYTE nibdata[NIB_TRACK_LENGTH];
@@ -1149,7 +1152,7 @@ write_dword(FILE *fd, DWORD * buf, int num)
 	return 0;
 }
 
-unsigned int crc_dir_track(BYTE *track_buffer, int *track_length)
+unsigned int crc_dir_track(BYTE *track_buffer, size_t *track_length)
 {
 	/* this calculates a CRC32 for the BAM and first directory sector, which is sufficient to differentiate most disks */
 
@@ -1187,11 +1190,10 @@ unsigned int crc_dir_track(BYTE *track_buffer, int *track_length)
 	memcpy(data+256, rawdata+1, 256);
 
 	result = crcFast(data, sizeof(data));
-	printf("BAM/DIR CRC:\t0x%X\n", (int)result);
 	return result;
 }
 
-unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
+unsigned int crc_all_tracks(BYTE *track_buffer, size_t *track_length)
 {
 	/* this calculates a CRC32 for all sectors on the disk */
 
@@ -1232,11 +1234,10 @@ unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length)
 		}
 	}
 	result = crcFast(data, sizeof(data));
-	printf("Full CRC:\t0x%X (%d blocks)\n", (int)result, index);
 	return result;
 }
 
-unsigned int md5_dir_track(BYTE *track_buffer, int *track_length, unsigned char *result)
+unsigned int md5_dir_track(BYTE *track_buffer, size_t *track_length, unsigned char *result)
 {
 	/* this calculates a MD5 hash of the BAM and first directory sector, which is sufficient to differentiate most disks */
 
@@ -1244,7 +1245,6 @@ unsigned int md5_dir_track(BYTE *track_buffer, int *track_length, unsigned char 
 	BYTE id[3];
 	BYTE rawdata[260];
 	BYTE errorcode;
-	int i;
 
 	crcInit();
 	memset(data, 0, sizeof(data));
@@ -1273,16 +1273,10 @@ unsigned int md5_dir_track(BYTE *track_buffer, int *track_length, unsigned char 
 	memcpy(data+256, rawdata+1, 256);
 
 	md5(data, sizeof(data), result);
-
-	printf("BAM/DIR MD5:\t0x");
-	for (i = 0; i < 16; i++)
-	 	printf ("%02x", result[i]);
-	 printf("\n");
-
-	 return 1;
+	return 1;
 }
 
-unsigned int md5_all_tracks(BYTE *track_buffer, int *track_length, unsigned char *result)
+unsigned int md5_all_tracks(BYTE *track_buffer, size_t *track_length, unsigned char *result)
 {
 	/* this calculates an MD5 hash for all sectors on the disk */
 
@@ -1291,7 +1285,6 @@ unsigned int md5_all_tracks(BYTE *track_buffer, int *track_length, unsigned char
 	BYTE id[3];
 	BYTE rawdata[260];
 	BYTE errorcode;
-	int i;
 
 	crcInit();
 	memset(data, 0, sizeof(data));
@@ -1315,21 +1308,12 @@ unsigned int md5_all_tracks(BYTE *track_buffer, int *track_length, unsigned char
 				track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
 				rawdata, track/2, sector, id);
 
-			if(1) //errorcode == SECTOR_OK)
-			{
-				memcpy(data+(index*256), rawdata+1, 256);
-				index++;
-			}
+			memcpy(data+(index*256), rawdata+1, 256);
+			index++;
 		}
 	}
 
 	md5(data, sizeof(data), result);
-
-	printf("Full MD5:\t0x");
-	for (i = 0; i < 16; i++)
-		printf ("%02x", result[i]);
-	printf(" (%d blocks)\n", index);
-
 	return 1;
 }
 

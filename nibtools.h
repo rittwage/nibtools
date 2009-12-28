@@ -4,7 +4,7 @@
  * based on MNIB by Markus Brenner <markus(at)brenner(dot)de>
  */
 
-#define VERSION "0.6.4 (Built "__DATE__" "__TIME__")"
+#define VERSION "0.7.0 (Built "__DATE__" "__TIME__")"
 
 #define FL_STEPTO      0x00
 #define FL_MOTOR       0x01
@@ -68,9 +68,9 @@ extern BYTE skew_map[];
 extern BYTE fillbyte;
 extern FILE * fplog;
 extern float motor_speed;
+extern size_t error_retries;
 extern int mode;
 extern int read_killer;
-extern int error_retries;
 extern int align_disk;
 extern int force_density;
 extern int track_match;
@@ -101,32 +101,32 @@ int writeimage(CBM_FILE fd);
 
 /* fileio.c */
 void parseargs(char *argv[]);
-int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
-int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
-int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
-int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
-int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
-int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
-int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, int *track_length);
-int compress_halftrack(int halftrack, BYTE *track_buffer, BYTE track_density, int track_length);
-int align_tracks(BYTE *track_buffer, BYTE *track_density, int *track_length, BYTE *track_alignment);
+int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
+int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
+int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
+int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
+int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
+int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
+int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
+size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE track_density, size_t track_length);
+int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, BYTE *track_alignment);
 int write_dword(FILE * fd, DWORD * buf, int num);
-unsigned int crc_dir_track(BYTE *track_buffer, int *track_length);
-unsigned int crc_all_tracks(BYTE *track_buffer, int *track_length);
-unsigned int md5_dir_track(BYTE *track_buffer, int *track_length, unsigned char *result);
-unsigned int md5_all_tracks(BYTE *track_buffer, int *track_length, unsigned char *result);
+unsigned int crc_dir_track(BYTE *track_buffer, size_t *track_length);
+unsigned int crc_all_tracks(BYTE *track_buffer, size_t *track_length);
+unsigned int md5_dir_track(BYTE *track_buffer, size_t *track_length, unsigned char *result);
+unsigned int md5_all_tracks(BYTE *track_buffer, size_t *track_length, unsigned char *result);
 
 /* read.c */
 BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer);
 BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer);
-int read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length);
+int read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 void write_nb2(CBM_FILE fd, char * filename);
 void get_disk_id(CBM_FILE fd);
 BYTE scan_density(CBM_FILE fd);
 
 /* write.c */
-void master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length);
-void write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int *track_length);
+void master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
+void write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 void unformat_disk(CBM_FILE fd);
 void unformat_track(CBM_FILE fd, int track);
 unsigned int track_capacity(CBM_FILE fd);

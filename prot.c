@@ -47,7 +47,7 @@ void shift_buffer_right(BYTE *buffer, int length, int n)
 }
 
 BYTE *
-align_vmax(BYTE * work_buffer, int tracklen)
+align_vmax(BYTE * work_buffer, size_t tracklen)
 {
 	BYTE *pos, *buffer_end, *start_pos;
 	int run;
@@ -77,7 +77,7 @@ align_vmax(BYTE * work_buffer, int tracklen)
 }
 
 BYTE *
-align_vmax_new(BYTE * work_buffer, int tracklen)
+align_vmax_new(BYTE * work_buffer, size_t tracklen)
 {
 	BYTE *pos, *buffer_end, *key_temp, *key;
 	int run, longest;
@@ -113,7 +113,7 @@ align_vmax_new(BYTE * work_buffer, int tracklen)
 }
 
 BYTE *
-align_vmax_cw(BYTE * work_buffer, int tracklen)
+align_vmax_cw(BYTE * work_buffer, size_t tracklen)
 {
 	BYTE *pos, *buffer_end, *start_pos;
 	int run;
@@ -140,7 +140,7 @@ align_vmax_cw(BYTE * work_buffer, int tracklen)
 // Line up the track cycle to the start of the longest gap mark
 // this helps some custom protection tracks master properly
 BYTE *
-auto_gap(BYTE * work_buffer, int tracklen)
+auto_gap(BYTE * work_buffer, size_t tracklen)
 {
 	BYTE *pos, *buffer_end, *key_temp, *key;
 	int run, longest;
@@ -185,7 +185,7 @@ auto_gap(BYTE * work_buffer, int tracklen)
 // we can line up the track cycle to this
 // in lieu of no other hints
 BYTE *
-find_bad_gap(BYTE * work_buffer, int tracklen)
+find_bad_gap(BYTE * work_buffer, size_t tracklen)
 {
 	BYTE *pos, *buffer_end, *key_temp, *key;
 	int run, longest;
@@ -225,7 +225,7 @@ find_bad_gap(BYTE * work_buffer, int tracklen)
 // Line up the track cycle to the start of the longest sync mark
 // this helps some custom protection tracks master properly
 BYTE *
-find_long_sync(BYTE * work_buffer, int tracklen)
+find_long_sync(BYTE * work_buffer, size_t tracklen)
 {
 	BYTE *pos, *buffer_end, *key_temp, *key;
 	int run, longest;
@@ -264,7 +264,7 @@ find_long_sync(BYTE * work_buffer, int tracklen)
 
 #include <assert.h>
 
-void fix_first_gcr(BYTE *gcrdata, int length, int pos)
+void fix_first_gcr(BYTE *gcrdata, size_t length, size_t pos)
 {
     // fix first bad byte in a row
     unsigned int lastbyte, mask, data;
@@ -286,7 +286,7 @@ void fix_first_gcr(BYTE *gcrdata, int length, int pos)
 }
 
 
-void fix_last_gcr(BYTE *gcrdata, int length, int pos)
+void fix_last_gcr(BYTE *gcrdata, size_t length, size_t pos)
 {
     // fix last bad byte in a row
     unsigned int lastbyte, mask, data;

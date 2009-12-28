@@ -29,7 +29,7 @@ BYTE *track_buffer;
 BYTE fillbyte;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
-int track_length[MAX_HALFTRACKS_1541 + 1];
+size_t track_length[MAX_HALFTRACKS_1541 + 1];
 int start_track, end_track, track_inc;
 int reduce_sync, reduce_badgcr, reduce_gap;
 int fix_gcr, align, force_align;
@@ -75,7 +75,8 @@ main(int argc, char **argv)
 	  "(C) C64 Preservation Project\nhttp://c64preservation.com\n"
 	  "Version " VERSION "\n\n");
 
-	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH)))
+	track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH);
+	if(!track_buffer)
 	{
 		printf("could not allocate memory for buffers.\n");
 		exit(0);

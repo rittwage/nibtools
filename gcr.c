@@ -70,9 +70,9 @@ int capacity_max[] = 		{ 6311, 6726, 7201, 7824 };
 */
 
 /* New calculated defaults: 297rpm, 300rpm, 303rpm */
-int capacity_min[] =		{ (int) (DENSITY0 / 303), (int) (DENSITY1 / 303), (int) (DENSITY2 / 303), (int) (DENSITY3 / 303) };
-int capacity[] = 				{ (int) (DENSITY0 / 300), (int) (DENSITY1 / 300), (int) (DENSITY2 / 300), (int) (DENSITY3 / 300) };
-int capacity_max[] =		{ (int) (DENSITY0 / 297), (int) (DENSITY1 / 297), (int) (DENSITY2 / 297), (int) (DENSITY3 / 297) };
+size_t capacity_min[] =		{ (int) (DENSITY0 / 303), (int) (DENSITY1 / 303), (int) (DENSITY2 / 303), (int) (DENSITY3 / 303) };
+size_t capacity[] = 				{ (int) (DENSITY0 / 300), (int) (DENSITY1 / 300), (int) (DENSITY2 / 300), (int) (DENSITY3 / 300) };
+size_t capacity_max[] =		{ (int) (DENSITY0 / 297), (int) (DENSITY1 / 297), (int) (DENSITY2 / 297), (int) (DENSITY3 / 297) };
 
 /* Nibble-to-GCR conversion table */
 static BYTE GCR_conv_data[16] = {
@@ -467,7 +467,7 @@ convert_sector_to_GCR(BYTE * buffer, BYTE * ptr, int track, int sector, BYTE * d
 		}
 
 		buf[0] = 0x08;	/* Header identifier */
-		buf[1] = sector ^ track ^ tempID[1] ^ tempID[0];
+		buf[1] = (BYTE) (sector ^ track ^ tempID[1] ^ tempID[0]);
 		buf[2] = (BYTE) sector;
 		buf[3] = (BYTE) track;
 
@@ -519,7 +519,7 @@ convert_sector_to_GCR(BYTE * buffer, BYTE * ptr, int track, int sector, BYTE * d
 }
 
 size_t
-find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, int cap_max)
+find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t cap_max)
 {
 	BYTE *nib_track;	/* start of nibbled track data */
 	BYTE *start_pos;	/* start of periodic area */
@@ -576,7 +576,7 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, int cap_m
 }
 
 size_t
-find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, int cap_min, int cap_max)
+find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min)
 {
 	BYTE *nib_track;	/* start of nibbled track data */
 	BYTE *start_pos;	/* start of periodic area */
@@ -645,7 +645,7 @@ check_valid_data(BYTE * data, int matchlen)
 }
 
 BYTE *
-find_sector0(BYTE * work_buffer, int tracklen, size_t * p_sectorlen)
+find_sector0(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 {
 	BYTE *pos, *buffer_end, *sync_last;
 
@@ -689,7 +689,7 @@ find_sector0(BYTE * work_buffer, int tracklen, size_t * p_sectorlen)
 }
 
 BYTE *
-find_sector_gap(BYTE * work_buffer, int tracklen, size_t * p_sectorlen)
+find_sector_gap(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 {
 	size_t gap, maxgap;
 	BYTE *pos;
@@ -705,6 +705,7 @@ find_sector_gap(BYTE * work_buffer, int tracklen, size_t * p_sectorlen)
 		return NULL;
 
 	sync_last = pos;
+	sync_max = pos;
 	maxgap = 0;
 
 	/* try to find biggest (sector) gap */
@@ -772,17 +773,17 @@ int check_formatted(BYTE *gcrdata)
    [Input]  destination buffer, source buffer
    [Return] length of copied track fragment
 */
-int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_t cap_min, size_t cap_max)
+size_t extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_t cap_min, size_t cap_max)
 {
 	BYTE work_buffer[NIB_TRACK_LENGTH*2];	/* working buffer */
 	BYTE *cycle_start;	/* start position of cycle */
 	BYTE *cycle_stop;	/* stop position of cycle  */
-	size_t track_len;
 	BYTE *sector0_pos;	/* position of sector 0 */
 	BYTE *sectorgap_pos;/* position of sector gap */
 	BYTE *longsync_pos;	/* position of longest sync run */
 	BYTE *badgap_pos;	/* position of bad gcr bit run */
 	BYTE *marker_pos;	/* generic marker used by protection handlers */
+	size_t track_len;
 	size_t sector0_len;	/* length of gap before sector 0 */
 	size_t sectorgap_len;	/* length of longest gap */
 
@@ -811,16 +812,16 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, s
 	/* second pass to find a cycle in track w/o syncs */
 	if (track_len > cap_max || track_len < cap_min)
 	{
-		find_nondos_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
+		find_nondos_track_cycle(&cycle_start, &cycle_stop, cap_min);
 		track_len = cycle_stop - cycle_start;
 	}
 
 	if(verbose)
 	{
 		if (track_len > cap_max)
-			printf("[LONG, max=%d>%d] ",(int)cap_max, (int)track_len);
+			printf("[LONG, max=%d>%d] ",cap_max, track_len);
 		if(track_len < cap_min)
-			printf("[SHORT, min=%d<%d] ",(int)cap_min, (int)track_len);
+			printf("[SHORT, min=%d<%d] ", cap_min, track_len);
 	}
 
 	/* copy twice the data to work buffer */
@@ -975,7 +976,7 @@ int extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, s
 	for a proportional reduction.
  */
 int
-strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
+strip_runs(BYTE * buffer, size_t length, size_t length_max, int minrun, BYTE target)
 {
 	/* minrun is number of bytes to leave behind */
 	int run, skipped;
@@ -1006,11 +1007,11 @@ strip_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 }
 
 /* try to shorten inert data until length <= length_max */
-int
-reduce_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
+size_t
+reduce_runs(BYTE * buffer, size_t length, size_t length_max, int minrun, BYTE target)
 {
 	/* minrun is number of bytes to leave behind */
-	int skipped;
+	size_t skipped;
 
 	do
 	{
@@ -1026,7 +1027,7 @@ reduce_runs(BYTE * buffer, int length, int length_max, int minrun, BYTE target)
 }
 
 int
-strip_gaps(BYTE * buffer, int length, int length_max)
+strip_gaps(BYTE * buffer, size_t length)
 {
 	int skipped;
 	BYTE *source, *end;
@@ -1047,17 +1048,17 @@ strip_gaps(BYTE * buffer, int length, int length_max)
 }
 
 /* try to shorten tail gaps until length <= length_max */
-int
-reduce_gaps(BYTE * buffer, int length, int length_max)
+size_t
+reduce_gaps(BYTE * buffer, size_t length, size_t length_max)
 {
-	int skipped;
+	size_t skipped;
 
 	do
 	{
 		if (length <= length_max)
 			return (length);
 
-		skipped = strip_gaps(buffer, length, length_max);
+		skipped = strip_gaps(buffer, length);
 		length -= skipped;
 	}
 	while (skipped > 0 && length > length_max);
@@ -1070,17 +1071,21 @@ reduce_gaps(BYTE * buffer, int length, int length_max)
 	about the special cases of being all sync or having no sync
 */
 BYTE
-check_sync_flags(BYTE *gcrdata, int density, int length)
+check_sync_flags(BYTE *gcrdata, int density, size_t length)
 {
-	int i, syncs;
-	syncs = 0;
+	size_t i;
+	size_t syncs=0;
+
+	/* if empty, we have no sync */
+	if(!length)
+		return (BYTE)(density |= BM_NO_SYNC);
 
 	/* check manually for SYNCKILL */
-	for (i = 0; i < length - 1; i++)
+	for (i=0; i<length-1; i++)
 	{
 		/* if ( ((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i+1] == 0xFF) )  syncs++; */
-		if ((gcrdata[i] & 0x7F) == 0x7F)
-			syncs++; /* NOTE: This is not flagging true sync marks, only the last 7 bits of it */
+		if ((gcrdata[i] & 0x7f) == 0x7f)
+			syncs++; /* NOTE: This is not flagging true "hardware detected" sync marks, only the last 7 bits of it */
 	}
 
 	if(!syncs)
@@ -1089,13 +1094,13 @@ check_sync_flags(BYTE *gcrdata, int density, int length)
 		density |= BM_FF_TRACK;
 
 	/* else do nothing */
-	return ( density & 0xFF );
+	return ((BYTE)(density & 0xff));
 }
 
-int
-compare_tracks(BYTE *track1, BYTE *track2, int length1, int length2, int same_disk, char *outputstring)
+size_t
+compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int same_disk, char *outputstring)
 {
-	int match, j, k, sync_diff, presync_diff, gap_diff, badgcr_diff, size_diff, byte_match, byte_diff;
+	size_t match, j, k, sync_diff, presync_diff, gap_diff, badgcr_diff, size_diff, byte_match, byte_diff;
 	char tmpstr[256];
 
 	match = 0;
@@ -1225,8 +1230,8 @@ compare_tracks(BYTE *track1, BYTE *track2, int length1, int length2, int same_di
 	return match;
 }
 
-int
-compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2, BYTE * id1, BYTE * id2, int track, char * outputstring)
+size_t
+compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BYTE * id1, BYTE * id2, int track, char * outputstring)
 {
 	int sec_match, numsecs;
 	int sector, error1, error2, empty;
@@ -1266,7 +1271,10 @@ compare_sectors(BYTE * track1, BYTE * track2, int length1, int length2, BYTE * i
 		error2 = convert_GCR_sector(track2, track2 + length2, secbuf2, track/2, sector, id2);
 
 		// compare data returned
-		checksum1 = checksum2 = empty = 0;
+		checksum1 = 0;
+		checksum2 = 0;
+		empty = 0;
+
 		for (i = 1; i <= 256; i++)
 		{
 			checksum1 ^= secbuf1[i];
@@ -1355,8 +1363,8 @@ char topetscii(char s)
 
 
 // check for CBM DOS errors
-int
-check_errors(BYTE * gcrdata, int length, int track, BYTE * id, char * errorstring)
+size_t
+check_errors(BYTE * gcrdata, size_t length, int track, BYTE * id, char * errorstring)
 {
 	int errors, sector, errorcode;
 	char tmpstr[16];
@@ -1380,8 +1388,8 @@ check_errors(BYTE * gcrdata, int length, int track, BYTE * id, char * errorstrin
 }
 
 // check for CBM DOS empty sectors
-int
-check_empty(BYTE * gcrdata, int length, int track, BYTE * id, char * errorstring)
+size_t
+check_empty(BYTE * gcrdata, size_t length, int track, BYTE * id, char * errorstring)
 {
 	int i, empty, sector, errorcode;
 	char tmpstr[16], temp_errorstring[256];
@@ -1427,9 +1435,10 @@ check_empty(BYTE * gcrdata, int length, int track, BYTE * id, char * errorstring
  * Returns total number of bytes replaced
  */
 int
-replace_bytes(BYTE * buffer, int length, BYTE srcbyte, BYTE dstbyte)
+replace_bytes(BYTE * buffer, size_t length, BYTE srcbyte, BYTE dstbyte)
 {
-	int i, replaced;
+	size_t i;
+	int replaced;
 
 	replaced = 0;
 
@@ -1445,10 +1454,10 @@ replace_bytes(BYTE * buffer, int length, BYTE srcbyte, BYTE dstbyte)
 }
 
 // Check if byte at pos contains a 000 bit combination
-int
+size_t
 is_bad_gcr(BYTE * gcrdata, size_t length, size_t pos)
 {
-	unsigned int lastbyte, mask, data;
+	size_t lastbyte, mask, data;
 
 	lastbyte = (pos == 0) ? gcrdata[length - 1] : gcrdata[pos - 1];
 	data = ((lastbyte & 0x03) << 8) | gcrdata[pos];
@@ -1473,17 +1482,20 @@ is_bad_gcr(BYTE * gcrdata, size_t length, size_t pos)
  * is not this precise and it fails the protection checks sometimes.
  */
 
- extern int fix_gcr;
+extern int fix_gcr;
 
-int
-check_bad_gcr(BYTE * gcrdata, int length)
+size_t
+check_bad_gcr(BYTE * gcrdata, size_t length)
 {
 	/* state machine definitions */
 	enum ebadgcr { S_BADGCR_OK, S_BADGCR_ONCE_BAD, S_BADGCR_LOST };
-
-	int i, lastpos;
 	enum ebadgcr sbadgcr;
-	int total, b_badgcr, n_badgcr;
+	size_t i, lastpos;
+	size_t total, b_badgcr, n_badgcr;
+
+	/* if empty we are all "bad" GCR */
+	if(!length)
+		return (NIB_TRACK_LENGTH);
 
 	i = 0;
 	total = 0;
