@@ -620,6 +620,7 @@ find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min,
 	}
 
 	/* we got nothing useful */
+	printf("[cycle:NONE DETECTED!] ");
 	*cycle_start = nib_track;
 	*cycle_stop = nib_track + NIB_TRACK_LENGTH;
 	return NIB_TRACK_LENGTH;
@@ -853,7 +854,7 @@ size_t extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track
 		if (align_map[track] == ALIGN_VMAX)
 		{
 			*align = ALIGN_VMAX;
-			marker_pos = align_vmax(work_buffer, track_len);
+			marker_pos = align_vmax_new(work_buffer, track_len);
 		}
 
 		if (align_map[track] == ALIGN_AUTOGAP)
@@ -1503,7 +1504,6 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 	i = 0;
 	total = 0;
 	lastpos = 0;
-
 	sbadgcr = S_BADGCR_OK;
 
 	for (i = 0; i < length - 1; i++)
@@ -1538,7 +1538,6 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 				}
 				else
 					sbadgcr = S_BADGCR_OK;
-
 				break;
 
 			case S_BADGCR_LOST:
@@ -1562,6 +1561,5 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 		}
 		lastpos = i;
 	}
-
 	return total;
 }

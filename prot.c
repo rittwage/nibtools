@@ -62,7 +62,7 @@ align_vmax(BYTE * work_buffer, size_t tracklen)
 	while (pos < buffer_end)
 	{
 		// duplicator's markers
-		if ( (*pos == 0x4b) || (*pos == 0x5a) || (*pos == 0x49)  || (*pos == 0xa5))
+		if ( (*pos == 0x4b) || (*pos == 0x69) || (*pos == 0x49) || (*pos == 0x5a) || (*pos == 0xa5) )
 		{
 			if(!run) start_pos = pos;  // mark first byte
 			if (run > 5) return (start_pos); // assume this is it
@@ -91,7 +91,7 @@ align_vmax_new(BYTE * work_buffer, size_t tracklen)
 	/* try to find longest good gcr run */
 	while (pos < buffer_end - 2)
 	{
-		if ( (*pos == 0x4b) || (*pos == 0x5a) || (*pos == 0x49)  || (*pos == 0xa5) )
+		if ( (*pos == 0x4b) || (*pos == 0x69) || (*pos == 0x49) || (*pos == 0x5a) || (*pos == 0xa5) )
 		{
 			if(run > 5) key_temp = pos - run;
 			run++;

@@ -63,6 +63,7 @@ void parseargs(char *argv[])
 					printf("V-MAX!\n");
 					memset(align_map, ALIGN_VMAX, MAX_TRACKS_1541+1);
 					fix_gcr = 0;
+					fillbyte = 0xff;
 					break;
 
 				case 'c':
@@ -1087,6 +1088,12 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 		memcpy(nibdata,  track_buffer + (track * NIB_TRACK_LENGTH), sizeof(nibdata));
 		memset(track_buffer + (track * NIB_TRACK_LENGTH), 0x00, sizeof(nibdata));
 
+		/* output some specs */
+		printf("%4.1f: (density=",(float) track / 2);
+		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC");
+		if(track_density[track] & BM_FF_TRACK) printf("KILLER");
+		printf("%d) ", track_density[track]&3);
+
 		/* process track cycle */
 		track_length[track] = extract_GCR_track(
 			track_buffer + (track * NIB_TRACK_LENGTH),
@@ -1097,12 +1104,7 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 			capacity_max[track_density[track]&3]
 		);
 
-		/* output some specs */
-		printf("%4.1f: (",(float) track / 2);
-		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-
-		printf("%d:%d) ", track_density[track]&3, track_length[track]);
+		printf("(length=%d) ", track_length[track]);
 		printf("[align=%s]\n",alignments[track_alignment[track]]);
 	}
 	return 1;

@@ -641,12 +641,12 @@ scandisk(void)
 		}
 	}
 	printf("\n---------------------------------------------------------------------\n");
-	printf("%d disk errors detected.\n", errors);
-	printf("%d empty sectors detected.\n", empty);
-	printf("%d bad GCR bytes detected.\n", totalgcr);
-	printf("%d fat tracks detected.\n", totalfat);
-	printf("%d rapidlok tracks detected.\n", totalrl);
-	printf("%d tracks with non-standard density.\n", total_wrong_density);
+	printf("%d unrecognized sectors (CBM disk errors) detected\n", errors);
+	printf("%d known empty sectors detected\n", empty);
+	printf("%d bad GCR bytes detected\n", totalgcr);
+	printf("%d fat tracks detected\n", totalfat);
+	printf("%d rapidlok tracks detected\n", totalrl);
+	printf("%d tracks with non-standard density\n", total_wrong_density);
 	return 1;
 }
 
