@@ -634,8 +634,8 @@ check_valid_data(BYTE * data, int matchlen)
 
 	for (i = 0; i < matchlen; i++)
 	{
-		/* repeating bytes */
-		if ((data[i] == data[i+1]) && (data[i+1] == data[i+2])) return 0;
+		if(data[i] == 0xff) return 0; /* sync marks */
+		if ((data[i] == data[i+1]) && (data[i+1] == data[i+2])) return 0;  /* repeating bytes */
 
 		/* check we aren't matching gap data (GCR equivalent of 555555 or AAAAAA) */
 		if((data[i] == 0x52) && (data[i+1] == 0xd4) && (data[i+2] == 0xb5)) return 0;
