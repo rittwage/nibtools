@@ -70,6 +70,7 @@ void parseargs(char *argv[])
 					printf("V-MAX! (CINEMAWARE)\n");
 					memset(align_map, ALIGN_VMAX_CW, MAX_TRACKS_1541+1);
 					fix_gcr = 0;
+					fillbyte = 0xff;
 					break;
 
 				case 'g':

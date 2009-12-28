@@ -71,7 +71,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 				continue;
 		}
 
-		/* unformat track with 0x55 (01010101) or sync (11111111)
+		/* unformat track with 0x55 (01010101) or fillbyte
 		    some of this is the "leader" which is overwritten
 		    some 1571's don't like a lot of 0x00 bytes, they see phantom sync, etc.
 		*/
@@ -86,6 +86,8 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 			skewbytes = skew * (capacity[track_density[track] & 3] / 200000);
 			printf(" {skew=%d} ", skewbytes);
 		}
+
+		/* merge in our track data */
 		memcpy(rawtrack + LEADER + skewbytes,  track_buffer + (track * NIB_TRACK_LENGTH), length);
 
 		/* handle short tracks that won't 'loop overwrite' existing data */
