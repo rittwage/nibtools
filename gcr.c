@@ -525,61 +525,6 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 	BYTE *start_pos;	/* start of periodic area */
 	BYTE *cycle_pos;	/* start of cycle repetition */
 	BYTE *stop_pos;		/* maximum position allowed for cycle */
-	BYTE *data_pos;		/* cycle search variable */
-	BYTE *p1, *p2;		/* local pointers for comparisons */
-
-	nib_track = *cycle_start;
-	cycle_pos = NULL;
-	stop_pos = nib_track + NIB_TRACK_LENGTH;
-	//stop_pos = nib_track + cap_max;
-
-	/* try to find a normal track cycle  */
-	for (start_pos = nib_track;; find_sync(&start_pos, stop_pos))
-	{
-		if ((data_pos = start_pos + cap_min) >= stop_pos)
-			break;	/* no cycle found */
-
-		while (find_sync(&data_pos, stop_pos))
-		{
-			p1 = start_pos;
-			cycle_pos = data_pos;
-
-			for (p2 = cycle_pos; p2 < stop_pos;)
-			{
-				/* try to match all remaining syncs, too */
-				if (memcmp(p1, p2, gap_match_length) != 0)
-				{
-					cycle_pos = NULL;
-					break;
-				}
-				if (!find_sync(&p1, stop_pos))
-					break;
-				if (!find_sync(&p2, stop_pos))
-					break;
-			}
-
-			if (cycle_pos != NULL)
-			{
-				*cycle_start = start_pos;
-				*cycle_stop = cycle_pos;
-				return (cycle_pos - start_pos);
-			}
-		}
-	}
-
-	/* we got nothing useful, return it all */
-	*cycle_start = nib_track;
-	*cycle_stop = nib_track + NIB_TRACK_LENGTH;
-	return NIB_TRACK_LENGTH;
-}
-
-size_t
-find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t cap_max)
-{
-	BYTE *nib_track;	/* start of nibbled track data */
-	BYTE *start_pos;	/* start of periodic area */
-	BYTE *cycle_pos;	/* start of cycle repetition */
-	BYTE *stop_pos;		/* maximum position allowed for cycle */
 	BYTE *p1, *p2;		/* local pointers for comparisons */
 	int test;
 
@@ -808,19 +753,9 @@ size_t extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track
 	memset(work_buffer, 0, sizeof(work_buffer));
 	memcpy(work_buffer, cycle_start, NIB_TRACK_LENGTH);
 
-	/* find cycle
-	   My routines that match the whole track instead works
-	   better and faster than the old sector by sector method now
-	*/
-	find_nondos_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
+	/* find raw track cycle */
+	find_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
 	track_len = cycle_stop - cycle_start;
-
-	/* second pass to find a cycle in track w/o syncs or CBM DOS (or other oddities) */
-	//if ((track_len > cap_max) || (track_len < cap_min))
-	//{
-	//	find_nondos_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
-	//	track_len = cycle_stop - cycle_start;
-	//}
 
 	if(verbose)
 	{

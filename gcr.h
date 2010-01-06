@@ -144,7 +144,6 @@ int convert_4bytes_from_GCR(BYTE * gcr, BYTE * plain);
 int extract_id(BYTE * gcr_track, BYTE * id);
 int extract_cosmetic_id(BYTE * gcr_track, BYTE * id);
 size_t find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t cap_max);
-size_t find_nondos_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t cap_max);
 BYTE convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_end, BYTE * d64_sector, int track, int sector, BYTE * id);
 void convert_sector_to_GCR(BYTE * buffer, BYTE * ptr, int track, int sector, BYTE * diskID, int error);
 BYTE * find_sector_gap(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen);
