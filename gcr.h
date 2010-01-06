@@ -157,9 +157,9 @@ size_t check_errors(BYTE * gcrdata, size_t length, int track, BYTE * id, char * 
 size_t check_empty(BYTE * gcrdata, size_t length, int track, BYTE * id, char * errorstring);
 size_t compare_tracks(BYTE * track1, BYTE * track2, size_t length1, size_t  length2, int same_disk, char * outputstring);
 size_t compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BYTE * id1, BYTE * id2, int track, char * outputstring);
-int strip_runs(BYTE * buffer, size_t length, size_t length_max, int minrun, BYTE target);
-size_t reduce_runs(BYTE * buffer, size_t length, size_t length_max, int minrun, BYTE target);
-int strip_gaps(BYTE * buffer, size_t length);
+size_t strip_runs(BYTE * buffer, size_t length, size_t length_max, size_t minrun, BYTE target);
+size_t reduce_runs(BYTE * buffer, size_t length, size_t length_max, size_t minrun, BYTE target);
+size_t strip_gaps(BYTE * buffer, size_t length);
 size_t reduce_gaps(BYTE * buffer, size_t length, size_t length_max);
 size_t is_bad_gcr(BYTE * gcrdata, size_t length, size_t pos);
 int check_formatted(BYTE * gcrdata);

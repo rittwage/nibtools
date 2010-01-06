@@ -64,9 +64,9 @@ BYTE reduce_map[MAX_TRACKS_1541 + 1] = {
 char alignments[][20] = { "NONE", "GAP", "SEC0", "SYNC", "BADGCR", "VMAX", "AUTO", "VMAX-CW"};
 
 /* Burst Nibbler defaults
-int capacity_min[] = 		{ 6183, 6598, 7073, 7616 };
-int capacity[] = 				{ 6231, 6646, 7121, 7664 };
-int capacity_max[] = 		{ 6311, 6726, 7201, 7824 };
+size_t capacity_min[] = 		{ 6183, 6598, 7073, 7616 };
+size_t capacity[] = 				{ 6231, 6646, 7121, 7664 };
+size_t capacity_max[] = 		{ 6311, 6726, 7201, 7824 };
 */
 
 /* New calculated defaults: 297rpm, 300rpm, 303rpm */
@@ -691,7 +691,7 @@ find_sector_gap(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 		pos -= tracklen;
 
 	//return pos - 1;  // go to  last byte that contains first few bits of sync
-	return pos; // go to first byte of sync
+	return pos; // return at first byte of sync
 }
 
 /* checks if there is any reasonable section of formatted (GCR) data */
@@ -916,11 +916,11 @@ size_t extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track
 	eligible run when called.  It can be called repeatedly
 	for a proportional reduction.
  */
-int
-strip_runs(BYTE * buffer, size_t length, size_t length_max, int minrun, BYTE target)
+size_t
+strip_runs(BYTE * buffer, size_t length, size_t length_max, size_t minrun, BYTE target)
 {
 	/* minrun is number of bytes to leave behind */
-	int run, skipped;
+	size_t run, skipped;
 	BYTE *source, *end;
 
 	run = 0;
@@ -949,7 +949,7 @@ strip_runs(BYTE * buffer, size_t length, size_t length_max, int minrun, BYTE tar
 
 /* try to shorten inert data until length <= length_max */
 size_t
-reduce_runs(BYTE * buffer, size_t length, size_t length_max, int minrun, BYTE target)
+reduce_runs(BYTE * buffer, size_t length, size_t length_max, size_t minrun, BYTE target)
 {
 	/* minrun is number of bytes to leave behind */
 	size_t skipped;
@@ -967,7 +967,7 @@ reduce_runs(BYTE * buffer, size_t length, size_t length_max, int minrun, BYTE ta
 	return (length);
 }
 
-int
+size_t
 strip_gaps(BYTE * buffer, size_t length)
 {
 	int skipped;
