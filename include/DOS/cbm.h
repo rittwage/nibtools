@@ -16,7 +16,6 @@
 
 #define __u_char unsigned char
 
-
 extern const char cbm_dev[];
 
 extern int cbm_listen(int f, __u_char dev, __u_char secadr);
@@ -33,9 +32,9 @@ extern int cbm_reset(int f);
 extern __u_char cbm_pp_read(int f);
 extern void cbm_pp_write(int f, __u_char c);
 extern __u_char cbm_parallel_burst_read(int f);
-extern void cbm_parallel_burst_read_n(int f, __u_char *Buffer, unsigned int Length);
+extern int cbm_parallel_burst_read_n(int f, __u_char *Buffer, unsigned int Length);
 extern void cbm_parallel_burst_write(int f, __u_char c);
-extern void cbm_parallel_burst_write_n(int f, __u_char *Buffer, unsigned int Length);
+extern int cbm_parallel_burst_write_n(int f, __u_char *Buffer, unsigned int Length);
 extern int cbm_iec_poll(int f);
 extern int cbm_iec_get(int f, int line);
 extern void cbm_iec_set(int f, int line);

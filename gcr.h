@@ -14,6 +14,11 @@
 
 */
 
+#ifdef DJGPP
+#define size_t unsigned int
+#endif
+
+
 #define BYTE unsigned char
 #define DWORD unsigned int
 #define MAX_TRACKS_1541 42 /* tracks are referenced 1-42 instead of 0-41 */
