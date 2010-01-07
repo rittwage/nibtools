@@ -1,3 +1,4 @@
+#define OPENCBM_42
 #include "opencbm.h"
 #define delay(x)  Sleep(x)
 #define msleep(x) Sleep(x/1000)
