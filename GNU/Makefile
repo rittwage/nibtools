@@ -1,5 +1,5 @@
 #
-# Makefile for building mnib, n2g, n2d, pshift, and pscan
+# Makefile for building various nibtools executables
 #
 # Build targets are:  dos(djgpp) win32(cygwin) linux
 #
@@ -14,7 +14,7 @@ CBM_LNX_PATH=	/usr/local
 CBM_WIN_PATH=	../
 
 # Default compile flags.  Be careful with optimization (-O2)
-CFLAGS=		${WARNS} -g
+CFLAGS=		${WARNS}
 
 # cl65 defs, contributed by Ullrich von Bassewitz <uz(at)musoftware(dot)de>
 # (cc65 >= 2.6 required)

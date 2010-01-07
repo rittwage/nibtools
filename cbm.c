@@ -82,24 +82,27 @@ cbm_parallel_burst_write(int f, __u_char c)
 	cbm_ioctl(f, CBMCTRL_PAR_WRITE, c);
 }
 
-void
-cbm_parallel_burst_read_n(int f, __u_char *Buffer, unsigned int Length)
+int
+cbm_parallel_burst_read_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
 	unsigned int count;
 
-	for(count = 0; count <= Length; count ++)
+	for(count = 0; count < Length; count ++)
 		Buffer[count] = cbm_parallel_burst_read(f);
+
+	return 1;
 }
 
-void
-cbm_parallel_burst_write_n(int f, __u_char *Buffer, unsigned int Length)
+int
+cbm_parallel_burst_write_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
 	unsigned int count;
 
-	for(count = 0; count <= Length; count ++)
+	for(count = 0; count < Length; count ++)
 		cbm_parallel_burst_write(f, Buffer[count]);
-}
 
+	return 1;
+}
 int
 cbm_iec_poll(int f)
 {
