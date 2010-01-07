@@ -82,7 +82,7 @@ cbm_parallel_burst_write(int f, __u_char c)
 	cbm_ioctl(f, CBMCTRL_PAR_WRITE, c);
 }
 
-int
+int CBMAPIDECL
 cbm_parallel_burst_read_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
 	unsigned int count;
@@ -93,7 +93,7 @@ cbm_parallel_burst_read_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 	return 1;
 }
 
-int
+int CBMAPIDECL
 cbm_parallel_burst_write_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
 	unsigned int count;

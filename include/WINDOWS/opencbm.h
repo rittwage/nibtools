@@ -188,8 +188,15 @@ EXTERN int CBMAPIDECL cbm_iec_dbg_write(CBM_FILE HandleDevice, unsigned char Val
 
 EXTERN __u_char CBMAPIDECL cbm_parallel_burst_read(CBM_FILE f);
 EXTERN void CBMAPIDECL cbm_parallel_burst_write(CBM_FILE f, __u_char c);
+
+#ifdef OPENCBM_42
 EXTERN int CBMAPIDECL cbm_parallel_burst_read_n(CBM_FILE HandleDevice, __u_char *Buffer, unsigned int Length);
 EXTERN int CBMAPIDECL cbm_parallel_burst_write_n(CBM_FILE HandleDevice, __u_char *Buffer, unsigned int Length);
+#else
+int CBMAPIDECL cbm_parallel_burst_read_n(CBM_FILE HandleDevice, __u_char *Buffer, unsigned int Length);
+int CBMAPIDECL cbm_parallel_burst_write_n(CBM_FILE HandleDevice, __u_char *Buffer, unsigned int Length);
+#endif
+
 EXTERN int CBMAPIDECL  cbm_parallel_burst_read_track(CBM_FILE f, __u_char *buffer, unsigned int length);
 EXTERN int CBMAPIDECL  cbm_parallel_burst_read_track_var(CBM_FILE f, __u_char *buffer, unsigned int length);
 EXTERN int CBMAPIDECL cbm_parallel_burst_write_track(CBM_FILE f, __u_char *buffer, unsigned int length);

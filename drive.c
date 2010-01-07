@@ -19,11 +19,8 @@ extern int drivetype;
 unsigned int floppybytes;
 extern CBM_FILE fd;
 
-EXTERN int CBMAPIDECL cbm_parallel_burst_read_n(CBM_FILE HandleDevice, __u_char *Buffer, unsigned int Length);
-EXTERN int CBMAPIDECL cbm_parallel_burst_write_n(CBM_FILE HandleDevice, __u_char *Buffer, unsigned int Length);
-
 #ifdef OPENCBM_42
-int
+int CBMAPIDECL
 cbm_parallel_burst_read_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
 	unsigned int count;
@@ -34,7 +31,7 @@ cbm_parallel_burst_read_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 	return 1;
 }
 
-int
+int CBMAPIDECL
 cbm_parallel_burst_write_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
 	unsigned int count;

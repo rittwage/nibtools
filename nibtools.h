@@ -6,7 +6,7 @@
 
 #define VERSION "0.7.0 (Built "__DATE__" "__TIME__")"
 
-#define OPENCBM_42 true
+#define OPENCBM_42
 
 #define FL_STEPTO      0x00
 #define FL_MOTOR       0x01
