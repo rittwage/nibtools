@@ -306,7 +306,6 @@ read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-
 		if(rawmode)
 		{
 			track_density[track] = read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH));

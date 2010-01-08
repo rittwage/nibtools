@@ -67,7 +67,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		/* zero out empty tracks entirely */
 		if( (length == NIB_TRACK_LENGTH) && (track_density[track] & BM_NO_SYNC) )
 		{
-				unformat_track(fd, track);
+				zero_track(fd, track);
 				continue;
 		}
 
@@ -142,9 +142,6 @@ void kill_track(CBM_FILE fd, int track)
 	send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
 	cbm_parallel_burst_write(fd, 0x00);
 	cbm_parallel_burst_write_track(fd, trackbuf, NIB_TRACK_LENGTH);
-
-	printf("KILLED!");
-
 }
 
 void
@@ -198,17 +195,22 @@ unformat_disk(CBM_FILE fd)
 	set_density(fd, 2);
 
 	printf("\nUnformatting...\n\n");
+	printf("00000000011111111112222222222333333333344\n");
+	printf("12345678901234567890123456789012345678901\n");
+	printf("-----------------------------------------\n");
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		printf("\n%4.1f: zeroed!", (float) track / 2);
-		unformat_track(fd, track);
+		printf("X");
+		zero_track(fd, track);
+		kill_track(fd,track);
+		zero_track(fd,track);
 	}
 	printf("\n");
 }
 
 void
-unformat_track(CBM_FILE fd, int track)
+zero_track(CBM_FILE fd, int track)
 {
 	// step head
 	step_to_halftrack(fd, track);

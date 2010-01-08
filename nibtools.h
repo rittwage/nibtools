@@ -128,7 +128,7 @@ BYTE scan_density(CBM_FILE fd);
 void master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 void write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 void unformat_disk(CBM_FILE fd);
-void unformat_track(CBM_FILE fd, int track);
+void zero_track(CBM_FILE fd, int track);
 unsigned int track_capacity(CBM_FILE fd);
 void init_aligned_disk(CBM_FILE fd);
 void adjust_target(CBM_FILE fd);

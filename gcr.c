@@ -526,7 +526,7 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 	BYTE *cycle_pos;	/* start of cycle repetition */
 	BYTE *stop_pos;		/* maximum position allowed for cycle */
 	BYTE *p1, *p2;		/* local pointers for comparisons */
-	int test;
+	int index;
 
 	nib_track = *cycle_start;
 	cycle_pos = NULL;
@@ -551,9 +551,10 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 				*cycle_start = p1;
 				*cycle_stop = cycle_pos;
 
+				/* print cycle pattern found */
 				printf("[cycle:");
-				for(test=0; test<gap_match_length; test++)
-					printf("%.2x",cycle_pos[test]);
+				for(index = 0; index < gap_match_length; index++)
+					printf("%.2x",cycle_pos[index]);
 				printf("] ");
 
 				return (cycle_pos - p1);
@@ -562,9 +563,9 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 	}
 
 	/* we got nothing useful */
-	printf("[cycle:NONE DETECTED!] ");
 	*cycle_start = nib_track;
 	*cycle_stop = nib_track + NIB_TRACK_LENGTH;
+	printf("[cycle:NO-CYCLE-FOUND] ");
 	return NIB_TRACK_LENGTH;
 }
 
@@ -721,7 +722,8 @@ int check_formatted(BYTE *gcrdata)
    [Input]  destination buffer, source buffer
    [Return] length of copied track fragment
 */
-size_t extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_t cap_min, size_t cap_max)
+size_t
+extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_t cap_min, size_t cap_max)
 {
 	BYTE work_buffer[NIB_TRACK_LENGTH*2];	/* working buffer */
 	BYTE *cycle_start;	/* start position of cycle */

@@ -1089,11 +1089,7 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 		memcpy(nibdata,  track_buffer + (track * NIB_TRACK_LENGTH), sizeof(nibdata));
 		memset(track_buffer + (track * NIB_TRACK_LENGTH), 0x00, sizeof(nibdata));
 
-		/* output some specs */
-		printf("%4.1f: (density=",(float) track / 2);
-		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC");
-		if(track_density[track] & BM_FF_TRACK) printf("KILLER");
-		printf("%d) ", track_density[track]&3);
+		printf("%4.1f: ",(float) track / 2);
 
 		/* process track cycle */
 		track_length[track] = extract_GCR_track(
@@ -1105,7 +1101,11 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 			capacity_max[track_density[track]&3]
 		);
 
-		printf("(length=%d) ", track_length[track]);
+		/* output some specs */
+		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC:");
+		if(track_density[track] & BM_FF_TRACK) printf("KILLER:");
+		printf("(%d:", track_density[track]&3);
+		printf("%d) ", track_length[track]);
 		printf("[align=%s]\n",alignments[track_alignment[track]]);
 	}
 	return 1;
