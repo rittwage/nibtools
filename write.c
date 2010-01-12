@@ -14,162 +14,130 @@
 #include "nibtools.h"
 
 void
-master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
+master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t track_length)
 {
 	#define LEADER  0x100
-	int track, i;
-	size_t badgcr =0;
+	int i;
 	size_t skewbytes = 0;
-	size_t length;
 	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
 
-	for (track = start_track; track <= end_track; track += track_inc)
+	/* engineer killer track */
+	if(track_density[track] & BM_FF_TRACK)
 	{
-		/* double-check our sync-flag assumptions */
-		track_density[track] = check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+			kill_track(fd, track);
+			return;
+	}
 
-		if(mode == MODE_WRITE_RAW)
+	/* zero out empty tracks entirely */
+	if( (track_length == NIB_TRACK_LENGTH) && (track_density[track] & BM_NO_SYNC) )
+	{
+			zero_track(fd, track);
+			return;
+	}
+
+	/* unformat track with 0x55 (01010101) or fillbyte
+	    some of this is the "leader" which is overwritten
+	    some 1571's don't like a lot of 0x00 bytes, they see phantom sync, etc.
+	*/
+	if(track_density[track] & BM_NO_SYNC)
+		memset(rawtrack, 0x55, sizeof(rawtrack));
+	else
+		memset(rawtrack, fillbyte, sizeof(rawtrack));
+
+	/* apply skew, if specified*/
+	if(skew)
+	{
+		skewbytes = skew * (capacity[track_density[track] & 3] / 200000);
+		printf(" {skew=%d} ", skewbytes);
+	}
+
+	/* merge in our track data */
+	memcpy(rawtrack + LEADER + skewbytes,  track_buffer + (track * NIB_TRACK_LENGTH), track_length);
+
+	/* handle short tracks that won't 'loop overwrite' existing data */
+	if(track_length + LEADER + skewbytes < capacity[track_density[track] & 3] - CAPACITY_MARGIN)
+	{
+			printf("[pad:%d]", (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - track_length);
+			track_length = capacity[track_density[track] & 3] - CAPACITY_MARGIN;
+	}
+
+	/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
+	replace_bytes(rawtrack, sizeof(rawtrack), 0x00, 0x01);
+
+	/* step to destination track and set density */
+	step_to_halftrack(fd, track);
+	set_density(fd, track_density[track]&3);
+
+	/* burst send track */
+	for (i = 0; i < 10; i ++)
+	{
+		if(ihs)
+			send_mnib_cmd(fd, FL_WRITEIHS, NULL, 0);
+		else
+			send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
+
+		cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
+
+		if (!cbm_parallel_burst_write_track(fd, rawtrack, track_length + LEADER + skewbytes))
 		{
-			length = track_length[track];
-			printf("\n%4.1f: (", (float) track / 2);
-			printf("%d", track_density[track] & 3);
-
-			if ( (track_density[track]&3) != speed_map[track/2])
-				printf("!=%d", speed_map[track/2]);
-
-			printf(":%d) ", length);
-
-			if (track_density[track] & BM_NO_SYNC)
-				printf(" NOSYNC ");
-			else if (track_density[track] & BM_FF_TRACK)
-				printf(" KILLER ");
-
-			if(track_length[track] == 0)
-			{
-				printf(" [missing - skipped]");
-				continue;
-			}
+			//putchar('?');
+			printf("(timeout) ");
+			fflush(stdin);
+			cbm_parallel_burst_read(fd);
+			msleep(500);
+			//printf("%c ", test_par_port(fd)? '+' : '-');
+			test_par_port(fd);
 		}
 		else
-		{
-			badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
-			length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
-			printf(" [badgcr: %d] ", badgcr);
-		}
-
-		/* engineer killer track */
-		if(track_density[track] & BM_FF_TRACK)
-		{
-				kill_track(fd, track);
-				continue;
-		}
-
-		/* zero out empty tracks entirely */
-		if( (length == NIB_TRACK_LENGTH) && (track_density[track] & BM_NO_SYNC) )
-		{
-				zero_track(fd, track);
-				continue;
-		}
-
-		/* unformat track with 0x55 (01010101) or fillbyte
-		    some of this is the "leader" which is overwritten
-		    some 1571's don't like a lot of 0x00 bytes, they see phantom sync, etc.
-		*/
-		if(track_density[track] & BM_NO_SYNC)
-			memset(rawtrack, 0x55, sizeof(rawtrack));
-		else
-			memset(rawtrack, fillbyte, sizeof(rawtrack));
-
-		/* append real track data */
-		if(skew)
-		{
-			skewbytes = skew * (capacity[track_density[track] & 3] / 200000);
-			printf(" {skew=%d} ", skewbytes);
-		}
-
-		/* merge in our track data */
-		memcpy(rawtrack + LEADER + skewbytes,  track_buffer + (track * NIB_TRACK_LENGTH), length);
-
-		/* handle short tracks that won't 'loop overwrite' existing data */
-		if(length + LEADER + skewbytes < capacity[track_density[track] & 3] - CAPACITY_MARGIN)
-		{
-				printf("[pad:%d]", (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - length);
-				length = capacity[track_density[track] & 3] - CAPACITY_MARGIN;
-		}
-
-		/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
-		replace_bytes(rawtrack, sizeof(rawtrack), 0x00, 0x01);
-
-		/* step to destination track and set density */
-		step_to_halftrack(fd, track);
-		set_density(fd, track_density[track]&3);
-
-		/* burst send track */
-		for (i = 0; i < 10; i ++)
-		{
-			if(ihs)
-				send_mnib_cmd(fd, FL_WRITEIHS, NULL, 0);
-			else
-				send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
-
-			cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
-
-			if (!cbm_parallel_burst_write_track(fd, rawtrack, (unsigned int)(length + LEADER + skewbytes)))
-			{
-				//putchar('?');
-				fflush(stdin);
-				cbm_parallel_burst_read(fd);
-				msleep(500);
-				//printf("%c ", test_par_port(fd)? '+' : '-');
-				test_par_port(fd);
-			}
-			else
-				break;
-		}
+			break;
 	}
 }
 
-void kill_track(CBM_FILE fd, int track)
-{
-	BYTE trackbuf[NIB_TRACK_LENGTH];
-
-	// step head
-	step_to_halftrack(fd, track);
-	set_density(fd, 2);
-
-	// write 0xFF $2000 times
-	memset(trackbuf, 0xff, NIB_TRACK_LENGTH);
-	send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
-	cbm_parallel_burst_write(fd, 0x00);
-	cbm_parallel_burst_write_track(fd, trackbuf, NIB_TRACK_LENGTH);
-}
-
 void
-write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
+master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
 	int track;
-	BYTE density;
-	BYTE trackbuf[NIB_TRACK_LENGTH];
-	char testfilename[16];
-	FILE *trkin = '\0';
-	int length;
-
-	motor_on(fd);
-	if (auto_capacity_adjust) adjust_target(fd);
+	size_t badgcr, length;
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
+		/* double-check our sync-flag assumptions and process track for remaster */
+		track_density[track] = check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+		badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
+		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+		printf("[badgcr: %d] ", badgcr);
+		master_track(fd, track_buffer, track_density, track, length);
+	}
+}
+
+void
+master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
+{
+	int track, density;
+	BYTE trackbuf[NIB_TRACK_LENGTH];
+	char testfilename[16];
+	FILE *trkin = '\0';
+	size_t length;
+
+	for (track = start_track; track <= end_track; track += track_inc)
+	{
+		printf("\n%4.1f:", (float) track / 2);
+
 		// read in raw track at density (in filename)
-		for (density = 0; density <= 3; density++)
+		for (density = 3; density >= 0; density--)
 		{
 			sprintf(testfilename, "raw/tr%.1fd%d", (float) track/2, density);
 
-			trkin = fopen(testfilename, "rb");
-			if (!trkin) break;
+			if( (trkin = fopen(testfilename, "rb")) )
+			{
+				printf(" [%s] ", testfilename);
+				break;
+			}
 		}
 
 		if (trkin)
 		{
+			/* erase mem and grab data from file */
 			memset(trackbuf, 0x55, sizeof(trackbuf));
 			fseek(trkin, 0, SEEK_END);
 			length = ftell(trkin);
@@ -177,13 +145,26 @@ write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_le
 			fread(trackbuf, length, 1, trkin); // @@@SRT: check success
 			fclose(trkin);
 
+			/* process track */
 			memcpy(track_buffer + (track * NIB_TRACK_LENGTH), trackbuf, length);
-			track_density[track] = density;
-			track_length[track] = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], length);
+			track_density[track] = check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH), density, length);
+			printf(" (%d", track_density[track] & 3);
+
+			if ( (track_density[track]&3) != speed_map[track/2])
+				printf("!=%d", speed_map[track/2]);
+
+			printf(":%d) ", length);
+
+			if (track_density[track] & BM_NO_SYNC)
+					printf(" NOSYNC ");
+			else if (track_density[track] & BM_FF_TRACK)
+				printf(" KILLER ");
+
+			master_track(fd, track_buffer, track_density, track, length);
 		}
+		else
+			printf(" [missing - skipped]");
 	}
-	master_disk(fd, track_buffer, track_density, track_length);
-	step_to_halftrack(fd, 18 * 2);
 }
 
 void
@@ -207,6 +188,21 @@ unformat_disk(CBM_FILE fd)
 		zero_track(fd,track);
 	}
 	printf("\n");
+}
+
+void kill_track(CBM_FILE fd, int track)
+{
+	BYTE trackbuf[NIB_TRACK_LENGTH];
+
+	// step head
+	step_to_halftrack(fd, track);
+	set_density(fd, 2);
+
+	// write 0xFF $2000 times
+	memset(trackbuf, 0xff, NIB_TRACK_LENGTH);
+	send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
+	cbm_parallel_burst_write(fd, 0x00);
+	cbm_parallel_burst_write_track(fd, trackbuf, NIB_TRACK_LENGTH);
 }
 
 void

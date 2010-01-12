@@ -151,6 +151,7 @@ main(int argc, char *argv[])
 	switch (mode)
 	{
 		case MODE_WRITE_DISK:
+		case MODE_WRITE_RAW:
 			//printf("Ready to write '%s'.\n", filename);
 			//printf("Current disk WILL be OVERWRITTEN!\n"
 			//	"Press ENTER to continue or CTRL-C to quit.\n");
@@ -164,14 +165,6 @@ main(int argc, char *argv[])
 			//  "Press ENTER to continue or CTRL-C to quit.\n");
 			//getchar();
 			unformat_disk(fd);
-			break;
-
-		case MODE_WRITE_RAW:
-			//printf("Ready to write raw tracks to disk.\n");
-			//printf("Current disk WILL be OVERWRITTEN!\n"
-			//  "Press ENTER to continue or CTRL-C to quit.\n");
-			//getchar();
-			write_raw(fd, track_buffer, track_density, track_length);
 			break;
 	}
 
@@ -255,7 +248,11 @@ int writeimage(CBM_FILE fd)
 	if(auto_capacity_adjust) adjust_target(fd);
 	if(align_disk) init_aligned_disk(fd);
 
-	master_disk(fd, track_buffer, track_density, track_length);
+	if(mode == MODE_WRITE_RAW)
+		master_disk_raw(fd, track_buffer, track_density, track_length);
+	else
+		master_disk(fd, track_buffer, track_density, track_length);
+
 	step_to_halftrack(fd, 18 * 2);
 	cbm_parallel_burst_read(fd);
 	printf("\n");

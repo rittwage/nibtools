@@ -565,7 +565,7 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 	/* we got nothing useful */
 	*cycle_start = nib_track;
 	*cycle_stop = nib_track + NIB_TRACK_LENGTH;
-	printf("[cycle:NO-CYCLE-FOUND] ");
+	printf("[cycle:NONE DETECTED!] ");
 	return NIB_TRACK_LENGTH;
 }
 

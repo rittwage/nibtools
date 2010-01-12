@@ -109,7 +109,6 @@ main(int argc, char *argv[])
 	ihs = 0;
 	mode = MODE_READ_DISK;
 	fillbyte = 0x55;
-	rawmode = 0;
 	rpm_real = 0;
 
 	// cache our arguments for logfile generation
@@ -129,11 +128,6 @@ main(int argc, char *argv[])
 			track_inc = 1;
 			end_track = 83;
 			printf("* Using halftracks\n");
-			break;
-
-		case 'r':
-			rawmode = 1;
-			printf("* Using raw mode\n");
 			break;
 
 		case 'i':
