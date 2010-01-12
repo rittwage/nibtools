@@ -1055,8 +1055,6 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_t lengt
 
 			if (length < orglen)
 				printf("trunc:%d ", orglen - length);
-			else
-				printf("\nHad to truncate track %d by %d bytes.", halftrack / 2, orglen - length);
 		}
 	}
 
