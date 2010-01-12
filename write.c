@@ -138,7 +138,7 @@ master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		if (trkin)
 		{
 			/* erase mem and grab data from file */
-			memset(trackbuf, 0x55, sizeof(trackbuf));
+			memset(trackbuf, 0x00, sizeof(trackbuf));
 			fseek(trkin, 0, SEEK_END);
 			length = ftell(trkin);
 			rewind(trkin);
