@@ -11,9 +11,41 @@
 ; (From Pete)
 ; It's writing 7696 bytes total at density 3, so it should not overwrite
 ; the sync unless the drive motor is really, really fast.  This is standard for 300RPM
-
+;
 ; $c2: current track
 ; $c3-$c8: density statistic bins
+;
+; General description of routines
+; ===============================
+; This code is uploaded to the drive and then executed. It can be at most
+; 1 KB ($300 - $700). The main_loop reads commands and executes them by
+; a direct RTS. Each command is at least 5 bytes: a 4-byte header and then
+; the command byte itself. A table at the end of this code links routines
+; to command bytes.
+;
+; There are two forms of IO: interlocked (send_byte) and handshaked
+; (read_gcr_1). Both use the parallel port for the actual byte transfer,
+; but signal differently via the IEC lines. Interlocked IO involves toggling
+; the ATN (host) and DATA lines (drive). It allows both sides to be sure
+; their timing is correct. The host sets ATN to indicate it is ready for IO,
+; then the drive releases DATA when it is ready. After the data byte is done
+; (send or receive), the sender toggles its line. (The CPU releases ATN or
+; the drive acquires DATA, depending on who was sending). Then the sequence
+; can continue. This method is reliable but slightly slower than handshaked.
+; It is used for commands and their status return value because some can
+; take a long time (e.g., a seek) and the other side has to wait.
+;
+; Handshaked transfers only give one-way notification. The sending side
+; toggles DATA when a byte is ready. Each edge (0->1 or 1->0) indicates
+; another byte is ready. The other side just has to be fast enough to keep up.
+; This is used for the high-speed transfer where bytes are ready quickly.
+;
+; After receiving a command, the drive indicates it is executing it by
+; sending an interlocked byte to the host. This byte is not interpreted, but
+; allows the host to wait for it. If the command was a parallel read or write,
+; the host needs to be immediately ready to start transferring bytes via
+; handshaked IO. Thus, it should not receive the ack byte until it is entering
+; its tight IO loop.
 
 .ifndef DRIVE
         .error "DRIVE must be defined as 1541 or 1571"
@@ -43,9 +75,11 @@ _main_loop:
         LDX  #$45                 ;
         TXS                       ; reset stack
         TYA                       ; return value from last call
-        JSR  _send_byte           ; parallel-send data byte to C64
+        JSR  _send_byte           ; Send byte to ack to the host that
+                                  ; we are now in the main loop and
+                                  ; ready for commands.
         LDA  #>(_main_loop-1)
-        PHA                       ; set RTS to main loop
+        PHA                       ; set RTS to main_loop
         LDA  #<(_main_loop-1)
         PHA
         JSR  _read_command
@@ -69,18 +103,18 @@ _read_track:
         BNE  _read_gcr_loop       ; read without waiting for Sync
 
 ;----------------------------------------
-; read out track after sync
+; read out track after waiting for sync
 _read_after_sync:
         JSR  _send_byte           ; parallel-send data byte to C64
-          
-_in_sync:
-      BIT  $1c00
-      BMI  _in_sync             ; wait for end of Sync
 
-      LDA  #$ff
-      STA  $1800                ; send handshake
-      LDX  #$20                 ; read $2000 GCR bytes
-      STX  $c0
+_in_sync:
+        BIT  $1c00
+        BMI  _in_sync             ; wait for end of Sync
+
+        LDA  #$ff
+        STA  $1800                ; send handshake
+        LDX  #$20                 ; read $2000 GCR bytes
+        STX  $c0
 
         LDX  $1c01                ; read GCR byte
         CLV
@@ -128,7 +162,7 @@ _read_gcr_2:
         CLV                       ;
         STX  PP_BASE              ; PA, port A (8 bit parallel data)
         STA  $1800                ; send handshake
-	INY                       ;
+        INY                       ;
 _rtp2:
         BNE  _read_gcr_loop
         DEC  $c0                  ; total byte counter hb
@@ -142,38 +176,35 @@ _rtp1:
 ; read out track after index hole
 _read_after_ihs:
         JSR  _send_byte           ; parallel-send data byte to C64
-          
         LDA  #$10                 ; send L1 command to WD177x so we can query status
         STA  $2000               
-        
-        LDX #$20		   ; we do this here to satisfy 16/32 cycle wait
- _ihsr_busywait:
- 	DEX
- 	BNE _ihsr_busywait;
-
- 	LDA #$02		; index hole is bit 1 in WD177x status register
-_ihsr_wait_no_read_index:
-        BIT  $2000                ; in case index hole is currently visible
-        BNE  _ihsr_wait_no_read_index       ; wait for its end
-_ihsr_wait_read_index:
-        BIT  $2000                ; wait for beginning
-        BEQ  _ihsr_wait_read_index          ; of index hole
+        LDX #$20                  ; we do this here to satisfy 16/32 cycle wait
+_ihsr_busywait:
+        DEX
+        BNE _ihsr_busywait;
+        LDA #$02                  ; index hole is bit 1 in WD177x status register
+_ihsr_wait_end:
+        BIT  $2000                ; in case index hole is currently visible,
+        BNE  _ihsr_wait_end       ; wait for its end
+_ihsr_wait_start:
+        BIT  $2000                ; now, wait for beginning of index hole
+        BEQ  _ihsr_wait_start     ;
 
 _ihsr_in_sync:
-      BIT  $1c00
-      BMI  _ihsr_in_sync             ; wait for end of Sync
+        BIT  $1c00
+        BMI  _ihsr_in_sync        ; wait for end of Sync
 
-      LDA  #$ff
-      STA  $1800                ; send handshake
-      LDX  #$20                 ; read $2000 GCR bytes
-      STX  $c0
+        LDA  #$ff
+        STA  $1800                ; send handshake
+        LDX  #$20                 ; read $2000 GCR bytes
+        STX  $c0
 
         LDX  $1c01                ; read GCR byte
         CLV
-_ihsr_wait_for_byte:
-        BVC  _ihsr_wait_for_byte
+_ihsr_wait_byte:
+        BVC  _ihsr_wait_byte
 _ihsr_read_gcr_loop:
-        BVS  _ihsr_read_gcr_1          ; wait for next GCR byte
+        BVS  _ihsr_read_gcr_1     ; wait for next GCR byte
         BVS  _ihsr_read_gcr_1
         BVS  _ihsr_read_gcr_1
         BVS  _ihsr_read_gcr_1
@@ -183,9 +214,9 @@ _ihsr_read_gcr_loop:
         LDX  #$ff                 ; if pause too long, send 0xff (Sync?)
         BVS  _ihsr_read_gcr_1
         EOR  #$ff                 ; toggle handshake value
-        BVS  _ihsr_read_gcr_2          ; read and transfer GCR byte
+        BVS  _ihsr_read_gcr_2     ; read and transfer GCR byte
         STX  PP_BASE              ; PA, port A (8 bit parallel data)
-        BVS  _ihsr_read_gcr_2          ; read and transfer GCR byte
+        BVS  _ihsr_read_gcr_2     ; read and transfer GCR byte
         STA  $1800                ; send handshake (send 0xff byte)
         INY                       ;
 _ihsr_rtp6:
@@ -214,7 +245,7 @@ _ihsr_read_gcr_2:
         CLV                       ;
         STX  PP_BASE              ; PA, port A (8 bit parallel data)
         STA  $1800                ; send handshake
-	INY                       ;
+        INY                       ;
 _ihsr_rtp2:
         BNE  _ihsr_read_gcr_loop
         DEC  $c0                  ; total byte counter hb
@@ -414,31 +445,31 @@ _wtB1:
         STA  $1800                ; send handshake
 
         LDX  #$00
-	BEQ _shake
+        BEQ _shake
 
 _write:
-        BVC  _write                ; wait for byte ready
-        STX  $1c01                 ; write GCR byte to disk
+        BVC  _write               ; wait for byte ready
+        STX  $1c01                ; write GCR byte to disk
 
 _shake:
         ; (cycle count - we have ~32 cycles before next byte is ready)
-        CLV                        ; clear byte ready (0+2 = 2)
-        EOR  #$ff                  ; toggle handshake value (2+2 = 4)
-        LDX  PP_BASE               ; get new parallel byte from host (4+4 = 8)
-        STA  $1800                 ; send handshake (4+8 = 12)
-        BEQ  _wtL5                 ; $00 byte = end of track (2+12 = 14)
-        CPX  #$01                  ; did we get $01 byte? (2+14 = 16)
-        BNE  _write                ; no -> write normal byte ((2+1) + 16 = 20)
-        LDX  #$00                  ; change to $00 byte, weak/bad GCR (2+19 = 21)
-        BEQ  _write                ; always branch back to write it
-                                   ;  ((2+1) + 21 = 24 cycles worst case)
+        CLV                       ; clear byte ready (0+2 = 2)
+        EOR  #$ff                 ; toggle handshake value (2+2 = 4)
+        LDX  PP_BASE              ; get new parallel byte from host (4+4 = 8)
+        STA  $1800                ; send handshake (4+8 = 12)
+        BEQ  _wtL5                ; $00 byte = end of track (2+12 = 14)
+        CPX  #$01                 ; did we get $01 byte? (2+14 = 16)
+        BNE  _write               ; no -> write normal byte ((2+1) + 16 = 20)
+        LDX  #$00                 ; change to $00 byte, weak/bad GCR (2+19 = 21)
+        BEQ  _write               ; always branch back to write it
+                                  ;  ((2+1) + 21 = 24 cycles worst case)
 _wtL5:
         BVC  _wtL5
         CLV
         LDA  #$ee
         STA  $1c0c
-        STX  $1c03                 ; CA data direction head ($ff->0: read)
-        STX  $1800                 ; send handshake
+        STX  $1c03                ; CA data direction head ($ff->0: read)
+        STX  $1800                ; send handshake
         LDY  #$00
         RTS
         
@@ -446,62 +477,62 @@ _wtL5:
 ; write a track on destination after 1571 ihs
 _ihs_write_track:
         JSR  _read_byte           ; read byte from parallel data port
-        STA  _ihsw_wtB1+1              ; can change Sync Branch value
+        STA  _ihsw_wtB1+1         ; can change Sync Branch value
 _ihsw_wtL1:
         BIT  $1c00                ; wait for end of Sync, if writing
 _ihsw_wtB1:
-        BMI  _ihsw_wtL1                ; halftracks, and 'adjust target'
-                                  		; selected, else BMI $0503
+        BMI  _ihsw_wtL1           ; halftracks, and 'adjust target'
+                                  ; selected, else BMI $0503
 
         LDA  #$10                 ; send L1 command to WD117x so we can fetch status
         STA  $2000                ; we do this here to satisfy 16 cycle wait
-        LDA  $180f		  ; time requirement between command and status access
-	PHA
+        LDA  $180f                ; time requirement between command and status access
+        PHA
         ORA  #$20
-	TAX
+        TAX
         STX  $180f                ; enable 2MHz mode for tighter loops
         LDX  #$ce                 ; do this here for fast enabling
-	
-	LDA  #$02                 ; index hole is bit 1 in WD177x status register
-_ihsw_wait_no_index:
-        BIT  $2000                ; in case index hole is currently visible
-        BNE  _ihsw_wait_no_index       ; wait for its end
-_ihsw_wait_index:
-        BIT  $2000                ; wait for beginning
-        BEQ  _ihsw_wait_index          ; of index hole
+        
+        LDA  #$02                 ; index hole is bit 1 in WD177x status register
+_ihsw_wait_end:
+        BIT  $2000                ; in case index hole is currently visible,
+        BNE  _ihsw_wait_end       ; wait for its end
+_ihsw_wait_start:
+        BIT  $2000                ; wait for beginning of index hole
+        BEQ  _ihsw_wait_start
 
-	TYA
+        TYA
         STA  $1800                ; send handshake
         DEC  $1c03                ; CA data direction head (0->$ff: write)
-        STX  $1c0c		  ; enable output
+        STX  $1c0c                ; enable output
 
         LDX  #$00
         BEQ _ihsw_shake
 _ihsw_write:
-	BIT  $180f                 ; At 2MHz the V flag method is not reliable
-        BMI  _ihsw_write                ; wait for byte ready
-        STX  $1c01                 ; write GCR byte to disk
+        BIT  $180f                ; At 2MHz the V flag method is not reliable
+        BMI  _ihsw_write          ; wait for byte ready
+        STX  $1c01                ; write GCR byte to disk
 _ihsw_shake:
         ; (at 2MHz, we have ~64 cycles before next byte is ready - no sweat)
-        EOR  #$ff                  ; toggle handshake value
-        LDX  PP_BASE               ; get new parallel byte from host
-        STA  $1800                 ; send handshake
-        BEQ  _ihsw_wtL5                 ; $00 byte = end of track
-        CPX  #$01                  ; did we get $01 byte?
-        BNE  _ihsw_write                ; no -> write normal byte
-        LDX  #$00                  ; change to $00 byte, weak/bad GCR
-        BEQ  _ihsw_write                ; always branch back to write it
+        EOR  #$ff                 ; toggle handshake value
+        LDX  PP_BASE              ; get new parallel byte from host
+        STA  $1800                ; send handshake
+        BEQ  _ihsw_wtL5           ; $00 byte = end of track
+        CPX  #$01                 ; did we get $01 byte?
+        BNE  _ihsw_write          ; no -> write normal byte
+        LDX  #$00                 ; change to $00 byte, weak/bad GCR
+        BEQ  _ihsw_write          ; always branch back to write it
 _ihsw_wtL5:
         LDA  #$ee
 _ihsw_wtL6:
         BIT  $180f
         BMI  _ihsw_wtL6
-        STA  $1c0c		   ; disable output as soon as possible
-        STX  $1c03                 ; CA data direction head ($ff->0: read)
+        STA  $1c0c                ; disable output as soon as possible
+        STX  $1c03                ; CA data direction head ($ff->0: read)
         CLV
-        STX  $1800                 ; send handshake
+        STX  $1800                ; send handshake
         PLA
-        STA  $180f                 ; turn off 2MHz mode
+        STA  $180f                ; turn off 2MHz mode
         LDY  #$00
         RTS
 
@@ -546,10 +577,10 @@ _sbL2:
 ;----------------------------------------
 ; read 1 byte with 4 byte command header
 _read_command:
-        LDY  #$04                 ; read 4 byte command header
+        LDY  #$04                 ; command header is 4 bytes long
 _rcL1:
         JSR  _read_byte           ; read byte from parallel data port
-        CMP  _command_header-1,Y  ; check with command header:
+        CMP  _command_header-1,Y  ; check with command header sequence:
         BNE  _read_command        ; $00,$55,$aa,$ff
         DEY                       ;
         BNE  _rcL1                ;
@@ -582,7 +613,7 @@ _rbL2:
         RTS                       ;
 
 ;----------------------------------------
-; send 0,1,2,...,$ff bytes to C64
+; send parallel port test sequence (0,1,2,...,$ff bytes) to C64
 _send_count:
         TYA                       ;
         JSR  _send_byte           ; parallel-send data byte to C64
@@ -730,23 +761,23 @@ _ztL1:
 ;----------------------------------------
 ; Command Jump table, return value: Y
 _command_table:
-.byte <(_step_dest-1),>(_step_dest-1)				; step motor to destination halftrack
-.byte <(_set_1c00-1),>(_set_1c00-1)				; set $1c00 bits (head/motor)
-.byte <(_perform_ui-1),>(_perform_ui-1)			; track $22 = 17, UI command: $eb22
-.byte <(_read_track-1),>(_read_track-1)			; read out track w/out waiting for Sync
-.byte <(_read_after_sync-1),>(_read_after_sync-1)	; read out track after Sync
-.byte <(_read_after_ihs-1),>(_read_after_ihs-1)	; read out track after IHS
-.byte <(_adjust_density-1),>(_adjust_density-1)		; adjust read routines to density value
-.byte <(_detect_killer-1),>(_detect_killer-1)			; detect 'killer tracks'
-.byte <(_scan_density-1),>(_scan_density-1)		; perform Density Scan
-.byte <(_read_1c00-1),>(_read_1c00-1)			; read $1c00 motor/head status
-.byte <(_send_count-1),>(_send_count-1)			; send 0,1,2,...,$ff bytes to C64
-.byte <(_write_track-1),>(_write_track-1)			; write a track on destination
-.byte <(_ihs_write_track-1),>(_ihs_write_track-1)		; write track after variable Sync length
-.byte <(_measure_trk_len-1),>(_measure_trk_len-1)	; measure destination track length
-.byte <(_format_track-1),>(_format_track-1)			; initialise write track (long Sync)
-.byte <(_verify_code-1),>(_verify_code-1)			; send floppy side code back to PC
-.byte <(_zero_track-1),>(_zero_track-1)			; zero out (unformat) a track
+.byte <(_step_dest-1),>(_step_dest-1)             ; step motor to destination halftrack
+.byte <(_set_1c00-1),>(_set_1c00-1)               ; set $1c00 bits (head/motor)
+.byte <(_perform_ui-1),>(_perform_ui-1)           ; track $22 = 17, UI command: $eb22
+.byte <(_read_track-1),>(_read_track-1)           ; read out track w/out waiting for Sync
+.byte <(_read_after_sync-1),>(_read_after_sync-1) ; read out track after Sync
+.byte <(_read_after_ihs-1),>(_read_after_ihs-1)   ; read out track after IHS
+.byte <(_adjust_density-1),>(_adjust_density-1)   ; adjust read routines to density value
+.byte <(_detect_killer-1),>(_detect_killer-1)     ; detect 'killer tracks'
+.byte <(_scan_density-1),>(_scan_density-1)       ; perform Density Scan
+.byte <(_read_1c00-1),>(_read_1c00-1)             ; read $1c00 motor/head status
+.byte <(_send_count-1),>(_send_count-1)           ; send 0,1,2,...,$ff bytes to C64
+.byte <(_write_track-1),>(_write_track-1)         ; write a track on destination
+.byte <(_ihs_write_track-1),>(_ihs_write_track-1) ; write track after variable Sync length
+.byte <(_measure_trk_len-1),>(_measure_trk_len-1) ; measure destination track length
+.byte <(_format_track-1),>(_format_track-1)       ; initialise write track (long Sync)
+.byte <(_verify_code-1),>(_verify_code-1)         ; send floppy side code back to PC
+.byte <(_zero_track-1),>(_zero_track-1)           ; zero out (unformat) a track
 
 _command_header:
-.byte $ff,$aa,$55,$00             ; command header code
+.byte $ff,$aa,$55,$00                             ; command header code (reverse order)

@@ -64,7 +64,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout,
 	  "\nnibconv - converts a CBM disk image from one format to another.\n"
-	  "(C) C64 Preservation Project\nhttp://c64preservation.com\n"
+	  "(C) 2004-2010 Peter Rittwage\nC64 Preservation Project\nhttp://c64preservation.com\n"
 	  "Version " VERSION "\n\n");
 
 	track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH);

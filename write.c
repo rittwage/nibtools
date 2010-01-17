@@ -180,6 +180,9 @@ master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 void
 unformat_disk(CBM_FILE fd)
 {
+	/* this routine writes all 1's and all 0's alternatively to try to both
+		fix old media into working again, and wiping all data
+	*/
 	int track;
 
 	motor_on(fd);
@@ -194,6 +197,10 @@ unformat_disk(CBM_FILE fd)
 	{
 		printf("X");
 		zero_track(fd, track);
+		kill_track(fd,track);
+		zero_track(fd,track);
+		kill_track(fd,track);
+		zero_track(fd,track);
 		kill_track(fd,track);
 		zero_track(fd,track);
 	}
