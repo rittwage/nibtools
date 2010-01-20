@@ -46,8 +46,9 @@ float motor_speed;
 int skew = 0;
 int ihs = 0;
 int drive;
-BYTE fillbyte;
 int rpm_real;
+int unformat_passes;
+BYTE fillbyte;
 
 CBM_FILE fd;
 FILE *fplog;
@@ -96,6 +97,7 @@ main(int argc, char *argv[])
 	motor_speed = 300;
 	fillbyte = 0x55;
 	rpm_real = 0;
+	unformat_passes = 1;
 
 	mode = MODE_WRITE_DISK;
 	align = ALIGN_NONE;

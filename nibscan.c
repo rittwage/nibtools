@@ -57,6 +57,7 @@ int auto_capacity_adjust;
 int skew;
 int align_disk;
 int ihs;
+int unformat_passes;
 
 unsigned char md5_hash_result[16];
 unsigned char md5_hash_result2[16];

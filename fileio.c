@@ -46,6 +46,9 @@ void parseargs(char *argv[])
 
 		case 'u':
 			mode = MODE_UNFORMAT_DISK;
+			unformat_passes = atoi((char *) (&(*argv)[2]));
+			if(!unformat_passes) unformat_passes = 1;
+			printf("* Unformat passes = %d\n", unformat_passes);
 			break;
 
 		case 'R':
@@ -186,7 +189,7 @@ void parseargs(char *argv[])
 			}
 			else
 			{
-				atoi((char *) (&(*argv)[2]));
+				fix_gcr = atoi((char *) (&(*argv)[2]));
 				printf("* Enabled level %d bad GCR reproduction.\n", fix_gcr);
 			}
 			break;
@@ -1052,9 +1055,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_t lengt
 		if (length > capacity[density & 3] - CAPACITY_MARGIN)
 		{
 			length = capacity[density & 3] - CAPACITY_MARGIN;
-
-			if (length < orglen)
-				printf("trunc:%d ", orglen - length);
+			printf("trunc:%d ", orglen - length);
 		}
 	}
 

@@ -88,6 +88,7 @@ extern int force_nosync;
 extern int rawmode;
 extern int rpm_real;
 extern int drive;
+extern int unformat_passes;
 
 /* common */
 void usage(void);

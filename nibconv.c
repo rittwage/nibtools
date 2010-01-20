@@ -36,6 +36,7 @@ int skew;
 int align_disk;
 int ihs;
 int mode;
+int unformat_passes;
 
 int ARCH_MAINDECL
 main(int argc, char **argv)

@@ -183,7 +183,7 @@ unformat_disk(CBM_FILE fd)
 	/* this routine writes all 1's and all 0's alternatively to try to both
 		fix old media into working again, and wiping all data
 	*/
-	int track;
+	int track, i;
 
 	motor_on(fd);
 	set_density(fd, 2);
@@ -195,14 +195,12 @@ unformat_disk(CBM_FILE fd)
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
+		for(i=0;i<unformat_passes; i++)
+		{
+			kill_track(fd,track);
+			zero_track(fd, track);
+		}
 		printf("X");
-		zero_track(fd, track);
-		kill_track(fd,track);
-		zero_track(fd,track);
-		kill_track(fd,track);
-		zero_track(fd,track);
-		kill_track(fd,track);
-		zero_track(fd,track);
 	}
 	printf("\n");
 }
