@@ -26,7 +26,6 @@
 int _dowildcard = 1;
 
 BYTE *track_buffer;
-BYTE fillbyte;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 size_t track_length[MAX_HALFTRACKS_1541 + 1];
@@ -68,7 +67,6 @@ main(int argc, char **argv)
 	force_align = ALIGN_NONE;
 	gap_match_length = 7;
 	cap_min_ignore = 0;
-	fillbyte = 0x55;
 	rpm_real = 0;
 
 	fprintf(stdout,

@@ -34,19 +34,19 @@ void parseargs(char *argv[])
 
 		case 'S':
 			if (!(*argv)[2]) usage();
-			start_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
+			start_track = (BYTE) (2 * (atoi(&(*argv)[2])));
 			printf("* Start track set to %d\n", start_track/2);
 			break;
 
 		case 'E':
 			if (!(*argv)[2]) usage();
-			end_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
+			end_track = (BYTE) (2 * (atoi(&(*argv)[2])));
 			printf("* End track set to %d\n", end_track/2);
 			break;
 
 		case 'u':
 			mode = MODE_UNFORMAT_DISK;
-			unformat_passes = atoi((char *) (&(*argv)[2]));
+			unformat_passes = atoi(&(*argv)[2]);
 			if(!unformat_passes) unformat_passes = 1;
 			printf("* Unformat passes = %d\n", unformat_passes);
 			break;
@@ -66,14 +66,12 @@ void parseargs(char *argv[])
 					printf("V-MAX!\n");
 					memset(align_map, ALIGN_VMAX, MAX_TRACKS_1541+1);
 					fix_gcr = 0;
-					fillbyte = 0xff;
 					break;
 
 				case 'c':
 					printf("V-MAX! (CINEMAWARE)\n");
 					memset(align_map, ALIGN_VMAX_CW, MAX_TRACKS_1541+1);
 					fix_gcr = 0;
-					fillbyte = 0xff;
 					break;
 
 				case 'g':
@@ -144,7 +142,7 @@ void parseargs(char *argv[])
 			break;
 
 		case 'r':
-			reduce_sync = atoi((char *) (&(*argv)[2]));
+			reduce_sync = atoi(&(*argv)[2]);
 			if(reduce_sync)
 			{
 				printf("* Reduce sync to %d bytes\n", reduce_sync);
@@ -171,13 +169,13 @@ void parseargs(char *argv[])
 
 		case 'D':
 			if (!(*argv)[2]) usage();
-			drive = (BYTE) atoi((char *) (&(*argv)[2]));
+			drive = (BYTE) atoi(&(*argv)[2]);
 			printf("* Use Device %d\n", drive);
 			break;
 
 		case 'G':
 			if (!(*argv)[2]) usage();
-			gap_match_length = atoi((char *) (&(*argv)[2]));
+			gap_match_length = atoi(&(*argv)[2]);
 			printf("* Gap match length set to %d\n", gap_match_length);
 			break;
 
@@ -189,7 +187,7 @@ void parseargs(char *argv[])
 			}
 			else
 			{
-				fix_gcr = atoi((char *) (&(*argv)[2]));
+				fix_gcr = atoi(&(*argv)[2]);
 				printf("* Enabled level %d bad GCR reproduction.\n", fix_gcr);
 			}
 			break;
@@ -212,7 +210,7 @@ void parseargs(char *argv[])
 		case 's':
 			if (!(*argv)[2]) usage();
 			if(!ihs) align_disk = 1;
-			skew = atoi((char *) (&(*argv)[2]));
+			skew = atoi(&(*argv)[2]);
 			if((skew > 200000) || (skew < 0))
 			{
 				printf("Skew must be between 1 and 200000us\n");
@@ -230,26 +228,6 @@ void parseargs(char *argv[])
 			printf("* 1571 index hole sensor (use only for side 1)\n");
 			align_disk = 0;
 			ihs = 1;
-			break;
-
-		case 'b':
-			// custom fillbyte
-			printf("* Custom fillbyte: ");
-			if ((*argv)[2] == '0')
-			{
-				printf("0x00\n");
-				fillbyte = 0x00;  /* this gets translated to 0x00 bytes*/
-			}
-			if ((*argv)[2] == '5')
-			{
-				printf("0x55\n");
-				fillbyte = 0x55;
-			}
-			if ((*argv)[2] == 'f')
-			{
-				printf("0xFF\n");
-				fillbyte = 0xFF;
-			}
 			break;
 
 		case '3':
@@ -940,7 +918,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	{
 		size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
 
-		memset(&gcr_track[2], fillbyte, G64_TRACK_MAXLEN);
+		memset(&gcr_track[2], 0x55, G64_TRACK_MAXLEN);
 
 		gcr_track[0] = (BYTE) (raw_track_size[speed_map[track/2]] % 256);
 		gcr_track[1] = (BYTE) (raw_track_size[speed_map[track/2]] / 256);

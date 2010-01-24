@@ -48,7 +48,6 @@ int ihs = 0;
 int drive;
 int rpm_real;
 int unformat_passes;
-BYTE fillbyte;
 
 CBM_FILE fd;
 FILE *fplog;
@@ -95,7 +94,6 @@ main(int argc, char *argv[])
 	gap_match_length = 7;
 	cap_min_ignore = 0;
 	motor_speed = 300;
-	fillbyte = 0x55;
 	rpm_real = 0;
 	unformat_passes = 1;
 

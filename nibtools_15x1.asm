@@ -128,7 +128,7 @@ _read_gcr_loop:
         BVS  _read_gcr_1
         BVS  _read_gcr_1
         BVS  _read_gcr_1
-        LDX  #$ff                 ; if pause too long, send 0xff (Sync?)
+        LDX  #$ff                 ; if pause too long, send 0xff  
         BVS  _read_gcr_1
         EOR  #$ff                 ; toggle handshake value
         BVS  _read_gcr_2          ; read and transfer GCR byte

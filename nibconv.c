@@ -20,7 +20,6 @@ int _dowildcard = 1;
 BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
-BYTE fillbyte;
 size_t track_length[MAX_HALFTRACKS_1541 + 1];
 int start_track, end_track, track_inc;
 int reduce_sync, reduce_badgcr, reduce_gap;
@@ -57,7 +56,6 @@ main(int argc, char **argv)
 	gap_match_length = 7;
 	cap_min_ignore = 0;
 	verbose = 0;
-	fillbyte = 0x55;
 	rpm_real = 0;
 
 	/* default is to reduce sync */

@@ -49,7 +49,6 @@ int auto_capacity_adjust;
 int align_disk;
 int skew;
 int rawmode;
-BYTE fillbyte;
 int rpm_real;
 int unformat_passes;
 
@@ -109,7 +108,6 @@ main(int argc, char *argv[])
 	cap_min_ignore = 0;
 	ihs = 0;
 	mode = MODE_READ_DISK;
-	fillbyte = 0x55;
 	rpm_real = 0;
 
 	// cache our arguments for logfile generation
@@ -168,25 +166,25 @@ main(int argc, char *argv[])
 
 		case 'S':
 			if (!(*argv)[2]) usage();
-			start_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
+			start_track = (BYTE) (2*(atoi(&(*argv)[2])));
 			printf("* Start track set to %d\n", start_track/2);
 			break;
 
 		case 'E':
 			if (!(*argv)[2]) usage();
-			end_track = (BYTE) (2 * (atoi((char *) (&(*argv)[2]))));
+			end_track =  (BYTE) (2*(atoi(&(*argv)[2])));
 			printf("* End track set to %d\n", end_track/2);
 			break;
 
 		case 'D':
 			if (!(*argv)[2]) usage();
-			drive = (BYTE) atoi((char *) (&(*argv)[2]));
+			drive = (BYTE) (atoi(&(*argv)[2]));
 			printf("* Use Device %d\n", drive);
 			break;
 
 		case 'G':
 			if (!(*argv)[2]) usage();
-			gap_match_length = atoi((char *) (&(*argv)[2]));
+			gap_match_length = atoi(&(*argv)[2]);
 			printf("* Gap match length set to %d\n", gap_match_length);
 			break;
 
@@ -197,7 +195,7 @@ main(int argc, char *argv[])
 
 		case 'e':	// change read retries
 			if (!(*argv)[2]) usage();
-			error_retries = atoi((char *) (&(*argv)[2]));
+			error_retries = atoi(&(*argv)[2]);
 			printf("* Read retries set to %d\n", error_retries);
 			break;
 

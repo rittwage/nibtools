@@ -37,24 +37,35 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 			return;
 	}
 
-	/* unformat track with 0x55 (01010101) or fillbyte
-	    some of this is the "leader" which is overwritten
-	    some 1571's don't like a lot of 0x00 bytes, they see phantom sync, etc.
-	*/
-	if(track_density[track] & BM_NO_SYNC)
-		memset(rawtrack, 0x55, sizeof(rawtrack));
-	else
-		memset(rawtrack, fillbyte, sizeof(rawtrack));
+	/* unformat track with 0x55 (01010101)
+	    most of this is the "leader" which is overwritten
+	    some 1571's don't like a lot of 0x00 bytes, they see phantom sync, etc. */
+	memset(rawtrack, 0x55, sizeof(rawtrack));
 
-	/* apply skew, if specified*/
+	/* apply skew, if specified */
 	if(skew)
 	{
 		skewbytes = skew * (capacity[track_density[track] & 3] / 200000);
 		printf(" {skew=%d} ", skewbytes);
 	}
 
-	/* merge in our track data */
-	memcpy(rawtrack + LEADER + skewbytes,  track_buffer + (track * NIB_TRACK_LENGTH), track_length);
+	/* check that our first sync is long enough (if the track has sync)
+		if not, lengthen it */
+	if( (track_density[track] & BM_NO_SYNC) ||
+		(	(track_buffer[track * NIB_TRACK_LENGTH] == 0xff) &&
+	 		(track_buffer[(track * NIB_TRACK_LENGTH) + 1] == 0xff) ) )
+	{
+			/* merge in our track data */
+			memcpy(rawtrack + LEADER + skewbytes,  track_buffer + (track * NIB_TRACK_LENGTH), track_length);
+	}
+	else
+	{
+			/* merge in our track data with an extended sync mark */
+			memset(rawtrack + LEADER + skewbytes,  0xff, 2);
+			memcpy(rawtrack + LEADER + skewbytes  + 2,  track_buffer + (track * NIB_TRACK_LENGTH), track_length);
+			track_length += 2;
+			printf(" {sync added} ");
+	}
 
 	/* handle short tracks that won't 'loop overwrite' existing data */
 	if(track_length + LEADER + skewbytes < capacity[track_density[track] & 3] - CAPACITY_MARGIN)

@@ -36,7 +36,6 @@ BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_density2[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment2[MAX_HALFTRACKS_1541 + 1];
-BYTE fillbyte;
 
 size_t fat_tracks[MAX_HALFTRACKS_1541 + 1];
 size_t rapidlok_tracks[MAX_HALFTRACKS_1541 + 1];
@@ -47,7 +46,7 @@ int reduce_sync;
 int reduce_badgcr;
 int reduce_gap;
 int waitkey = 0;
-int advanced_info;
+int advanced_info = 1;
 int gap_match_length;
 int cap_min_ignore;
 int verbose = 0;
@@ -102,7 +101,6 @@ main(int argc, char *argv[])
 	reduce_sync = 3;
 	reduce_badgcr = 0;
 	reduce_gap = 0;
-	fillbyte= 0x55;
 	rpm_real = 0;
 
 	fprintf(stdout,

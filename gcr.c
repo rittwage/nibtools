@@ -433,7 +433,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 		if (is_bad_gcr(gcr_ptr - 325, 320, j))
 			error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
 
-		if (error_code == BAD_GCR_CODE) printf("Bad GCR in data!\n");
+		//if (error_code == BAD_GCR_CODE) printf("Bad GCR in data!\n");
 	}
 	return (error_code);
 }
@@ -1026,9 +1026,11 @@ check_sync_flags(BYTE *gcrdata, int density, size_t length)
 	/* check manually for SYNCKILL */
 	for (i=0; i<length-1; i++)
 	{
-		/* if ( ((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i+1] == 0xFF) )  syncs++; */
-		if ((gcrdata[i] & 0x7f) == 0x7f)
-			syncs++; /* NOTE: This is not flagging true "hardware detected" sync marks, only the last 7 bits of it */
+		/* check for sync mark */
+		//if ( ((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i+1] == 0xff) )  syncs++;
+
+		/* NOTE: This is not flagging true "hardware detected" sync marks, only the last 7 bits of it */
+		if ((gcrdata[i] & 0x7f) == 0x7f) syncs++;
 	}
 
 	if(!syncs)
