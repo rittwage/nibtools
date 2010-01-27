@@ -676,7 +676,8 @@ raw_track_info(BYTE * gcrdata, size_t length)
 			else
 				locked = 0;
 		}
-		else if (gcrdata[i] == 0xff) /* (((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i + 1] == 0xff)) */ /* not full sync, only last 8 bits */
+		//else if (gcrdata[i] == 0xff) /* not full sync, only last 8 bits */
+		else if(((gcrdata[i] & 0x03) == 0x03) && (gcrdata[i+1] == 0xff))
 		{
 			locked = 1;
 			sync_cnt++;

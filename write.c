@@ -21,22 +21,6 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	size_t skewbytes = 0;
 	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
 
-	/* engineer killer track */
-	if(track_density[track] & BM_FF_TRACK)
-	{
-			kill_track(fd, track);
-			printf("[KILLER] ");
-			return;
-	}
-
-	/* zero out empty tracks entirely */
-	if( (track_length == NIB_TRACK_LENGTH) && (track_density[track] & BM_NO_SYNC) )
-	{
-			zero_track(fd, track);
-			printf("[UNFORMATTED] ");
-			return;
-	}
-
 	/* unformat track with 0x55 (01010101)
 	    most of this is the "leader" which is overwritten
 	    some 1571's don't like a lot of 0x00 bytes, they see phantom sync, etc. */
@@ -92,13 +76,13 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 
 		cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
 
-		if (!cbm_parallel_burst_write_track(fd, rawtrack, track_length + LEADER + skewbytes))
+		if (!(cbm_parallel_burst_write_track(fd, rawtrack, track_length + LEADER + skewbytes)))
 		{
 			//putchar('?');
 			printf("(timeout) ");
 			fflush(stdin);
 			cbm_parallel_burst_read(fd);
-			msleep(500);
+			//msleep(500);
 			//printf("%c ", test_par_port(fd)? '+' : '-');
 			test_par_port(fd);
 		}
@@ -117,9 +101,27 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 	{
 		/* double-check our sync-flag assumptions and process track for remaster */
 		track_density[track] = check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+
+		/* engineer killer track */
+		if(track_density[track] & BM_FF_TRACK)
+		{
+				kill_track(fd, track);
+				printf("\n%4.1f: KILLER",  (float) track / 2);
+				continue;
+		}
+
+		/* zero out empty tracks entirely */
+		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH)))
+		{
+				zero_track(fd, track);
+				printf("\n%4.1f: UNFORMATTED",  (float) track / 2);
+				continue;
+		}
+
 		badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
 		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
 		printf("[badgcr: %d] ", badgcr);
+
 		master_track(fd, track_buffer, track_density, track, length);
 	}
 }
@@ -181,7 +183,6 @@ master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 				printf(" (trunc:%d) ",  length - capacity[density & 3]);
 				length = capacity[density & 3] - CAPACITY_MARGIN;
 			}
-
 			master_track(fd, track_buffer, track_density, track, length);
 		}
 		else
@@ -220,6 +221,7 @@ unformat_disk(CBM_FILE fd)
 void kill_track(CBM_FILE fd, int track)
 {
 	BYTE trackbuf[NIB_TRACK_LENGTH];
+	int i;
 
 	// step head
 	step_to_halftrack(fd, track);
@@ -227,9 +229,25 @@ void kill_track(CBM_FILE fd, int track)
 
 	// write 0xFF $2000 times
 	memset(trackbuf, 0xff, NIB_TRACK_LENGTH);
-	send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
-	cbm_parallel_burst_write(fd, 0x00);
-	cbm_parallel_burst_write_track(fd, trackbuf, NIB_TRACK_LENGTH);
+
+	for (i = 0; i < 10; i ++)
+	{
+		send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
+		cbm_parallel_burst_write(fd, 0x00);
+
+		if(!cbm_parallel_burst_write_track(fd, trackbuf, NIB_TRACK_LENGTH))
+		{
+			//putchar('?');
+			printf("(timeout) ");
+			fflush(stdin);
+			cbm_parallel_burst_read(fd);
+			//msleep(500);
+			//printf("%c ", test_par_port(fd)? '+' : '-');
+			test_par_port(fd);
+		}
+		else
+			break;
+	}
 }
 
 void
@@ -316,10 +334,14 @@ init_aligned_disk(CBM_FILE fd)
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		step_to_halftrack(fd, track);
-
 		send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
 		cbm_parallel_burst_write(fd, 0);
-		cbm_parallel_burst_write_track(fd, pattern, 0x2000);
+		if(!cbm_parallel_burst_write_track(fd, pattern, 0x2000))
+		{
+			printf("\nTimeout during alignment- alignment failed!\n");
+			cbm_parallel_burst_read(fd);
+			return;
+		}
 		cbm_parallel_burst_read(fd);
 	}
 
@@ -330,11 +352,15 @@ init_aligned_disk(CBM_FILE fd)
 		step_to_halftrack(fd, track);
 
 		msleep( (int) (((200000 - 20000 + skew) * 300) / motor_speed) );
-
 		send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
 		cbm_parallel_burst_write(fd, 0);
-		cbm_parallel_burst_write_track(fd, sync, sizeof(sync));
+		if(!cbm_parallel_burst_write_track(fd, sync, sizeof(sync)))
+		{
+			printf("\nTimeout during alignment- alignment failed!\n");
+			cbm_parallel_burst_read(fd);
+			return;
+		}
 		cbm_parallel_burst_read(fd);
 	}
-	printf("Successfully aligned tracks on disk\n");
+	printf("Attempted time-aligned tracks on disk\n");
 }

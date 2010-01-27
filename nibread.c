@@ -332,7 +332,7 @@ usage(void)
 	     " -k: Disable reading of 'killer' tracks\n"
 	     " -d: Force default densities\n"
 	     " -v: Enable track matching (crude read verify)\n"
-	     " -i: Interactive imaging mode\n"
+	     " -I: Interactive imaging mode\n"
 	     " -m: Disable minimum capacity check\n"
 	     " -V: Verbose (output more detailed track data)\n"
 	     " -h: Read halftracks\n"

@@ -104,7 +104,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			printf("(timeout) ");
 			fflush(stdout);
 			cbm_parallel_burst_read(fd);
-			delay(500);
+			//delay(500);
 			//printf("%c ", test_par_port(fd)? '+' : '-');
 			cbm_parallel_burst_read(fd);
 		}
@@ -290,7 +290,8 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 int
 read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
-    int track, errors = 0;
+    int track;
+    size_t errors = 0;
     char errorstring[0x1000];
 
 	printf("\n");
@@ -377,7 +378,7 @@ write_nb2(CBM_FILE fd, char * filename)
 						//putchar('?');
 						fflush(stdout);
 						cbm_parallel_burst_read(fd);
-						delay(500);
+						//delay(500);
 						//printf("%c ", test_par_port(fd)? '+' : '-');
 						cbm_parallel_burst_read(fd);
 					}
