@@ -35,21 +35,21 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 
 	/* check that our first sync is long enough (if the track has sync)
 		if not, lengthen it */
-	if( (track_density[track] & BM_NO_SYNC) ||
-	    (align_map[track/2] == ALIGN_AUTOGAP) ||
-		( (track_buffer[track * NIB_TRACK_LENGTH] == 0xff) &&
-	 	  (track_buffer[(track * NIB_TRACK_LENGTH) + 1] == 0xff) ) )
-	{
-			/* merge in our track data */
-			memcpy(rawtrack + LEADER + skewbytes,  track_buffer + (track * NIB_TRACK_LENGTH), track_length);
-	}
-	else
+	if( (!(track_density[track] & BM_NO_SYNC)) &&
+	    (align_map[track/2] != ALIGN_AUTOGAP) &&
+		(track_buffer[track * NIB_TRACK_LENGTH] == 0xff) &&
+	 	(track_buffer[(track * NIB_TRACK_LENGTH) + 1] != 0xff) )
 	{
 			/* merge in our track data with an extended sync mark */
 			memset(rawtrack + LEADER + skewbytes,  0xff, 2);
 			memcpy(rawtrack + LEADER + skewbytes  + 2,  track_buffer + (track * NIB_TRACK_LENGTH), track_length);
 			track_length += 2;
 			printf(" {sync added} ");
+	}
+	else
+	{
+			/* merge in our track data normally */
+			memcpy(rawtrack + LEADER + skewbytes,  track_buffer + (track * NIB_TRACK_LENGTH), track_length);
 	}
 
 	/* handle short tracks that won't 'loop overwrite' existing data */
