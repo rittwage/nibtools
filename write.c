@@ -38,7 +38,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	if( (track_density[track] & BM_NO_SYNC) ||
 	    (align_map[track/2] == ALIGN_AUTOGAP) ||
 		( (track_buffer[track * NIB_TRACK_LENGTH] == 0xff) &&
-	 	  (track_buffer[(track * NIB_TRACK_LENGTH) + 1] == 0xff) ) )
+	 	  (track_buffer[(track * NIB_TRACK_LENGTH) + 1] != 0xff) ) )
 	{
 			/* merge in our track data */
 			memcpy(rawtrack + LEADER + skewbytes,  track_buffer + (track * NIB_TRACK_LENGTH), track_length);
