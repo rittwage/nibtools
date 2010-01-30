@@ -851,7 +851,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
 	BYTE gcr_track[G64_TRACK_MAXLEN + 2];
 	size_t track_len;
-	int track;
+	int track, index;
 	FILE * fpout;
 	BYTE buffer[NIB_TRACK_LENGTH];
 
@@ -872,7 +872,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	/* Create G64 header */
 	strcpy((char *) header, "GCR-1541");
 	header[8] = 0;	/* G64 version */
-	header[9] = 84; // end_track;	/* Number of Halftracks  (VICE can't handle non-84 track images) */
+	header[9] = MAX_HALFTRACKS_1541; // end_track;	/* Number of Halftracks  (VICE can't handle non-84 track images) */
 	header[10] = (BYTE) (G64_TRACK_MAXLEN % 256);	/* Size of each stored track */
 	header[11] = (BYTE) (G64_TRACK_MAXLEN / 256);
 
@@ -883,20 +883,20 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	}
 
 	/* Create index and speed tables */
-	for (track = 0; track < MAX_HALFTRACKS_1541; track += track_inc)
+	for (index= 0; index < MAX_HALFTRACKS_1541; index += track_inc)
 	{
 		/* calculate track positions and speed zone data */
 		if(track_inc == 2)
 		{
-			gcr_track_p[track] = 12 + MAX_TRACKS_1541 * 16 + (track/2) * (G64_TRACK_MAXLEN + 2);
-			gcr_track_p[track+1] = 0;	/* no halftracks */
-			gcr_speed_p[track] = track_density[track+2] & 3;
-			gcr_speed_p[track+1] = 0;
+			gcr_track_p[index] = 12 + (MAX_TRACKS_1541 * 16) + ((index/2) * (G64_TRACK_MAXLEN + 2));
+			gcr_track_p[index+1] = 0;	/* no halftracks */
+			gcr_speed_p[index] = track_density[index+2] & 3;
+			gcr_speed_p[index+1] = 0;
 		}
 		else
 		{
-			gcr_track_p[track] = 12 + MAX_TRACKS_1541 * 16 + track * (G64_TRACK_MAXLEN + 2);
-			gcr_speed_p[track] = track_density[track+2] & 3;
+			gcr_track_p[index] = 12 + (MAX_TRACKS_1541 * 16) + (index * (G64_TRACK_MAXLEN + 2));
+			gcr_speed_p[index] = track_density[index+2] & 3;
 		}
 
 	}
@@ -914,7 +914,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	}
 
 	/* shuffle raw GCR between formats */
-	for (track = 0; track < MAX_HALFTRACKS_1541; track += track_inc)
+	for (track = 2; track <= MAX_HALFTRACKS_1541; track += track_inc)
 	{
 		size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
 
@@ -923,8 +923,8 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 		gcr_track[0] = (BYTE) (raw_track_size[speed_map[track/2]] % 256);
 		gcr_track[1] = (BYTE) (raw_track_size[speed_map[track/2]] / 256);
 
-		memcpy(buffer, track_buffer + ((track+2) * NIB_TRACK_LENGTH), track_length[track+2]);
-		track_len = track_length[track+2];
+		memcpy(buffer, track_buffer + ((track) * NIB_TRACK_LENGTH), track_length[track]);
+		track_len = track_length[track];
 
 		if(track_len == 0)
 		{
@@ -934,23 +934,17 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 		}
 
 		/* process/compress GCR data */
-		check_bad_gcr(buffer, track_length[track+2]);
+		check_bad_gcr(buffer, track_length[track]);
 
 		if(rpm_real)
 		{
-			if(track_len > raw_track_size[speed_map[track/2]])
-			{
-				capacity[speed_map[track/2]] = raw_track_size[speed_map[track/2]] + CAPACITY_MARGIN;
-				track_len = compress_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
-			}
+			capacity[speed_map[track/2]] = raw_track_size[speed_map[track/2]];
+			track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 		}
 		else
 		{
-			if(track_len > G64_TRACK_MAXLEN)
-			{
-				capacity[speed_map[track/2]] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
-				track_len = compress_halftrack(track+2, buffer, track_density[track+2], track_length[track+2]);
-			}
+			capacity[speed_map[track/2]] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+			track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 		}
 
 		gcr_track[0] = (BYTE) (track_len % 256);
