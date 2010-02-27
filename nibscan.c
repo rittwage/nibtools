@@ -348,6 +348,7 @@ compare_disks(void)
 	extract_cosmetic_id(track_buffer2 + (36 * NIB_TRACK_LENGTH), cid2);
 
 	if(waitkey) getchar();
+	printf("\nComparing...\n");
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
@@ -513,6 +514,8 @@ scandisk(void)
 	memset(rapidlok_tracks, 0, sizeof(rapidlok_tracks));
 	errorstring[0] = '\0';
 
+	printf("\nScanning...\n");
+
 	// extract disk id from track 18
 	memset(id, 0, 3);
 	extract_id(track_buffer + (36 * NIB_TRACK_LENGTH), id);
@@ -524,8 +527,6 @@ scandisk(void)
 	printf("cosmetic disk id: %s\n", cosmetic_id);
 
 	if(waitkey) getchar();
-
-	printf("Scanning...\n");
 
 	// check each track for various things
 	for (track = start_track; track <= end_track; track += track_inc)

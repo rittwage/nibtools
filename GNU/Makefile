@@ -7,6 +7,9 @@
 # If building for DOS, change this to the path to your DJGPP install
 DJGPP_PATH=	c:/djgpp
 
+# Recent Cygwin defaults to gcc-4, which has -mno-cygwin removed (among other things)
+CC=gcc-3
+
 # If building for Linux or Windows, change this to the base path to your
 # opencbm includes and libraries
 CBM_LNX_PATH=	/usr/local
@@ -46,7 +49,7 @@ linux:
 		buildall
 
 win32:
-	${MAKE} CFLAGS="-I include/WINDOWS/ -I ${CBM_WIN_PATH}/include -D WIN32 -mno-cygwin ${CFLAGS}" \
+	${MAKE} CFLAGS="-I include/WINDOWS/ -I ${CBM_WIN_PATH}/include -D WIN32 ${CFLAGS} -mno-cygwin" \
 		LDFLAGS="-mno-cygwin -L${CBM_WIN_PATH}/bin/i386/ -lopencbm" \
 		EXE=".exe" \
 		-f GNU/Makefile \

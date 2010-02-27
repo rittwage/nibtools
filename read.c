@@ -102,6 +102,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		{
 			// If we got a timeout, reset the port before retrying.
 			printf("(timeout) ");
+			fprintf(fplog,"(timeout) ");
 			fflush(stdout);
 			cbm_parallel_burst_read(fd);
 			//delay(500);

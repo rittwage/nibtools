@@ -66,7 +66,7 @@ char alignments[][20] = { "NONE", "GAP", "SEC0", "SYNC", "BADGCR", "VMAX", "AUTO
 /* Burst Nibbler defaults
 size_t capacity_min[] = 		{ 6183, 6598, 7073, 7616 };
 size_t capacity[] = 				{ 6231, 6646, 7121, 7664 };
-size_t capacity_max[] = 		{ 6311, 6726, 7201, 7824 };
+size_t capacity_max[] = 	{ 6311, 6726, 7201, 7824 };
 */
 
 /* New calculated defaults: 297rpm, 300rpm, 303rpm */

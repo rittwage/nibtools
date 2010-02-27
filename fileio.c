@@ -923,7 +923,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 		gcr_track[0] = (BYTE) (raw_track_size[speed_map[track/2]] % 256);
 		gcr_track[1] = (BYTE) (raw_track_size[speed_map[track/2]] / 256);
 
-		memcpy(buffer, track_buffer + ((track) * NIB_TRACK_LENGTH), track_length[track]);
+		memcpy(buffer, track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
 		track_len = track_length[track];
 
 		if(track_len == 0)
@@ -1148,7 +1148,7 @@ unsigned int crc_dir_track(BYTE *track_buffer, size_t *track_length)
 	memset(data, 0, sizeof(data));
 
 	/* t18s0 */
-	memset(rawdata, 0, sizeof(rawdata));
+	memset(rawdata, rand()%256, sizeof(rawdata));
 	errorcode = convert_GCR_sector(
 		track_buffer + ((18*2) * NIB_TRACK_LENGTH),
 		track_buffer + ((18*2) * NIB_TRACK_LENGTH) + track_length[18*2],
@@ -1156,7 +1156,7 @@ unsigned int crc_dir_track(BYTE *track_buffer, size_t *track_length)
 	memcpy(data, rawdata+1 , 256);
 
 	/* t18s1 */
-	memset(rawdata, 0, sizeof(rawdata));
+	memset(rawdata, rand()%256, sizeof(rawdata));
 	errorcode = convert_GCR_sector(
 		track_buffer + ((18*2) * NIB_TRACK_LENGTH),
 		track_buffer + ((18*2) * NIB_TRACK_LENGTH) + track_length[18*2],
@@ -1193,18 +1193,15 @@ unsigned int crc_all_tracks(BYTE *track_buffer, size_t *track_length)
 	{
 		for (sector = 0; sector < sector_map[track/2]; sector++)
 		{
-			memset(rawdata, 0, sizeof(rawdata));
+			memset(rawdata, rand()%256, sizeof(rawdata));
 
 			errorcode = convert_GCR_sector(
 				track_buffer + (track * NIB_TRACK_LENGTH),
 				track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
 				rawdata, track/2, sector, id);
 
-			if(1) //errorcode == SECTOR_OK)
-			{
-				memcpy(data+(index*256), rawdata+1, 256);
-				index++;
-			}
+			memcpy(data+(index*256), rawdata+1, 256);
+			index++;
 		}
 	}
 	result = crcFast(data, sizeof(data));
@@ -1231,7 +1228,7 @@ unsigned int md5_dir_track(BYTE *track_buffer, size_t *track_length, unsigned ch
 	}
 
 	/* t18s0 */
-	memset(rawdata, 0, sizeof(rawdata));
+	memset(rawdata, rand()%256, sizeof(rawdata));
 	errorcode = convert_GCR_sector(
 		track_buffer + ((18*2) * NIB_TRACK_LENGTH),
 		track_buffer + ((18*2) * NIB_TRACK_LENGTH) + track_length[18*2],
@@ -1239,7 +1236,7 @@ unsigned int md5_dir_track(BYTE *track_buffer, size_t *track_length, unsigned ch
 	memcpy(data, rawdata+1 , 256);
 
 	/* t18s1 */
-	memset(rawdata, 0, sizeof(rawdata));
+	memset(rawdata, rand()%256, sizeof(rawdata));
 	errorcode = convert_GCR_sector(
 		track_buffer + ((18*2) * NIB_TRACK_LENGTH),
 		track_buffer + ((18*2) * NIB_TRACK_LENGTH) + track_length[18*2],
@@ -1275,7 +1272,7 @@ unsigned int md5_all_tracks(BYTE *track_buffer, size_t *track_length, unsigned c
 	{
 		for (sector = 0; sector < sector_map[track/2]; sector++)
 		{
-			memset(rawdata, 0, sizeof(rawdata));
+			memset(rawdata, rand()%256, sizeof(rawdata));
 
 			errorcode = convert_GCR_sector(
 				track_buffer + (track * NIB_TRACK_LENGTH),
