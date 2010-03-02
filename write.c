@@ -18,7 +18,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 {
 	#define LEADER  0x100
 	int i;
-	size_t skewbytes = 0;
+	static size_t skewbytes = 0;
 	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
 
 	/* unformat track with 0x55 (01010101)
@@ -29,7 +29,11 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	/* apply skew, if specified */
 	if(skew)
 	{
-		skewbytes = skew * (capacity[track_density[track]&3] / 200);
+		skewbytes += skew * (capacity[track_density[track]&3] / 200);
+
+		if(skewbytes > NIB_TRACK_LENGTH)
+			skewbytes = skewbytes - NIB_TRACK_LENGTH;
+
 		printf(" {skew=%d} ", skewbytes);
 	}
 
