@@ -29,7 +29,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	/* apply skew, if specified */
 	if(skew)
 	{
-		skewbytes = skew * (capacity[track_density[track] & 3] / 200000);
+		skewbytes = skew * (capacity[track_density[track]&3] / 200);
 		printf(" {skew=%d} ", skewbytes);
 	}
 

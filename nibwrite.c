@@ -269,7 +269,7 @@ usage(void)
 	     " -E[n]: Override ending track\n"
 	     " -a[x]: Force alternative track alignments (advanced users only)\n"
 	     " -p[x]: Custom protection handlers (advanced users only)\n"
-	     " -s[n]: Manual track skew (in microseconds)\n"
+	     " -s[n]: Manual track skew (in ms)\n"
 	     " -t: Enable timer-based track alignment\n"
 	     " -g: Enable gap reduction\n"
 	     " -0: Enable bad GCR run reduction\n"

@@ -211,12 +211,12 @@ void parseargs(char *argv[])
 			if (!(*argv)[2]) usage();
 			if(!ihs) align_disk = 1;
 			skew = atoi(&(*argv)[2]);
-			if((skew > 200000) || (skew < 0))
+			if((skew > 200) || (skew < 0))
 			{
-				printf("Skew must be between 1 and 200000us\n");
+				printf("Skew must be between 1 and 200ms\n");
 				skew = 0;
 			}
-			printf("* Skew set to %dus\n",skew);
+			printf("* Skew set to %dms\n",skew);
 			break;
 
 		case 't':
@@ -1193,7 +1193,7 @@ unsigned int crc_all_tracks(BYTE *track_buffer, size_t *track_length)
 	{
 		for (sector = 0; sector < sector_map[track/2]; sector++)
 		{
-			memset(rawdata, rand()%256, sizeof(rawdata));
+			memset(rawdata, 0 /*rand()%256*/, sizeof(rawdata));
 
 			errorcode = convert_GCR_sector(
 				track_buffer + (track * NIB_TRACK_LENGTH),
@@ -1272,7 +1272,7 @@ unsigned int md5_all_tracks(BYTE *track_buffer, size_t *track_length, unsigned c
 	{
 		for (sector = 0; sector < sector_map[track/2]; sector++)
 		{
-			memset(rawdata, rand()%256, sizeof(rawdata));
+			memset(rawdata, 0 /*rand()%256*/, sizeof(rawdata));
 
 			errorcode = convert_GCR_sector(
 				track_buffer + (track * NIB_TRACK_LENGTH),
