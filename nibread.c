@@ -51,6 +51,7 @@ int skew;
 int rawmode;
 int rpm_real;
 int unformat_passes;
+int capacity_margin;
 
 BYTE density_map;
 float motor_speed;

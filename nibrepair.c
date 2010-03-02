@@ -44,6 +44,7 @@ int align_disk;
 int skew;
 int mode;
 int unformat_passes;
+int capacity_margin;
 
 /* local prototypes */
 int repair(void);

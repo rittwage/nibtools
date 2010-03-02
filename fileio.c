@@ -943,7 +943,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 		}
 		else
 		{
-			capacity[speed_map[track/2]] = G64_TRACK_MAXLEN + CAPACITY_MARGIN;
+			capacity[speed_map[track/2]] = G64_TRACK_MAXLEN + capacity_margin;
 			track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 		}
 
@@ -990,11 +990,11 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_t lengt
 		/* If our track contains sync, we reduce to a minimum of 32 bits
 		   less is too short for some loaders including CBM, but only 10 bits are technically required */
 		orglen = length;
-		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) && (!(density & BM_NO_SYNC)) &&
+		if ( (length > (capacity[density & 3] - capacity_margin)) && (!(density & BM_NO_SYNC)) &&
 			(reduce_map[halftrack/2] & REDUCE_SYNC) )
 		{
 			/* reduce sync marks within the track */
-			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, reduce_sync, 0xff);
+			length = reduce_runs(gcrdata, length, capacity[density & 3] - capacity_margin, reduce_sync, 0xff);
 
 			if (length < orglen)
 				printf("rsync:%d ", orglen - length);
@@ -1002,10 +1002,10 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_t lengt
 
 		/* reduce bad GCR runs */
 		orglen = length;
-		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) &&
+		if ( (length > (capacity[density & 3] - capacity_margin)) &&
 			(reduce_map[halftrack/2] & REDUCE_BAD) )
 		{
-			length = reduce_runs(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN, 0, 0x00);
+			length = reduce_runs(gcrdata, length, capacity[density & 3] - capacity_margin, 0, 0x00);
 
 			if (length < orglen)
 				printf("rbadgcr:%d ", orglen - length);
@@ -1013,10 +1013,10 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_t lengt
 
 		/* reduce sector gaps -  they occur at the end of every sector and vary from 4-19 bytes, typically  */
 		orglen = length;
-		if ( (length > (capacity[density & 3] - CAPACITY_MARGIN)) &&
+		if ( (length > (capacity[density & 3] - capacity_margin)) &&
 			(reduce_map[halftrack/2] & REDUCE_GAP) )
 		{
-			length = reduce_gaps(gcrdata, length, capacity[density & 3] - CAPACITY_MARGIN);
+			length = reduce_gaps(gcrdata, length, capacity[density & 3] - capacity_margin);
 
 			if (length < orglen)
 				printf("rgaps:%d ", orglen - length);
@@ -1024,9 +1024,9 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_t lengt
 
 		/* still not small enough, we have to truncate the end (reduce tail) */
 		orglen = length;
-		if (length > capacity[density & 3] - CAPACITY_MARGIN)
+		if (length > capacity[density & 3] - capacity_margin)
 		{
-			length = capacity[density & 3] - CAPACITY_MARGIN;
+			length = capacity[density & 3] - capacity_margin;
 			printf("trunc:%d ", orglen - length);
 		}
 	}

@@ -4,7 +4,7 @@
  * based on MNIB by Markus Brenner <markus(at)brenner(dot)de>
  */
 
-#define VERSION "0.7.1 (Built "__DATE__" "__TIME__")"
+#define VERSION "0.7.2 (Built "__DATE__" "__TIME__")"
 
 #define FL_STEPTO      0x00
 #define FL_MOTOR       0x01
@@ -36,7 +36,7 @@
 #define BM_NO_SYNC     0x40
 #define BM_FF_TRACK    0x80
 
-#define DENSITY_SAMPLES 1
+#define DENSITY_SAMPLES 2
 
 /* custom density maps for reading */
 #define DENSITY_STANDARD 0
@@ -45,7 +45,7 @@
 // tested extensively with Pete's Newtronics mech-based 1541.
 //#define CAPACITY_MARGIN 11	// works with FL_WRITENOSYNC
 //#define CAPACITY_MARGIN 13	// works with both FL_WRITESYNC and FL_WRITENOSYNC
-#define CAPACITY_MARGIN 16		// safe value
+//#define CAPACITY_MARGIN 16		// safe value
 //#define CAPACITY_MARGIN 10 // some drives allow better margins
 
 #define MODE_READ_DISK     	0
@@ -88,6 +88,7 @@ extern int rawmode;
 extern int rpm_real;
 extern int drive;
 extern int unformat_passes;
+extern int capacity_margin;
 
 /* common */
 void usage(void);

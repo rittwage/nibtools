@@ -48,6 +48,7 @@ int ihs = 0;
 int drive;
 int rpm_real;
 int unformat_passes;
+int capacity_margin = 0;
 
 CBM_FILE fd;
 FILE *fplog;

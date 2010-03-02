@@ -57,10 +57,10 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	}
 
 	/* handle short tracks that won't 'loop overwrite' existing data */
-	if(track_length + LEADER + skewbytes < capacity[track_density[track] & 3] - CAPACITY_MARGIN)
+	if(track_length + LEADER + skewbytes < capacity[track_density[track] & 3] - capacity_margin)
 	{
-			printf("[pad:%d]", (capacity[track_density[track] & 3] - CAPACITY_MARGIN) - track_length);
-			track_length = capacity[track_density[track] & 3] - CAPACITY_MARGIN;
+			printf("[pad:%d]", (capacity[track_density[track] & 3] - capacity_margin) - track_length);
+			track_length = capacity[track_density[track] & 3] - capacity_margin;
 	}
 
 	/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
@@ -182,10 +182,10 @@ master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 			printf(") (%d) ", length);
 
 			/* truncate the end if needed (reduce tail) */
-			if ( (length > capacity[density & 3] - CAPACITY_MARGIN) && (length != NIB_TRACK_LENGTH) )
+			if ( (length > capacity[density & 3] - capacity_margin) && (length != NIB_TRACK_LENGTH) )
 			{
 				printf(" (trunc:%d) ",  length - capacity[density & 3]);
-				length = capacity[density & 3] - CAPACITY_MARGIN;
+				length = capacity[density & 3] - capacity_margin;
 			}
 			master_track(fd, track_buffer, track_density, track, length);
 		}
@@ -270,7 +270,8 @@ void
 adjust_target(CBM_FILE fd)
 {
 	int i, j;
-	unsigned int cap[DENSITY_SAMPLES];
+	int cap[DENSITY_SAMPLES];
+	int cap_high[3], cap_low[3], cap_margin[3];
 	int run_total;
 	BYTE track_dens[4] = { 35*2, 30*2, 24*2, 17*2 };
 
@@ -279,6 +280,9 @@ adjust_target(CBM_FILE fd)
 
 	for (i = 0; i <= 3; i++)
 	{
+		cap_high[i] = 0;
+		cap_low[i] = 0xffff;
+
 		if( (start_track < track_dens[i]) && (end_track > track_dens[i]))
 			step_to_halftrack(fd, track_dens[i]);
 		else
@@ -293,17 +297,21 @@ adjust_target(CBM_FILE fd)
 			cap[j] = track_capacity(fd);
 			printf("%d ", cap[j]);
 			run_total += cap[j];
+			if(cap[j] > cap_high[i]) cap_high[i] = cap[j];
+			if(cap[j] < cap_low[i]) cap_low[i] = cap[j];
 		}
 		capacity[i] = run_total / DENSITY_SAMPLES;
+		cap_margin[i] = cap_high[i] - cap_low[i];
+		if(cap_margin[i] > capacity_margin) capacity_margin = cap_margin[i];
 
 		//printf("(min:%d, max:%d)", capacity_min[i], capacity_max[i]);
 
 		switch(i)
 		{
-			case 0: printf("[%.2f RPM]\n",DENSITY0 / capacity[0]); break;
-			case 1: printf("[%.2f RPM]\n",DENSITY1 / capacity[1]); break;
-			case 2: printf("[%.2f RPM]\n",DENSITY2 / capacity[2]); break;
-			case 3: printf("[%.2f RPM]\n",DENSITY3 / capacity[3]); break;
+			case 0: printf("(%.2frpm) margin:%d\n",DENSITY0 / capacity[0], cap_margin[i]); break;
+			case 1: printf("(%.2frpm) margin:%d\n",DENSITY1 / capacity[1], cap_margin[i]); break;
+			case 2: printf("(%.2frpm) margin:%d\n",DENSITY2 / capacity[2], cap_margin[i]); break;
+			case 3: printf("(%.2frpm) margin:%d\n",DENSITY3 / capacity[3], cap_margin[i]); break;
 		}
 	}
 
@@ -314,6 +322,7 @@ adjust_target(CBM_FILE fd)
 
 	printf("--------------------------------------------------\n");
 	printf("Drive motor speed average: %.2f RPM.\n", motor_speed);
+	printf("Track capacity margin: %d\n",capacity_margin);
 
 	if( (motor_speed > 310) || (motor_speed < 295))
 	{
