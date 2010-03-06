@@ -36,7 +36,7 @@
 #define BM_NO_SYNC     0x40
 #define BM_FF_TRACK    0x80
 
-#define DENSITY_SAMPLES 2
+#define DENSITY_SAMPLES 3
 
 /* custom density maps for reading */
 #define DENSITY_STANDARD 0

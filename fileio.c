@@ -1173,7 +1173,7 @@ unsigned int crc_all_tracks(BYTE *track_buffer, size_t *track_length)
 
 	unsigned char data[BLOCKSONDISK * 256];
 	unsigned int result;
-	int track, sector, index;
+	int track, sector, index, valid;
 	BYTE id[3];
 	BYTE rawdata[260];
 	BYTE errorcode;
@@ -1188,12 +1188,12 @@ unsigned int crc_all_tracks(BYTE *track_buffer, size_t *track_length)
 		return 0;
 	}
 
-	index = 0;
+	index = valid = 0;
 	for (track = start_track; track <= 35*2; track += 2)
 	{
 		for (sector = 0; sector < sector_map[track/2]; sector++)
 		{
-			memset(rawdata, 0 /*rand()%256*/, sizeof(rawdata));
+			memset(rawdata, 0, sizeof(rawdata));
 
 			errorcode = convert_GCR_sector(
 				track_buffer + (track * NIB_TRACK_LENGTH),
@@ -1202,8 +1202,15 @@ unsigned int crc_all_tracks(BYTE *track_buffer, size_t *track_length)
 
 			memcpy(data+(index*256), rawdata+1, 256);
 			index++;
+
+			if(errorcode == SECTOR_OK)
+				valid++;
 		}
 	}
+
+	if(index != valid)
+		printf("[%d/%d sectors] ", valid, index);
+
 	result = crcFast(data, sizeof(data));
 	return result;
 }
@@ -1252,7 +1259,7 @@ unsigned int md5_all_tracks(BYTE *track_buffer, size_t *track_length, unsigned c
 	/* this calculates an MD5 hash for all sectors on the disk */
 
 	unsigned char data[BLOCKSONDISK * 256];
-	int track, sector, index;
+	int track, sector, index, valid;
 	BYTE id[3];
 	BYTE rawdata[260];
 	BYTE errorcode;
@@ -1267,12 +1274,12 @@ unsigned int md5_all_tracks(BYTE *track_buffer, size_t *track_length, unsigned c
 		return 0;
 	}
 
-	index = 0;
+	index = valid = 0;
 	for (track = start_track; track <= 35*2; track += 2)
 	{
 		for (sector = 0; sector < sector_map[track/2]; sector++)
 		{
-			memset(rawdata, 0 /*rand()%256*/, sizeof(rawdata));
+			memset(rawdata, 0, sizeof(rawdata));
 
 			errorcode = convert_GCR_sector(
 				track_buffer + (track * NIB_TRACK_LENGTH),
@@ -1281,8 +1288,14 @@ unsigned int md5_all_tracks(BYTE *track_buffer, size_t *track_length, unsigned c
 
 			memcpy(data+(index*256), rawdata+1, 256);
 			index++;
+
+			if(errorcode == SECTOR_OK)
+				valid++;
 		}
 	}
+
+	if(index != valid)
+		printf("[%d/%d sectors] ", valid, index);
 
 	md5(data, sizeof(data), result);
 	return 1;

@@ -271,7 +271,7 @@ adjust_target(CBM_FILE fd)
 {
 	int i, j;
 	int cap[DENSITY_SAMPLES];
-	int cap_high[3], cap_low[3], cap_margin[3];
+	int cap_high[4], cap_low[4], cap_margin[4];
 	int run_total;
 	BYTE track_dens[4] = { 35*2, 30*2, 24*2, 17*2 };
 
@@ -302,9 +302,9 @@ adjust_target(CBM_FILE fd)
 		}
 		capacity[i] = run_total / DENSITY_SAMPLES;
 		cap_margin[i] = cap_high[i] - cap_low[i];
-		if(cap_margin[i] > capacity_margin) capacity_margin = cap_margin[i];
 
-		//printf("(min:%d, max:%d)", capacity_min[i], capacity_max[i]);
+		if(cap_margin[i] > capacity_margin)
+			capacity_margin = cap_margin[i];
 
 		switch(i)
 		{
@@ -324,7 +324,7 @@ adjust_target(CBM_FILE fd)
 	printf("Drive motor speed average: %.2f RPM.\n", motor_speed);
 	printf("Track capacity margin: %d\n",capacity_margin);
 
-	if( (motor_speed > 310) || (motor_speed < 295))
+	if( (motor_speed > 310) || (motor_speed < 290))
 	{
 		printf("\n\nERROR!\nDrive speed out of range.\nCheck motor, write-protect, or bad media.\n");
 		exit(0);
@@ -343,7 +343,7 @@ init_aligned_disk(CBM_FILE fd)
 	set_bitrate(fd, 2);
 
 	/* write all 0x55 */
-	printf("\nWiping/Unformatting disk\n");
+	printf("\nMarking all tracks 0x55\n");
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		step_to_halftrack(fd, track);

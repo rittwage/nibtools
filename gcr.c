@@ -604,6 +604,7 @@ find_sector0(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 
 	if (!find_sync(&pos, buffer_end))
 		return NULL;
+
 	sync_last = pos;
 
 	/* try to find sector 0 */
@@ -861,9 +862,12 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	sectorgap_pos = find_sector_gap(work_buffer, track_len, &sectorgap_len);
 
 	if(verbose)
-	{
 		printf("{gap=%.4d;len=%d) ", (int)(sectorgap_pos-work_buffer), (int)sectorgap_len);
-	}
+
+	if((sectorgap_pos-work_buffer == sector0_pos-work_buffer) &&
+		(sectorgap_pos != NULL) &&
+		(sector0_pos != NULL))
+		printf("(sec0=gap) ");
 
 	/* if (sectorgap_len >= sector0_len + 0x40) */ /* Burstnibbler's calc */
 	if (sectorgap_len > GCR_BLOCK_DATA_LEN + SIGNIFICANT_GAPLEN_DIFF)
