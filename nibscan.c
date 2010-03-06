@@ -60,8 +60,10 @@ int unformat_passes;
 int capacity_margin;
 
 unsigned char md5_hash_result[16];
+unsigned char md5_dir_hash_result[16];
 unsigned char md5_hash_result2[16];
-int crc, crc2;
+unsigned char md5_dir_hash_result2[16];
+int crc, crc_dir, crc2, crc2_dir;
 
 void
 usage(void)
@@ -151,94 +153,97 @@ main(int argc, char *argv[])
 
 		compare_disks();
 
+		/* disk 1 */
 		printf("\n1: %s\n", file1);
-		printf("2: %s\n", file2);
 
+		crc_dir = crc_dir_track(track_buffer, track_length);
+		printf("BAM/DIR CRC:\t0x%X\n", crc_dir);
+		crc = crc_all_tracks(track_buffer, track_length);
+		printf("Full CRC:\t0x%X\n", crc);
+
+		memset(md5_dir_hash_result, 0 , sizeof(md5_dir_hash_result));
+		md5_dir_track(track_buffer, track_length, md5_dir_hash_result);
+		printf("BAM/DIR MD5:\t0x");
+		for (i = 0; i < 16; i++)
+		 	printf ("%02x", md5_dir_hash_result[i]);
+		printf("\n");
+
+		memset(md5_hash_result, 0 , sizeof(md5_hash_result));
+		md5_all_tracks(track_buffer, track_length, md5_hash_result);
+		printf("Full MD5:\t0x");
+		for (i = 0; i < 16; i++)
+			printf ("%02x", md5_hash_result[i]);
+		printf("\n");
+
+		/* disk 2 */
+		printf("\n2: %s\n", file2);
+		crc2_dir = crc_dir_track(track_buffer2, track_length2);
+		printf("BAM/DIR CRC:\t0x%X\n", crc2_dir);
+		crc2 = crc_all_tracks(track_buffer2, track_length2);
+		printf("Full CRC:\t0x%X\n", crc2);
+
+		memset(md5_dir_hash_result2, 0 , sizeof(md5_dir_hash_result2));
+		md5_dir_track(track_buffer2, track_length2, md5_dir_hash_result2);
+		printf("BAM/DIR MD5:\t0x");
+		for (i = 0; i < 16; i++)
+		 	printf ("%02x", md5_dir_hash_result2[i]);
+		printf("\n");
+
+		memset(md5_hash_result2, 0 , sizeof(md5_hash_result2));
+		md5_all_tracks(track_buffer2, track_length2, md5_hash_result2);
+		printf("Full MD5:\t0x");
+		for (i = 0; i < 16; i++)
+			printf ("%02x", md5_hash_result2[i]);
+		printf("\n\n");
+
+		/* compare summary */
+		if(crc_dir == crc2_dir)
+			printf("BAM/DIR CRC matches.\n");
+		else
+			printf("BAM/DIR CRC does not match.\n");
+
+		if( memcmp(md5_dir_hash_result, md5_dir_hash_result2, 16 ) == 0 )
+			printf("BAM/DIR MD5 matches.\n");
+		else
+			printf("BAM/DIR MD5 does not match.\n");
+
+		if(crc == crc2)
+			printf("All decodable sectors have CRC matches.\n");
+		else
+			printf("All decodable sectors do not have CRC matches.\n");
+
+		if( memcmp(md5_hash_result, md5_hash_result2, 16 ) == 0 )
+			printf("All decodable sectors have MD5 matches.\n");
+		else
+			printf("All decodable sectors do not have MD5 matches.\n");
 	}
 	else 	// just scan for errors, etc.
 	{
 		if(!load_image(file1, track_buffer, track_density, track_length))
 			exit(0);
 
-		printf("\n1: %s\n", file1);
 		scandisk();
-	}
 
-	/* CRC32 */
-	crc = crc_dir_track(track_buffer, track_length);
-	printf("\nBAM/DIR CRC:0x%X\n", crc);
+		printf("\n%s\n", file1);
 
-	if(mode==1)
-	{
-		crc2 = crc_dir_track(track_buffer2, track_length2);
-		printf("BAM/DIR CRC:0x%X", crc2);
+		crc = crc_dir_track(track_buffer, track_length);
+		printf("BAM/DIR CRC:\t0x%X\n", crc);
+		crc = crc_all_tracks(track_buffer, track_length);
+		printf("Full CRC:\t0x%X\n", crc);
 
-		if( crc == crc2 )
-			printf( " [match]\n" );
-		else
-			printf(" [NO match]\n");
-	}
-
-	crc = crc_all_tracks(track_buffer, track_length);
-	printf("Full CRC:0x%X\n", crc);
-
-	if(mode==1)
-	{
-		crc2 = crc_all_tracks(track_buffer2, track_length2);
-		printf("Full CRC:0x%X", crc2);
-
-		if( crc == crc2 )
-			printf( " [match]\n" );
-		else
-			printf(" [NO match]\n");
-	}
-	printf("\n");
-
-	/* MD5 */
-	memset(md5_hash_result, 0 , sizeof(md5_hash_result));
-	md5_dir_track(track_buffer, track_length, md5_hash_result);
-
-	printf("BAM/DIR MD5:0x");
-	for (i = 0; i < 16; i++)
-	 	printf ("%02x", md5_hash_result[i]);
-	printf("\n");
-
-	if(mode==1)
-	{
-		memset(md5_hash_result2, 0 , sizeof(md5_hash_result2));
-		md5_dir_track(track_buffer2, track_length2, md5_hash_result2);
-
-		printf("BAM/DIR MD5:0x");
+		memset(md5_hash_result, 0 , sizeof(md5_hash_result));
+		md5_dir_track(track_buffer, track_length, md5_hash_result);
+		printf("BAM/DIR MD5:\t0x");
 		for (i = 0; i < 16; i++)
-		 	printf ("%02x", md5_hash_result2[i]);;
+		 	printf ("%02x", md5_hash_result[i]);
+		printf("\n");
 
-		if( memcmp(md5_hash_result, md5_hash_result2, 16 ) == 0 )
-			printf( " [match]\n" );
-		else
-			printf(" [NO match]\n");
-	}
-
-	memset(md5_hash_result, 0 , sizeof(md5_hash_result));
-	md5_all_tracks(track_buffer, track_length, md5_hash_result);
-
-	printf("Full MD5:0x");
-	for (i = 0; i < 16; i++)
-		printf ("%02x", md5_hash_result[i]);
-	printf("\n");
-
-	if(mode==1)
-	{
-		memset(md5_hash_result2, 0 , sizeof(md5_hash_result2));
-		md5_all_tracks(track_buffer2, track_length2, md5_hash_result2);
-
-		printf("Full MD5:0x");
+		memset(md5_hash_result, 0 , sizeof(md5_hash_result));
+		md5_all_tracks(track_buffer, track_length, md5_hash_result);
+		printf("Full MD5:\t0x");
 		for (i = 0; i < 16; i++)
-			printf ("%02x", md5_hash_result2[i]);
-
-		if( memcmp(md5_hash_result, md5_hash_result2, 16 ) == 0 )
-			printf( " [match]\n" );
-		else
-			printf(" [NO match]\n");
+			printf ("%02x", md5_hash_result[i]);
+		printf("\n");
 	}
 
 	free(track_buffer);
