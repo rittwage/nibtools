@@ -20,7 +20,7 @@
 #define FL_WRITENOSYNC   0x0b
 #define FL_WRITEIHS 0x0c
 #define FL_CAPACITY    0x0d
-#define FL_INITTRACK 0x0e
+#define FL_ALIGNDISK 0x0e
 #define FL_VERIFY_CODE 0x0f
 #define FL_ZEROTRACK 0x10
 

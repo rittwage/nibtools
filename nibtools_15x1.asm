@@ -321,6 +321,7 @@ _scL3:
 ; step motor to destination halftrack
 _step_dest:
         JSR  _read_byte           ; read byte from parallel data port
+_step_dest_internal:
         LDX  #$01                 ; step value: step up
         CMP  $c2                  ; compare with current track (CARRY!!!)
         BEQ  _step_dest_end       ; destination track == current -> RTS
@@ -673,46 +674,48 @@ _mt_end:
         JMP  _send_byte           ; parallel-send data byte to C64
 
 ;----------------------------------------
-; initialise write track
-_format_track:
-        LDX  #$02                 ;
+; align a short sync to all tracks on a disk
+; Pete Rittwage 3/7/2010
+_align_disk:
         LDA  #$ce
         STA  $1c0c
         DEC  $1c03                ; CA data direction head (0->$ff: write)
 
-        LDA  #$55                 ;
-        STA  $1c01                ; write $55 byte
+        LDA #$52  	 ; track 41	
+       	STA $cf
+
+ _admain:
+	JSR _step_dest_internal
+	
+        LDA  #$ff                 ;
+        STA  $1c01                ; write $ff byte (Sync mark)
 _ftL1:
         BVC  _ftL1                ;
-        CLV                       ;
-        INY                       ; write $0200 times (no, Y is always 0, so $100 times)
-        BNE  _ftL1                ; makes a clean start of track
-        DEX                       ;
-        BNE  _ftL1                ;
-
-        LDA  #$ff                 ;
         STA  $1c01                ; write $ff byte (Sync mark)
 _ftL2:
         BVC  _ftL2                ;
-        CLV                       ;
-        INX                       ;
-        CPX  #$0a                 ; write 10 times (long Sync mark)
-        BNE  _ftL2                ;
 
-        LDA  #$55                 ;
-        STA  $1c01                ; write $55 bytes
-        LDX  #$1d                 ;
-_ftL3:
-        BVC  _ftL3                ;
-        CLV                       ; write $1d00 GCR times
-        INY                       ;
-        BNE  _ftL3                ;
-        DEX                       ;
-        BNE  _ftL3                ;
-
+;----------------------------------       
+; busy loop
+;      	LDA  #$20        ;
+;	STA  $c1                  ;
+;	LDA  #$00                 ; busy wait $xxxx times
+;	STA  $c0                  ;
+;_adBL:
+;        DEC  $c0                  ;
+;        BNE  _adBL              ;
+;        DEC  $c1                  ;
+;        BNE  _adBL              ;
+;----------------------------------    
+     	
+     	DEC $cf
+	DEC $cf
+	LDA $cf
+	BNE _admain 
+	
         LDA  #$ee
         STA  $1c0c
-        STY  $1c03                ; CA data direction head ($ff->0: read)
+        INC $1C03
         RTS
 
 ;----------------------------------------
@@ -754,8 +757,11 @@ _ztL1:
 
         LDA  #$ee
         STA  $1c0c
-        STY  $1c03                ; CA data direction head ($ff->0: read)
+        INC $1C03
         RTS
+        
+
+        
 
 
 ;----------------------------------------
@@ -775,9 +781,10 @@ _command_table:
 .byte <(_write_track-1),>(_write_track-1)         ; write a track on destination
 .byte <(_ihs_write_track-1),>(_ihs_write_track-1) ; write track after variable Sync length
 .byte <(_measure_trk_len-1),>(_measure_trk_len-1) ; measure destination track length
-.byte <(_format_track-1),>(_format_track-1)       ; initialise write track (long Sync)
+.byte <(_align_disk-1),>(_align_disk-1)           ; align sync on all tracks
 .byte <(_verify_code-1),>(_verify_code-1)         ; send floppy side code back to PC
 .byte <(_zero_track-1),>(_zero_track-1)           ; zero out (unformat) a track
+
 
 _command_header:
 .byte $ff,$aa,$55,$00                             ; command header code (reverse order)
