@@ -37,6 +37,7 @@ int ihs;
 int mode;
 int unformat_passes;
 int capacity_margin;
+int align_delay;
 
 int ARCH_MAINDECL
 main(int argc, char **argv)

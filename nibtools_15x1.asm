@@ -677,6 +677,9 @@ _mt_end:
 ; align a short sync to all tracks on a disk
 ; Pete Rittwage 3/7/2010
 _align_disk:
+        JSR  _read_byte           ; read byte from parallel data port
+        STA  _delay_loop+1         ; can change delay loop by 10ms
+        
         LDA  #$ce
         STA  $1c0c
         DEC  $1c03                ; CA data direction head (0->$ff: write)
@@ -695,19 +698,21 @@ _ftL1:
 _ftL2:
         BVC  _ftL2                ;
 
-;----------------------------------       
-; busy loop
-;      	LDA  #$20        ;
-;	STA  $c1                  ;
-;	LDA  #$00                 ; busy wait $xxxx times
-;	STA  $c0                  ;
-;_adBL:
-;        DEC  $c0                  ;
-;        BNE  _adBL              ;
-;        DEC  $c1                  ;
-;        BNE  _adBL              ;
-;----------------------------------    
-     	
+_delay_loop:
+		LDY #$00
+_DLY10:    LDA #$00       ;SET TI ONE-SHOT MODE, WITH NO PB7
+         	STA $180B
+         	LDA #$10       ;WRITE COUNT LSBY
+         	STA $1804
+         	LDA #$27       ;WRITE COUNT MSBY AND START TIMER
+         	STA $1805
+         	LDA #$40       ;SELECT T1 INTERRUPT MASK
+_CHKT1:    BIT $180D      ;HAS T1 COUNTED DOWN?
+         	BEQ _CHKT1      ;NO. WAIT UNTIL IT HAS
+         	LDA $1804      ;YES. CLEAR T1 INTERRUPT FLAG
+		DEY
+		BNE _DLY10
+
      	DEC $cf
 	DEC $cf
 	LDA $cf

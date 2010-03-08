@@ -58,6 +58,7 @@ int align_disk;
 int ihs;
 int unformat_passes;
 int capacity_margin;
+int align_delay;
 
 unsigned char md5_hash_result[16];
 unsigned char md5_dir_hash_result[16];

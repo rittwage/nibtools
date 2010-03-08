@@ -348,6 +348,7 @@ init_aligned_disk(CBM_FILE fd)
 	{
 		step_to_halftrack(fd, track);
 		send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
+
 		cbm_parallel_burst_write(fd, 0);
 		if(!cbm_parallel_burst_write_track(fd, pattern, 0x2000))
 		{
@@ -359,11 +360,13 @@ init_aligned_disk(CBM_FILE fd)
 	}
 
 	//send_mnib_cmd(fd, FL_ALIGNDISK, NULL, 0);
+	//cbm_parallel_burst_write(fd, align_delay);
 	//cbm_parallel_burst_read(fd);
+	//return;
 
 	/* write short syncs */
 	printf("Aligning syncs\n");
-	for (track = start_track; track <= end_track; track += track_inc)
+	for (track = end_track; track >= start_track; track -= track_inc)
 	{
 		step_to_halftrack(fd, track);
 		msleep( (int) (((200000 - 20000) * 300) / motor_speed) );

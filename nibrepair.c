@@ -45,6 +45,7 @@ int skew;
 int mode;
 int unformat_passes;
 int capacity_margin;
+int align_delay;
 
 /* local prototypes */
 int repair(void);

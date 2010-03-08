@@ -52,6 +52,7 @@ int rawmode;
 int rpm_real;
 int unformat_passes;
 int capacity_margin;
+int align_delay;
 
 BYTE density_map;
 float motor_speed;
