@@ -46,7 +46,6 @@ int reduce_sync;
 int reduce_badgcr;
 int reduce_gap;
 int waitkey = 0;
-int advanced_info = 1;
 int gap_match_length;
 int cap_min_ignore;
 int verbose = 0;
@@ -630,7 +629,7 @@ scandisk(void)
 				if(verbose) printf("\n%s", errorstring);
 			}
 
-			if (advanced_info)
+			if (verbose)
 					raw_track_info(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track]);
 
 			printf("\n");

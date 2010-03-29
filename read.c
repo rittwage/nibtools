@@ -101,7 +101,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		if (!cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
 		{
 			// If we got a timeout, reset the port before retrying.
-			printf("(timeout) ");
+			printf("!");
 			fprintf(fplog,"(timeout) ");
 			fflush(stdout);
 			cbm_parallel_burst_read(fd);
@@ -178,7 +178,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		{
 			printf("Short Read! (%d) ", leno);
 			fprintf(fplog, "[%d<%d!] ", leno, capacity_min[denso & 3] - CAP_MIN_ALLOWANCE);
-			//if(l < (error_retries - 3)) l = error_retries - 3;
+			if(l < (error_retries - 3)) l = error_retries - 3;
 			continue;
 		}
 
@@ -188,7 +188,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		{
 			printf("Long Read! (%d) ", leno);
 			fprintf(fplog, "[%d>%d!] ", leno, capacity_max[denso & 3] + CAP_MIN_ALLOWANCE);
-			//if(l < (error_retries - 3)) l = error_retries - 3;
+			if(l < (error_retries - 3)) l = error_retries - 3;
 			continue;
 		}
 
@@ -218,7 +218,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	// any CBM sectors (protection)
 	if ((errors == sector_map[halftrack/2]) || (halftrack > 70))
 	{
-		printf("[Non-Standard Format] ");
+		printf("[NDOS] ");
 		fprintf(fplog, "%s ", errorstring);
 	}
 	else
@@ -292,8 +292,8 @@ int
 read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
     int track;
-    size_t errors = 0;
-    char errorstring[0x1000];
+    //size_t errors = 0;
+    //char errorstring[0x1000];
 
 	printf("\n");
 	fprintf(fplog,"\n");
@@ -304,10 +304,10 @@ read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 	{
 		track_density[track] = paranoia_read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH));
 
-		if(track <= 70)
-				errors += check_errors(track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH, track, diskid, errorstring);
+	//	if(track <= 70)
+	//			errors += check_errors(track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH, track, diskid, errorstring);
 	}
-	printf("\n\nTotal CBM Errors: %d\n",errors);
+	//printf("\n\nTotal CBM Errors: %d\n",errors);
 	step_to_halftrack(fd, 18*2);
 
 	return 1;
@@ -473,24 +473,20 @@ scan_track(CBM_FILE fd, int track)
 	for (bin = 0; bin < 4; bin++)
 		density_major[bin] = density_stats[bin] = 0;
 
-	for (i = 0; i < 10; i++)
+	/* Use bitrate close to default for scan */
+	set_bitrate(fd, density);
+	send_mnib_cmd(fd, FL_SCANDENSITY, NULL, 0);
+
+	/* Floppy sends statistic data in reverse bit-rate order */
+	for (bin = 3; bin >= 0; bin--)
 	{
-		/* Use bitrate close to default for scan */
-		set_bitrate(fd, density);
+		count = cbm_parallel_burst_read(fd);
+		if (count >= 0x40)
+			density_major[bin]++;
 
-		send_mnib_cmd(fd, FL_SCANDENSITY, NULL, 0);
-
-		/* Floppy sends statistic data in reverse bit-rate order */
-		for (bin = 3; bin >= 0; bin--)
-		{
-			count = cbm_parallel_burst_read(fd);
-			if (count >= 0x40)
-				density_major[bin]++;
-
-			density_stats[bin] += count;
-		}
-		cbm_parallel_burst_read(fd);
+		density_stats[bin] += count;
 	}
+	cbm_parallel_burst_read(fd);
 
 	for(i = 0; i <= 3; i++)
 	{
@@ -499,7 +495,6 @@ scan_track(CBM_FILE fd, int track)
 			if(verbose) printf("{%d:%3d/%2d}",i,density_stats[i],density_major[i]);
 			dens_detected = 1;
 		}
-
 		fprintf(fplog,"{%d:%3d/%2d}",i,density_stats[i],density_major[i]);
 	}
 

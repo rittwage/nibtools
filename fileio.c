@@ -235,12 +235,6 @@ void parseargs(char *argv[])
 			rpm_real = 1;
 			break;
 
-		case 'd':
-			if (!(*argv)[2]) usage();
-			align_delay = atoi(&(*argv)[2]);
-			printf("* Align delay set to %dms\n",align_delay*10);
-			break;
-
 		default:
 			usage();
 			break;

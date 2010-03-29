@@ -679,39 +679,42 @@ _mt_end:
 _align_disk:
         JSR  _read_byte           ; read byte from parallel data port
         STA  _delay_loop+1         ; can change delay loop by 10ms
-        
+      
         LDA  #$ce
         STA  $1c0c
         DEC  $1c03                ; CA data direction head (0->$ff: write)
-
+        
         LDA #$52  	 ; track 41	
        	STA $cf
 
  _admain:
 	JSR _step_dest_internal
-	
-        LDA  #$ff                 ;
+	;DEC  $1c03                ; CA data direction head (0->$ff: write)
+	LDA  #$ff                 ;
         STA  $1c01                ; write $ff byte (Sync mark)
 _ftL1:
         BVC  _ftL1                ;
         STA  $1c01                ; write $ff byte (Sync mark)
 _ftL2:
         BVC  _ftL2                ;
+        ;INC $1c03		 ; CA data direction head (ff>$0: read)
 
 _delay_loop:
-		LDY #$00
-_DLY10:    LDA #$00       ;SET TI ONE-SHOT MODE, WITH NO PB7
-         	STA $180B
-         	LDA #$10       ;WRITE COUNT LSBY
-         	STA $1804
-         	LDA #$27       ;WRITE COUNT MSBY AND START TIMER
-         	STA $1805
-         	LDA #$40       ;SELECT T1 INTERRUPT MASK
-_CHKT1:    BIT $180D      ;HAS T1 COUNTED DOWN?
-         	BEQ _CHKT1      ;NO. WAIT UNTIL IT HAS
-         	LDA $1804      ;YES. CLEAR T1 INTERRUPT FLAG
-		DEY
-		BNE _DLY10
+	LDY #$00
+_dly:
+	LDA #$00       ;SET TI ONE-SHOT MODE, WITH NO PB7
+       	STA $180b
+       	LDA #$e8       ;WRITE COUNT LSBY
+       	STA $1804
+       	LDA #$03       ;WRITE COUNT MSBY AND START TIMER
+       	STA $1805
+       	LDA #$40       ;SELECT T1 INTERRUPT MASK
+_chkt1:
+	BIT $180d      ; T1 COUNTED DOWN?
+       	BEQ _chkt1      ;NO. WAIT UNTIL IT HAS
+       	LDA $1804      ;YES. CLEAR T1 INTERRUPT FLAG
+	DEY
+	BNE _dly
 
      	DEC $cf
 	DEC $cf
@@ -720,7 +723,7 @@ _CHKT1:    BIT $180D      ;HAS T1 COUNTED DOWN?
 	
         LDA  #$ee
         STA  $1c0c
-        INC $1C03
+        INC  $1c03                ; CA data direction head (0->$ff: write)
         RTS
 
 ;----------------------------------------

@@ -552,11 +552,13 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 				*cycle_stop = cycle_pos;
 
 				/* print cycle pattern found */
-				printf("[cycle:");
-				for(index = 0; index < gap_match_length; index++)
-					printf("%.2x",cycle_pos[index]);
-				printf("] ");
-
+				if(verbose)
+				{
+					printf("[cycle:");
+					for(index = 0; index < gap_match_length; index++)
+						printf("%.2x",cycle_pos[index]);
+					printf("] ");
+				}
 				return (cycle_pos - p1);
 			}
 		}
@@ -565,7 +567,10 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 	/* we got nothing useful */
 	*cycle_start = nib_track;
 	*cycle_stop = nib_track + NIB_TRACK_LENGTH;
-	printf("[cycle:NONE DETECTED!] ");
+
+	if(verbose)
+		printf("[cycle:NONE DETECTED!] ");
+
 	return NIB_TRACK_LENGTH;
 }
 

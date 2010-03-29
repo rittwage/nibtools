@@ -213,7 +213,7 @@ usage(void)
      " -0: Enable bad GCR run reduction\n"
      " -r: Disable automatic sync reduction\n"
 	 " -f: Disable automatic bad GCR simulation\n"
-	 " -ff: Enable more aggressive bad GCR simulation\n"
+	 " -f[x]: Enable more aggressive bad GCR simulation\n"
 	 " -3: Compress track data to real 300rpm capacity\n"
      " -G: Manual gap match length\n");
 	exit(1);

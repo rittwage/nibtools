@@ -334,13 +334,15 @@ adjust_target(CBM_FILE fd)
 void
 init_aligned_disk(CBM_FILE fd)
 {
-	int track;
+	int track, skewtime;
 	BYTE sync[2];
 	BYTE pattern[0x2000];
 
 	memset(pattern, 0x55, 0x2000);
 	sync[0] = sync[1] = 0xff;
 	set_bitrate(fd, 2);
+
+	skewtime = ((200000 - 20000) * 300) / motor_speed;
 
 	/* write all 0x55 */
 	printf("\nPreparing tracks...\n");
@@ -354,13 +356,14 @@ init_aligned_disk(CBM_FILE fd)
 		{
 			printf("\nTimeout during alignment- alignment failed!\n");
 			cbm_parallel_burst_read(fd);
-			return;
+			exit(0);
 		}
 		cbm_parallel_burst_read(fd);
 	}
 
+	/* drive code version */
 	//send_mnib_cmd(fd, FL_ALIGNDISK, NULL, 0);
-	//cbm_parallel_burst_write(fd, align_delay);
+	//cbm_parallel_burst_write(fd, skewtime/1000);
 	//cbm_parallel_burst_read(fd);
 	//return;
 
@@ -369,14 +372,14 @@ init_aligned_disk(CBM_FILE fd)
 	for (track = end_track; track >= start_track; track -= track_inc)
 	{
 		step_to_halftrack(fd, track);
-		msleep( (int) (((200000 - 20000) * 300) / motor_speed) );
+		msleep( skewtime);
 		send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
 		cbm_parallel_burst_write(fd, 0);
 		if(!cbm_parallel_burst_write_track(fd, sync, sizeof(sync)))
 		{
 			printf("\nTimeout during alignment- alignment failed!\n");
 			cbm_parallel_burst_read(fd);
-			return;
+			exit(0);
 		}
 		cbm_parallel_burst_read(fd);
 	}
