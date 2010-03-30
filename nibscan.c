@@ -631,9 +631,8 @@ scandisk(void)
 
 			if (verbose)
 					raw_track_info(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track]);
-
-			printf("\n");
 		}
+		printf("\n");
 
 		// process and dump to disk for manual compare
 		length = track_length[track];

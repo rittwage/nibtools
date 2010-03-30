@@ -523,14 +523,7 @@ scan_track(CBM_FILE fd, int track)
 rescan:
 	/* Set bitrate to the discovered density and scan again for NOSYNC/KILLER */
 	set_bitrate(fd, density);
-
-	for(i=0; i<3; i++)
-	{
-		send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
-		killer_info = cbm_parallel_burst_read(fd);
-
-		if (killer_info & BM_NO_SYNC)
-			return (density | killer_info);
-	}
+	send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
+	killer_info = cbm_parallel_burst_read(fd);
 	return (density | killer_info);
 }

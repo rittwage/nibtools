@@ -53,8 +53,11 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 			memset(rawtrack + LEADER + skewbytes,  0xff, 2);
 			memcpy(rawtrack + LEADER + skewbytes  + 2,  track_buffer + (track * NIB_TRACK_LENGTH), track_length);
 			track_length += 2;
-			printf(" {sync added} ");
+			printf(" {syncadd} ");
 	}
+
+	printf(" [%.2x%.2x%.2x] ", track_buffer[track*NIB_TRACK_LENGTH],
+			track_buffer[track*NIB_TRACK_LENGTH+1],track_buffer[track*NIB_TRACK_LENGTH+2]);
 
 	/* handle short tracks that won't 'loop overwrite' existing data */
 	if(track_length + LEADER + skewbytes < capacity[track_density[track] & 3] - capacity_margin)
