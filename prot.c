@@ -27,7 +27,6 @@ void shift_buffer_left(BYTE *buffer, int length, int n)
     }
 }
 
-
 void shift_buffer_right(BYTE *buffer, int length, int n)
 {
     int i;
@@ -57,7 +56,7 @@ align_vmax(BYTE * work_buffer, size_t tracklen)
 	run = 0;
 	pos = work_buffer;
 	start_pos = work_buffer;
-	buffer_end = work_buffer + tracklen;
+	buffer_end = work_buffer + tracklen + 1;
 
 	while (pos < buffer_end)
 	{
@@ -85,7 +84,7 @@ align_vmax_new(BYTE * work_buffer, size_t tracklen)
 	run = 0;
 	longest = 0;
 	pos = work_buffer;
-	buffer_end = work_buffer + tracklen;
+	buffer_end = work_buffer + tracklen + 1;
 	key = key_temp = NULL;
 
 	/* try to find longest good gcr run */
@@ -122,7 +121,7 @@ align_vmax_cw(BYTE * work_buffer, size_t tracklen)
 	run = 0;
 	pos = work_buffer;
 	start_pos = work_buffer;
-	buffer_end = work_buffer + tracklen;
+	buffer_end = work_buffer + tracklen + 1;
 
 	/* Cinemaware titles have a marker $64 $a5 $a5 $a5 */
 
@@ -149,10 +148,10 @@ auto_gap(BYTE * work_buffer, size_t tracklen)
 	run = 0;
 	longest = 0;
 	pos = work_buffer;
-	buffer_end = work_buffer + tracklen;
+	buffer_end = work_buffer + tracklen + 1;
 	key = key_temp = NULL;
 
-	/* try to find longest good gcr run */
+	/* try to find longest run of any one byte */
 	while (pos < buffer_end - 2)
 	{
 		if (*pos == *(pos + 1))	// && (*pos != 0x00 ))
@@ -194,7 +193,7 @@ find_bad_gap(BYTE * work_buffer, size_t tracklen)
 	run = 0;
 	longest = 0;
 	pos = work_buffer;
-	buffer_end = work_buffer + tracklen;
+	buffer_end = work_buffer + tracklen + 1;
 	key = key_temp = NULL;
 
 	/* try to find longest bad gcr run */
@@ -234,7 +233,7 @@ find_long_sync(BYTE * work_buffer, size_t tracklen)
 	run = 0;
 	longest = 0;
 	pos = work_buffer;
-	buffer_end = work_buffer + tracklen;
+	buffer_end = work_buffer + tracklen + 1;
 	key = key_temp = NULL;
 
 	/* try to find longest sync run */

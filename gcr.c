@@ -784,7 +784,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 		printf("{sec0=%.4d;len=%d} ",(sector0_pos - work_buffer), sector0_len);
 	}
 
-	//* forced track alignments */
+	/* forced track alignments */
 	if (align_map[track] != ALIGN_NONE)
 	{
 		if (align_map[track] == ALIGN_VMAX_CW)

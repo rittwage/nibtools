@@ -16,7 +16,7 @@
 void
 master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t track_length)
 {
-	#define LEADER  0x100
+	#define LEADER  0x10
 	int i;
 	static size_t skewbytes = 0;
 	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
@@ -40,9 +40,8 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	/* check that our first sync is long enough (if the track has sync)
 		if not, lengthen it */
 	if( (track_density[track] & BM_NO_SYNC) ||
-	    (align_map[track/2] == ALIGN_AUTOGAP) ||
-		((track_buffer[track * NIB_TRACK_LENGTH] == 0xff) &&
-	 	 (track_buffer[(track * NIB_TRACK_LENGTH) + 1] == 0xff)) )
+		(align_map[track/2] == ALIGN_AUTOGAP) ||
+		((track_buffer[track * NIB_TRACK_LENGTH] == 0xff) && (track_buffer[(track * NIB_TRACK_LENGTH) + 1] == 0xff)) )
 	{
 			/* merge in our track data normally */
 			memcpy(rawtrack + LEADER + skewbytes,  track_buffer + (track * NIB_TRACK_LENGTH), track_length);
@@ -53,14 +52,16 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 			memset(rawtrack + LEADER + skewbytes,  0xff, 2);
 			memcpy(rawtrack + LEADER + skewbytes  + 2,  track_buffer + (track * NIB_TRACK_LENGTH), track_length);
 			track_length += 2;
-			printf(" {syncadd} ");
+			printf(" {presync} ");
 	}
 
-	printf(" [%.2x%.2x%.2x] ", track_buffer[track*NIB_TRACK_LENGTH],
+	/*
+	printf("[%.2x%.2x%.2x] ", track_buffer[track*NIB_TRACK_LENGTH],
 			track_buffer[track*NIB_TRACK_LENGTH+1],track_buffer[track*NIB_TRACK_LENGTH+2]);
+	*/
 
-	/* handle short tracks that won't 'loop overwrite' existing data */
-	if(track_length + LEADER + skewbytes < capacity[track_density[track] & 3] - capacity_margin)
+	/* handle short tracks */
+	if(track_length < capacity[track_density[track] & 3] - capacity_margin)
 	{
 			printf("[pad:%d]", (capacity[track_density[track] & 3] - capacity_margin) - track_length);
 			track_length = capacity[track_density[track] & 3] - capacity_margin;
@@ -126,8 +127,8 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		}
 
 		badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
-		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
-		printf("[badgcr: %d] ", badgcr);
+		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track] - capacity_margin);
+		printf("[badgcr:%d] ", badgcr);
 
 		master_track(fd, track_buffer, track_density, track, length);
 	}
