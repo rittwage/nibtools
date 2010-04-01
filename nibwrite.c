@@ -48,7 +48,7 @@ int ihs = 0;
 int drive;
 int rpm_real;
 int unformat_passes;
-int capacity_margin = 4;
+int capacity_margin = 0;
 int align_delay;
 
 CBM_FILE fd;

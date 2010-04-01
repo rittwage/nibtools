@@ -22,8 +22,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
 
 	/* unformat track with 0x55 (01010101)
-	    most of this is the "leader" which is overwritten
-	    some 1571's don't like a lot of 0x00 bytes, they see phantom sync, etc. */
+	    some of this is the "leader" which is overwritten by wraparound */
 	memset(rawtrack, 0x55, sizeof(rawtrack));
 
 	/* apply skew, if specified */
