@@ -692,11 +692,11 @@ _align_disk:
 	;DEC  $1c03                ; CA data direction head (0->$ff: write)
 	LDA  #$ff                 ;
         STA  $1c01                ; write $ff byte (Sync mark)
-_ftL1:
-        BVC  _ftL1                ;
+_adL1:
+        BVC  _adL1                ;
         STA  $1c01                ; write $ff byte (Sync mark)
-_ftL2:
-        BVC  _ftL2                ;
+_adL2:
+        BVC  _adL2                ;
         ;INC $1c03		 ; CA data direction head (ff>$0: read)
 
 _delay_loop:
@@ -744,34 +744,30 @@ _verify_L1:
         RTS
 
 ;----------------------------------------
-; completely zero out a track (unformat)
-; Pete Rittwage 5/3/2006
+; completely fill a track with given byte
+; used for unformat/kill
 
-_zero_track:
-        LDX  #$20                 ;
+_fill_track:
         LDA  #$ce
         STA  $1c0c
         DEC  $1c03                ; CA data direction head (0->$ff: write)
 
-        LDA  #$00                 ;
-        STA  $1c01                ; write $00 byte
-_ztL1:
-        BVC  _ztL1                ;
+	JSR  _read_byte           ; read byte from parallel data port
+        LDX  #$20                 ;
+        STA  $1c01                ; send byte to head
+_ftL1:
+        BVC  _ftL1                ;
         CLV                       ;
         INY                       ; write $2000 ($20 x $100) times
-        BNE  _ztL1                ;
+        BNE  _ftL1                ;
         DEX                       ;
-        BNE  _ztL1                ;
+        BNE  _ftL1                ;
 
         LDA  #$ee
         STA  $1c0c
         INC $1C03
         RTS
         
-
-        
-
-
 ;----------------------------------------
 ; Command Jump table, return value: Y
 _command_table:
@@ -791,7 +787,7 @@ _command_table:
 .byte <(_measure_trk_len-1),>(_measure_trk_len-1) ; measure destination track length
 .byte <(_align_disk-1),>(_align_disk-1)           ; align sync on all tracks
 .byte <(_verify_code-1),>(_verify_code-1)         ; send floppy side code back to PC
-.byte <(_zero_track-1),>(_zero_track-1)           ; zero out (unformat) a track
+.byte <(_fill_track-1),>(_fill_track-1)           ; zero out (unformat) a track
 
 
 _command_header:

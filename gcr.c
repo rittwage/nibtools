@@ -988,7 +988,8 @@ strip_gaps(BYTE * buffer, size_t length)
 	end = buffer + length;
 
 	/* this is crude, I know */
-	/* this will find a sync that is of sufficient length and strip the byte before it, which can damage real data if done too much */
+	/* this will find a sync that is of sufficient length and strip the byte before it */
+	/* this can damage real data if done too much and will damage signatures before a sync */
 	for (source = buffer; source < end - 2; source++)
 	{
 		if ( (*source != 0xff) && (*(source+1) == 0xff) && (*(source+2) == 0xff) )

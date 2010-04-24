@@ -98,7 +98,9 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		}
 		cbm_parallel_burst_read(fd);
 
-		if (!cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
+		if (cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
+			break;
+		else
 		{
 			// If we got a timeout, reset the port before retrying.
 			printf("!");
@@ -109,10 +111,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			//printf("%c ", test_par_port(fd)? '+' : '-');
 			cbm_parallel_burst_read(fd);
 		}
-		else
-			break;
 	}
-
 	return (density);
 }
 
@@ -301,15 +300,9 @@ read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 	if(!rawmode) get_disk_id(fd);
 
 	for (track = start_track; track <= end_track; track += track_inc)
-	{
 		track_density[track] = paranoia_read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH));
 
-	//	if(track <= 70)
-	//			errors += check_errors(track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH, track, diskid, errorstring);
-	}
-	//printf("\n\nTotal CBM Errors: %d\n",errors);
 	step_to_halftrack(fd, 18*2);
-
 	return 1;
 }
 
@@ -373,7 +366,9 @@ write_nb2(CBM_FILE fd, char * filename)
 					send_mnib_cmd(fd, FL_READWOSYNC, NULL, 0);
 					cbm_parallel_burst_read(fd);
 
-					if (!cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
+					if (cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
+						break;
+					else
 					{
 						// If we got a timeout, reset the port before retrying.
 						//putchar('?');
@@ -383,8 +378,6 @@ write_nb2(CBM_FILE fd, char * filename)
 						//printf("%c ", test_par_port(fd)? '+' : '-');
 						cbm_parallel_burst_read(fd);
 					}
-					else
-						break;
 				}
 
 				/* save track to disk */

@@ -22,7 +22,7 @@
 #define FL_CAPACITY    0x0d
 #define FL_ALIGNDISK 0x0e
 #define FL_VERIFY_CODE 0x0f
-#define FL_ZEROTRACK 0x10
+#define FL_FILLTRACK 0x10
 
 #define DISK_NORMAL    0
 
@@ -42,11 +42,10 @@
 #define DENSITY_STANDARD 0
 #define DENSITY_RAPIDLOK	1
 
-// tested extensively with Pete's Newtronics mech-based 1541.
-//#define CAPACITY_MARGIN 11	// works with FL_WRITENOSYNC
-//#define CAPACITY_MARGIN 13	// works with both FL_WRITESYNC and FL_WRITENOSYNC
-//#define CAPACITY_MARGIN 16		// safe value
-//#define CAPACITY_MARGIN 10 // some drives allow better margins
+// baseline to stay out of trouble, added to detected margin
+// direct-drive models are really close and don't need this, but old
+// belt-driven drives do
+#define CAPACITY_MARGIN 5
 
 #define MODE_READ_DISK     	0
 #define MODE_WRITE_DISK    	1
@@ -88,7 +87,6 @@ extern int rawmode;
 extern int rpm_real;
 extern int drive;
 extern int unformat_passes;
-extern int capacity_margin;
 extern int align_delay;
 
 /* common */

@@ -37,7 +37,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	}
 
 	/* check that our first sync is long enough (if the track has sync)
-		if not, lengthen it */
+		and if not, lengthen it */
 	if( (track_density[track] & BM_NO_SYNC) ||
 		(align_map[track/2] == ALIGN_AUTOGAP) ||
 		((track_buffer[track * NIB_TRACK_LENGTH] == 0xff) && (track_buffer[(track * NIB_TRACK_LENGTH) + 1] == 0xff)) )
@@ -51,7 +51,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 			memset(rawtrack + LEADER + skewbytes,  0xff, 2);
 			memcpy(rawtrack + LEADER + skewbytes  + 2,  track_buffer + (track * NIB_TRACK_LENGTH), track_length);
 			track_length += 2;
-			printf(" {presync} ");
+			printf("{presync} ");
 	}
 
 	/*
@@ -60,10 +60,10 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	*/
 
 	/* handle short tracks */
-	if(track_length < capacity[track_density[track] & 3] - capacity_margin)
+	if(track_length < capacity[track_density[track] & 3])
 	{
-			printf("[pad:%d]", (capacity[track_density[track] & 3] - capacity_margin) - track_length);
-			track_length = capacity[track_density[track] & 3] - capacity_margin;
+			printf("[pad:%d]", capacity[track_density[track] & 3] - track_length);
+			track_length = capacity[track_density[track] & 3];
 	}
 
 	/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
@@ -83,7 +83,9 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 
 		cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
 
-		if (!(cbm_parallel_burst_write_track(fd, rawtrack, track_length + LEADER + skewbytes)))
+		if (cbm_parallel_burst_write_track(fd, rawtrack, track_length + LEADER + skewbytes))
+			break;
+		else
 		{
 			//putchar('?');
 			printf("(timeout) ");
@@ -93,8 +95,6 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 			//printf("%c ", test_par_port(fd)? '+' : '-');
 			test_par_port(fd);
 		}
-		else
-			break;
 	}
 }
 
@@ -126,7 +126,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		}
 
 		badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
-		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track] - capacity_margin);
+		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
 		printf("[badgcr:%d] ", badgcr);
 
 		master_track(fd, track_buffer, track_density, track, length);
@@ -185,10 +185,10 @@ master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 			printf(") (%d) ", length);
 
 			/* truncate the end if needed (reduce tail) */
-			if ( (length > capacity[density & 3] - capacity_margin) && (length != NIB_TRACK_LENGTH) )
+			if ( (length > capacity[density & 3]) && (length != NIB_TRACK_LENGTH) )
 			{
 				printf(" (trunc:%d) ",  length - capacity[density & 3]);
-				length = capacity[density & 3] - capacity_margin;
+				length = capacity[density & 3];
 			}
 			master_track(fd, track_buffer, track_density, track, length);
 		}
@@ -227,34 +227,13 @@ unformat_disk(CBM_FILE fd)
 
 void kill_track(CBM_FILE fd, int track)
 {
-	BYTE trackbuf[NIB_TRACK_LENGTH];
-	int i;
-
 	// step head
 	step_to_halftrack(fd, track);
-	set_density(fd, 2);
 
-	// write 0xFF $2000 times
-	memset(trackbuf, 0xff, NIB_TRACK_LENGTH);
-
-	for (i = 0; i < 10; i ++)
-	{
-		send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
-		cbm_parallel_burst_write(fd, 0x00);
-
-		if(!cbm_parallel_burst_write_track(fd, trackbuf, NIB_TRACK_LENGTH))
-		{
-			//putchar('?');
-			printf("(timeout) ");
-			fflush(stdin);
-			cbm_parallel_burst_read(fd);
-			//msleep(500);
-			//printf("%c ", test_par_port(fd)? '+' : '-');
-			test_par_port(fd);
-		}
-		else
-			break;
-	}
+	// write all $ff bytes
+	send_mnib_cmd(fd, FL_FILLTRACK, NULL, 0);
+	cbm_parallel_burst_write(fd, 0xff);  // 0xff byte is all sync "killer" track
+	cbm_parallel_burst_read(fd);
 }
 
 void
@@ -264,7 +243,8 @@ zero_track(CBM_FILE fd, int track)
 	step_to_halftrack(fd, track);
 
 	// write all $0 bytes
-	send_mnib_cmd(fd, FL_ZEROTRACK, NULL, 0);
+	send_mnib_cmd(fd, FL_FILLTRACK, NULL, 0);
+	cbm_parallel_burst_write(fd, 0x0);  // 0x00 byte is "unformatted"
 	cbm_parallel_burst_read(fd);
 }
 
@@ -276,6 +256,7 @@ adjust_target(CBM_FILE fd)
 	int cap[DENSITY_SAMPLES];
 	int cap_high[4], cap_low[4], cap_margin[4];
 	int run_total;
+	int capacity_margin;
 	BYTE track_dens[4] = { 35*2, 30*2, 24*2, 17*2 };
 
 	printf("\nTesting track capacity at each density\n");
@@ -303,11 +284,13 @@ adjust_target(CBM_FILE fd)
 			if(cap[j] > cap_high[i]) cap_high[i] = cap[j];
 			if(cap[j] < cap_low[i]) cap_low[i] = cap[j];
 		}
-		capacity[i] = run_total / DENSITY_SAMPLES;
+		capacity[i] = run_total / DENSITY_SAMPLES ;
 		cap_margin[i] = cap_high[i] - cap_low[i];
 
 		if(cap_margin[i] > capacity_margin)
 			capacity_margin = cap_margin[i];
+
+		capacity[i] -= capacity_margin + CAPACITY_MARGIN;
 
 		switch(i)
 		{
@@ -355,13 +338,15 @@ init_aligned_disk(CBM_FILE fd)
 		send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
 
 		cbm_parallel_burst_write(fd, 0);
-		if(!cbm_parallel_burst_write_track(fd, pattern, 0x2000))
+
+		if(cbm_parallel_burst_write_track(fd, pattern, 0x2000))
+			break;
+		else
 		{
 			printf("\nTimeout during alignment- alignment failed!\n");
 			cbm_parallel_burst_read(fd);
 			exit(0);
 		}
-		cbm_parallel_burst_read(fd);
 	}
 
 	/* drive code version */
@@ -378,13 +363,13 @@ init_aligned_disk(CBM_FILE fd)
 		msleep( skewtime);
 		send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
 		cbm_parallel_burst_write(fd, 0);
-		if(!cbm_parallel_burst_write_track(fd, sync, sizeof(sync)))
+		if(cbm_parallel_burst_write_track(fd, sync, sizeof(sync)))
+			break;
+		else
 		{
 			printf("\nTimeout during alignment- alignment failed!\n");
-			cbm_parallel_burst_read(fd);
 			exit(0);
 		}
-		cbm_parallel_burst_read(fd);
 	}
 	printf("Attempted time-aligned tracks on disk\n");
 }
