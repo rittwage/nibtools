@@ -45,7 +45,7 @@
 // baseline to stay out of trouble, added to detected margin
 // direct-drive models are really close and don't need this, but old
 // belt-driven drives do
-#define CAPACITY_MARGIN 5
+#define EXTRA_CAPACITY_MARGIN 5
 
 #define MODE_READ_DISK     	0
 #define MODE_WRITE_DISK    	1

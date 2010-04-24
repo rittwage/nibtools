@@ -290,7 +290,7 @@ adjust_target(CBM_FILE fd)
 		if(cap_margin[i] > capacity_margin)
 			capacity_margin = cap_margin[i];
 
-		capacity[i] -= capacity_margin + CAPACITY_MARGIN;
+		capacity[i] -= capacity_margin + EXTRA_CAPACITY_MARGIN;
 
 		switch(i)
 		{
@@ -308,7 +308,7 @@ adjust_target(CBM_FILE fd)
 
 	printf("--------------------------------------------------\n");
 	printf("Drive motor speed average: %.2f RPM.\n", motor_speed);
-	printf("Track capacity margin: %d\n",capacity_margin);
+	printf("Track capacity margin: %d\n",capacity_margin + EXTRA_CAPACITY_MARGIN);
 
 	if( (motor_speed > 310) || (motor_speed < 290))
 	{
