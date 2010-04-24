@@ -290,7 +290,7 @@ adjust_target(CBM_FILE fd)
 		if(cap_margin[i] > capacity_margin)
 			capacity_margin = cap_margin[i];
 
-		capacity[i] -= capacity_margin - CAPACITY_MARGIN;
+		capacity[i] -= capacity_margin + CAPACITY_MARGIN;
 
 		switch(i)
 		{
