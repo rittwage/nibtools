@@ -150,6 +150,7 @@ main(int argc, char **argv)
 
 	if (compare_extension(outname, "D64"))
 	{
+		align_tracks(track_buffer, track_density, track_length, track_alignment);
 		write_d64(outname, track_buffer, track_density, track_length);
 		printf("\nWARNING!\nConverting to D64 is a lossy conversion.\n");
 		printf("All individual sector header and gap information is lost.\n");
