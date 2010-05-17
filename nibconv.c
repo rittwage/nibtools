@@ -62,6 +62,7 @@ main(int argc, char **argv)
 
 	/* default is to reduce sync */
 	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541 + 1);
+	memset(track_length, 0x2000, MAX_TRACKS_1541 + 1);
 
 	fprintf(stdout,
 	  "\nnibconv - converts a CBM disk image from one format to another.\n"
@@ -131,9 +132,15 @@ main(int argc, char **argv)
 	else if (compare_extension(inname, "G64"))
 		retval = read_g64(inname, track_buffer, track_density, track_length);
 	else if (compare_extension(inname, "NIB"))
+	{
 		retval = read_nib(inname, track_buffer, track_density, track_length);
+		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
+	}
 	else if (compare_extension(inname, "NB2"))
+	{
 		retval = read_nb2(inname, track_buffer, track_density, track_length);
+		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
+	}
 	else
 	{
 		printf("Unknown input file type\n");
@@ -150,7 +157,6 @@ main(int argc, char **argv)
 
 	if (compare_extension(outname, "D64"))
 	{
-		align_tracks(track_buffer, track_density, track_length, track_alignment);
 		write_d64(outname, track_buffer, track_density, track_length);
 		printf("\nWARNING!\nConverting to D64 is a lossy conversion.\n");
 		printf("All individual sector header and gap information is lost.\n");
@@ -159,10 +165,6 @@ main(int argc, char **argv)
 	else if (compare_extension(outname, "G64"))
 	{
 		if(skip_halftracks) track_inc = 2;
-
-		if ( (compare_extension(inname, "NIB")) || (compare_extension(inname, "NB2")) )
-			align_tracks(track_buffer, track_density, track_length, track_alignment);
-
 		write_g64(outname, track_buffer, track_density, track_length);
 
 		if (compare_extension(inname, "D64"))

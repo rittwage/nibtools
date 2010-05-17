@@ -768,17 +768,7 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	for (track = start_track; track <= 40*2; track += 2)
 	{
 		cycle_start = track_buffer + (track * NIB_TRACK_LENGTH);
-
-		if(track_length[track])
-			cycle_stop = track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track];
-		else
-		{
-			find_track_cycle(
-				&cycle_start, &cycle_stop,
-				capacity_min[speed_map[(track/2)]],
-				capacity_max[speed_map[(track/2)]]
-				);
-		}
+		cycle_stop = track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track];
 
 		printf("%.2d (%d):" ,track/2, capacity[speed_map[track/2]]);
 
