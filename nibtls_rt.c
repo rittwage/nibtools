@@ -24,7 +24,7 @@ cbm_handshaked_read(int toggle);
 int
 cbm_parallel_burst_write_track(int fd, unsigned char * buffer, size_t length)
 {
-	int i;
+	unsigned int i;
 
 	disable();
 

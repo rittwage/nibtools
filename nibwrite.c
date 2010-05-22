@@ -216,18 +216,15 @@ loadimage(char * filename)
 	else if (compare_extension(filename, "NIB"))
 	{
 		retval = read_nib(filename, track_buffer, track_density, track_length);
-		if(retval)
-			align_tracks(track_buffer, track_density, track_length, track_alignment);
+		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
 		retval = read_nb2(filename, track_buffer, track_density, track_length);
-		if(retval)
-			align_tracks(track_buffer, track_density, track_length, track_alignment);
+		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else
 		printf("\nUnknown image type");
-
 
 	if(iszip)
 	{

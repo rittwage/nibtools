@@ -102,24 +102,21 @@ main(int argc, char **argv)
 	/* convert */
 	if (compare_extension(inname, "G64"))
 	{
-		if(!read_g64(inname, track_buffer, track_density, track_length))
-			exit(0);
+		if(!read_g64(inname, track_buffer, track_density, track_length)) exit(0);
 	}
 	else if (compare_extension(inname, "NIB"))
 	{
-		if(!read_nib(inname, track_buffer, track_density, track_length))
-			exit(0);
+		if(!read_nib(inname, track_buffer, track_density, track_length)) exit(0);
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(inname, "NB2"))
 	{
-		if(!read_nb2(inname, track_buffer, track_density, track_length))
-			exit(0);
+		if(!read_nb2(inname, track_buffer, track_density, track_length)) exit(0);
+		align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(inname, "D64"))
 	{
-		if(!read_d64(inname, track_buffer, track_density, track_length))
-			exit(0);
+		if(!read_d64(inname, track_buffer, track_density, track_length)) exit(0);
 	}
 	else
 	{

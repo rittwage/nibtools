@@ -256,7 +256,7 @@ adjust_target(CBM_FILE fd)
 	int cap[DENSITY_SAMPLES];
 	int cap_high[4], cap_low[4], cap_margin[4];
 	int run_total;
-	int capacity_margin;
+	int capacity_margin = 0;
 	BYTE track_dens[4] = { 35*2, 30*2, 24*2, 17*2 };
 
 	printf("\nTesting track capacity at each density\n");
@@ -320,15 +320,13 @@ adjust_target(CBM_FILE fd)
 void
 init_aligned_disk(CBM_FILE fd)
 {
-	int track, skewtime;
+	int track;
 	BYTE sync[2];
 	BYTE pattern[0x2000];
 
 	memset(pattern, 0x55, 0x2000);
 	sync[0] = sync[1] = 0xff;
 	set_bitrate(fd, 2);
-
-	skewtime = ((200000 - 20000) * 300) / motor_speed;
 
 	/* write all 0x55 */
 	printf("\nPreparing tracks...\n");
@@ -360,7 +358,7 @@ init_aligned_disk(CBM_FILE fd)
 	for (track = end_track; track >= start_track; track -= track_inc)
 	{
 		step_to_halftrack(fd, track);
-		msleep( skewtime);
+		msleep((int)(180000*300/motor_speed));
 		send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
 		cbm_parallel_burst_write(fd, 0);
 		if(cbm_parallel_burst_write_track(fd, sync, sizeof(sync)))
