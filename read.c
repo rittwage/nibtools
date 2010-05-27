@@ -450,10 +450,10 @@ BYTE
 scan_track(CBM_FILE fd, int track)
 {
 	BYTE density, killer_info;
-	int bin, i, dens_detected=0;
 	BYTE count;
 	BYTE density_major[4], iMajorMax; /* 50% majorities for bit rate */
 	BYTE density_stats[4], iStatsMax; /* total occurrences */
+	int bin, i;
 
 	/* Scan for killer track */
 	density = (BYTE)set_default_bitrate(fd, track);
@@ -463,44 +463,32 @@ scan_track(CBM_FILE fd, int track)
 	if (killer_info & BM_FF_TRACK)
 			return (density | killer_info);
 
-	for (bin = 0; bin < 4; bin++)
-		density_major[bin] = density_stats[bin] = 0;
+	memset(density_major, 0, sizeof(density_major));
+	memset(density_stats, 0, sizeof(density_stats));
 
 	/* Use bitrate close to default for scan */
 	set_bitrate(fd, density);
 	send_mnib_cmd(fd, FL_SCANDENSITY, NULL, 0);
 
 	/* Floppy sends statistic data in reverse bit-rate order */
-	for (bin = 3; bin >= 0; bin--)
+	for(i=0; i<5; i++)
 	{
-		count = cbm_parallel_burst_read(fd);
-		if (count >= 0x40)
-			density_major[bin]++;
-
-		density_stats[bin] += count;
-	}
-	cbm_parallel_burst_read(fd);
-
-	for(i = 0; i <= 3; i++)
-	{
-		if(density_major[i] > 1)
+		for (bin=3; bin>=0; bin--)
 		{
-			if(verbose) printf("{%d:%3d/%2d}",i,density_stats[i],density_major[i]);
-			dens_detected = 1;
+			count = cbm_parallel_burst_read(fd);
+
+			if (count >= 0x40)
+				density_major[bin]++;
+
+			if(density_major[bin] > 1) goto rescan;  // found it most likely, ignore calculations
+
+			density_stats[bin] += count;
 		}
-		fprintf(fplog,"{%d:%3d/%2d}",i,density_stats[i],density_major[i]);
 	}
-
-	if((!dens_detected) && (verbose))
-		printf("{ NOGCR? }");
-
-	// if the default density flagged a good detect, skip calculations
-	if ((density_major[density] > 0) && (!killer_info))
-		goto rescan;
 
 	// calculate
 	iMajorMax = iStatsMax = 0;
-	for (bin = 1; bin < 4; bin++)
+	for (bin=0; bin<=3; bin++)
 	{
 		if (density_major[bin] > density_major[iMajorMax])
 			iMajorMax = (BYTE) bin;
