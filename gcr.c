@@ -72,7 +72,7 @@ size_t capacity_max[] = 	{ 6311, 6726, 7201, 7824 };
 /* New calculated defaults: 297rpm, 300rpm, 303rpm */
 size_t capacity_min[] =		{ (int) (DENSITY0 / 303), (int) (DENSITY1 / 303), (int) (DENSITY2 / 303), (int) (DENSITY3 / 303) };
 size_t capacity[] = 				{ (int) (DENSITY0 / 300), (int) (DENSITY1 / 300), (int) (DENSITY2 / 300), (int) (DENSITY3 / 300) };
-size_t capacity_max[] =		{ (int) (DENSITY0 / 297), (int) (DENSITY1 / 297), (int) (DENSITY2 / 297), (int) (DENSITY3 / 297) };
+size_t capacity_max[] =		{ (int) (DENSITY0 / 294), (int) (DENSITY1 / 294), (int) (DENSITY2 / 294), (int) (DENSITY3 / 294) };
 
 /* Nibble-to-GCR conversion table */
 static BYTE GCR_conv_data[16] = {
@@ -533,11 +533,14 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 	start_pos = nib_track;
 	stop_pos = nib_track + NIB_TRACK_LENGTH;
 
+	printf("cap_max = %d",cap_max);
+
 	/* try to find a track cycle ignoring sync  */
-	for (p1 = start_pos; p1 < stop_pos; p1++)
+	for (p1 = start_pos; p1 < stop_pos - gap_match_length; p1+= gap_match_length)
 	{
 		/* now try to match it */
-		for (p2 = stop_pos - gap_match_length; p2 > start_pos - cap_min; p2--)
+		//for (p2 = stop_pos - gap_match_length; p2 > start_pos; p2--)
+		for (p2 = start_pos + cap_max - gap_match_length; p2 > start_pos; p2--)
 		{
 			/* try to match data */
 			if (memcmp(p1, p2, gap_match_length) != 0)
@@ -546,7 +549,8 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 				cycle_pos = p2;
 
 			/* we found one! */
-			if ( (cycle_pos != NULL) && (check_valid_data(cycle_pos, gap_match_length)) )
+			if ( (cycle_pos != NULL) &&
+				(check_valid_data(cycle_pos, gap_match_length)) )
 			{
 				*cycle_start = p1;
 				*cycle_stop = cycle_pos;

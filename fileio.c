@@ -1044,8 +1044,8 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		memcpy(nibdata,  track_buffer + (track * NIB_TRACK_LENGTH), sizeof(nibdata));
-		memset(track_buffer + (track * NIB_TRACK_LENGTH), 0x00, sizeof(nibdata));
+		memcpy(nibdata,  track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
+		memset(track_buffer + (track * NIB_TRACK_LENGTH), 0x00, NIB_TRACK_LENGTH);
 
 		printf("%4.1f: ",(float) track / 2);
 
