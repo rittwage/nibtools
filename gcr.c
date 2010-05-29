@@ -531,14 +531,14 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 	nib_track = *cycle_start;
 	cycle_pos = NULL;
 	start_pos = nib_track;
-	stop_pos = nib_track + NIB_TRACK_LENGTH;
-
-	//printf("cap_max = %d",cap_max);
+	stop_pos = nib_track + NIB_TRACK_LENGTH - gap_match_length;
 
 	/* try to find a track cycle ignoring sync  */
-	for (p1 = start_pos; p1 < stop_pos - cap_max - gap_match_length; p1+= gap_match_length)
+	//for (p1 = start_pos; p1 < stop_pos; p1++)
+	for (p1 = start_pos; p1 < stop_pos - cap_max; p1+= gap_match_length)
 	{
 		/* now try to match it */
+		//for (p2 = p1 + cap_min - gap_match_length; p2 < stop_pos; p2++)
 		for (p2 = p1 + cap_max - gap_match_length; p2 > p1 + cap_min; p2--)
 		{
 			/* try to match data */
@@ -548,8 +548,7 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 				cycle_pos = p2;
 
 			/* we found one! */
-			if ( (cycle_pos != NULL) &&
-				(check_valid_data(cycle_pos, gap_match_length)) )
+			if ( (cycle_pos != NULL) && (check_valid_data(cycle_pos, gap_match_length)) )
 			{
 				*cycle_start = p1;
 				*cycle_stop = cycle_pos;
@@ -562,6 +561,7 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 						printf("%.2x",cycle_pos[index]);
 					printf("] ");
 				}
+
 				return (cycle_pos - p1);
 			}
 		}
@@ -574,6 +574,60 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 	if(verbose)
 		printf("[cycle:NONE DETECTED!] ");
 
+	return NIB_TRACK_LENGTH;
+}
+
+size_t
+find_track_cycle_sectors(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t cap_max)
+{
+	BYTE *nib_track;	/* start of nibbled track data */
+	BYTE *start_pos;	/* start of periodic area */
+	BYTE *cycle_pos;	/* start of cycle repetition */
+	BYTE *stop_pos;		/* maximum position allowed for cycle */
+	BYTE *data_pos;		/* cycle search variable */
+	BYTE *p1, *p2;		/* local pointers for comparisons */
+
+	nib_track = *cycle_start;
+	stop_pos = nib_track + NIB_TRACK_LENGTH - gap_match_length;
+	cycle_pos = NULL;
+
+	/* try to find a normal track cycle  */
+	for (start_pos = nib_track;; find_sync(&start_pos, stop_pos))
+	{
+		if ((data_pos = start_pos + cap_min) >= stop_pos)
+			break;	/* no cycle found */
+
+		while (find_sync(&data_pos, stop_pos))
+		{
+			p1 = start_pos;
+			cycle_pos = data_pos;
+
+			for (p2 = cycle_pos; p2 < stop_pos;)
+			{
+				/* try to match all remaining syncs, too */
+				if (memcmp(p1, p2, gap_match_length) != 0)
+				{
+					cycle_pos = NULL;
+					break;
+				}
+				if (!find_sync(&p1, stop_pos))
+					break;
+				if (!find_sync(&p2, stop_pos))
+					break;
+			}
+
+			if (cycle_pos != NULL && check_valid_data(data_pos, gap_match_length))
+			{
+				*cycle_start = start_pos;
+				*cycle_stop = cycle_pos;
+				return (cycle_pos - start_pos);
+			}
+		}
+	}
+
+	/* we got nothing useful, return it all */
+	*cycle_start = nib_track;
+	*cycle_stop = nib_track + NIB_TRACK_LENGTH;
 	return NIB_TRACK_LENGTH;
 }
 
@@ -764,9 +818,17 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	memset(work_buffer, 0, sizeof(work_buffer));
 	memcpy(work_buffer, cycle_start, NIB_TRACK_LENGTH);
 
-	/* find raw track cycle */
-	find_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
+	/* find cycle */
+	find_track_cycle_sectors(&cycle_start, &cycle_stop, cap_min, cap_max);
 	track_len = cycle_stop - cycle_start;
+
+	/* second pass to find a cycle in track w/o syncs */
+	if (track_len > cap_max || track_len < cap_min)
+	{
+		printf("(N)");
+		find_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
+		track_len = cycle_stop - cycle_start;
+	}
 
 	if(verbose)
 	{
