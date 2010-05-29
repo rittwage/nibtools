@@ -536,7 +536,7 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 	//printf("cap_max = %d",cap_max);
 
 	/* try to find a track cycle ignoring sync  */
-	for (p1 = start_pos; p1 < stop_pos - gap_match_length; p1+= gap_match_length)
+	for (p1 = start_pos; p1 < stop_pos - cap_max - gap_match_length; p1+= gap_match_length)
 	{
 		/* now try to match it */
 		for (p2 = p1 + cap_max - gap_match_length; p2 > p1 + cap_min; p2--)
