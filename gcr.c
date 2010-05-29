@@ -537,7 +537,7 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 	for (p1 = start_pos; p1 < stop_pos; p1++)
 	{
 		/* now try to match it */
-		for (p2 = p1 + cap_min - gap_match_length; p2 < stop_pos; p2++)
+		for (p2 = stop_pos - gap_match_length; p2 > start_pos - cap_min; p2--)
 		{
 			/* try to match data */
 			if (memcmp(p1, p2, gap_match_length) != 0)
@@ -870,8 +870,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 		printf("{gap=%.4d;len=%d) ", (int)(sectorgap_pos-work_buffer), (int)sectorgap_len);
 
 	if((sectorgap_pos-work_buffer == sector0_pos-work_buffer) &&
-		(sectorgap_pos != NULL) &&
-		(sector0_pos != NULL))
+		(sectorgap_pos != NULL) &&	(sector0_pos != NULL) && verbose)
 		printf("(sec0=gap) ");
 
 	/* if (sectorgap_len >= sector0_len + 0x40) */ /* Burstnibbler's calc */
