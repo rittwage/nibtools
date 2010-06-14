@@ -916,28 +916,28 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 		memcpy(buffer, track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
 		track_len = track_length[track];
 
-		if(track_len == 0)
+		if(track_len)
 		{
-			/* track doesn't exist: write unformatted track */
-			track_len = raw_track_size[speed_map[track/2]];
-			memset(buffer, 0, track_len);
-		}
+			/* process/compress GCR data */
+			check_bad_gcr(buffer, track_length[track]);
 
-		/* process/compress GCR data */
-		check_bad_gcr(buffer, track_length[track]);
-
-		if(rpm_real)
-		{
-			capacity[speed_map[track/2]] = raw_track_size[speed_map[track/2]];
-			track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
+			if(rpm_real)
+			{
+				capacity[speed_map[track/2]] = raw_track_size[speed_map[track/2]];
+				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
+			}
+			else
+			{
+				capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
+				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
+			}
 		}
 		else
 		{
-			capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
-			track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
+				/* track doesn't exist: write unformatted track */
+				track_len = raw_track_size[speed_map[track/2]];
+				memset(buffer, 0, track_len);
 		}
-
-		if(!track_len) track_len = capacity[speed_map[track/2]];
 
 		gcr_track[0] = (BYTE) (track_len % 256);
 		gcr_track[1] = (BYTE) (track_len / 256);
