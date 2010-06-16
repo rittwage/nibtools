@@ -168,7 +168,7 @@ size_t reduce_runs(BYTE * buffer, size_t length, size_t length_max, size_t minru
 size_t strip_gaps(BYTE * buffer, size_t length);
 size_t reduce_gaps(BYTE * buffer, size_t length, size_t length_max);
 size_t is_bad_gcr(BYTE * gcrdata, size_t length, size_t pos);
-int check_formatted(BYTE * gcrdata);
+int check_formatted(BYTE * gcrdata, int length);
 int check_valid_data(BYTE * data, int matchlen);
 char topetscii(char s);
 char frompetscii(char s);

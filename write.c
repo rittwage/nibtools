@@ -118,7 +118,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		}
 
 		/* zero out empty tracks entirely */
-		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH)))
+		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
 		{
 				zero_track(fd, track);
 				printf("\n%4.1f: UNFORMATTED",  (float) track / 2);

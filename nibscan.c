@@ -364,13 +364,13 @@ compare_disks(void)
 		printf("%4.1f, Disk 2: (%d) %d\n",
 		 	(float) track / 2, (track_density2[track] & 3), track_length2[track]);
 
-		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH)))
+		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
 		{
 			track_length[track] = 0;
 			printf("1 - UNFORMATTED!\n");
 		}
 
-		if(!check_formatted(track_buffer2 + (track * NIB_TRACK_LENGTH)))
+		if(!check_formatted(track_buffer2 + (track * NIB_TRACK_LENGTH), track_length[track]))
 		{
 			track_length2[track] = 0;
 			printf("2 - UNFORMATTED!\n");
@@ -540,11 +540,8 @@ scandisk(void)
 		//printf("-------------------------------------------------\n");
 		printf("%4.1f: ", (float) track/2);
 
-		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH)))
-		{
-			track_length[track] = 0;
+		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
 			printf("UNFORMATTED!\n");
-		}
 		else
 			printf("%d", track_length[track]);
 

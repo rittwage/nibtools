@@ -935,6 +935,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 		else
 		{
 				/* track doesn't exist: write unformatted track */
+				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 				track_len = raw_track_size[speed_map[track/2]];
 				memset(buffer, 0, track_len);
 		}

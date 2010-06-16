@@ -55,7 +55,9 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
 int ARCH_MAINDECL
 main(int argc, char **argv)
 {
-	char inname[256], outname[256], *dotpos;
+	char inname[256], outname[256], command[256], pathname[256];
+	char *dotpos, *pathpos;
+	int iszip = 0;
 
 	start_track = 1 * 2;
 	end_track = 42 * 2;
@@ -99,6 +101,30 @@ main(int argc, char **argv)
 
 	printf("%s -> %s\n",inname, outname);
 
+	/* unzip image if possible */
+	if (compare_extension(inname, "ZIP"))
+	{
+		printf("Unzipping image...\n");
+		dotpos = strrchr(inname, '.');
+		if (dotpos != NULL) *dotpos = '\0';
+
+		/* try to detect pathname */
+		strcpy(pathname, inname);
+		pathpos = strrchr(pathname, '\\');
+		if (pathpos != NULL)
+			*pathpos = '\0';
+		else //*nix
+		{
+			pathpos = strrchr(pathname, '/');
+			if (pathpos != NULL)
+				*pathpos = '\0';
+		}
+
+		sprintf(command, "unzip %s.zip -d %s", inname, pathname);
+		system(command);
+		iszip++;
+	}
+
 	/* convert */
 	if (compare_extension(inname, "G64"))
 	{
@@ -122,6 +148,12 @@ main(int argc, char **argv)
 	{
 		printf("Unknown input file type\n");
 		exit(0);
+	}
+
+	if(iszip)
+	{
+		unlink(inname);
+		printf("Temporary file deleted.\n");
 	}
 
 	if(skip_halftracks) track_inc = 2;
@@ -205,114 +237,49 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
 	BYTE *gcr_ptr, *gcr_end, *gcr_last;
 	BYTE *sectordata;
 	BYTE error_code;
-    int sync_found, i, j;
+    int i, j;
     size_t track_len;
     BYTE d64_sector[260];
     int answer;
 
 	error_code = SECTOR_OK;
+	track_len = gcr_cycle - gcr_start;
 
-	if (track > MAX_TRACK_D64)
-	{
-		//printf("no valid sectors above 40 tracks\n");
+	if ((track > MAX_TRACK_D64) || (!track_len))
 		return SYNC_NOT_FOUND;
-	}
-
-	if (gcr_cycle == NULL || gcr_cycle <= gcr_start)
-	{
-		/* printf("no track cycle, no data\n"); */
-		return SYNC_NOT_FOUND;
-	}
 
 	/* initialize sector data with Original Format Pattern */
 	memset(d64_sector, 0x01, 260);
 	d64_sector[0] = 0x07;	/* Block header mark */
 	d64_sector[1] = 0x4b;	/* Use Original Format Pattern */
-
 	for (blk_chksum = 0, i = 1; i < 257; i++)
 		blk_chksum ^= d64_sector[i + 1];
-
 	d64_sector[257] = blk_chksum;
 
-	/* copy to  temp. buffer with twice the track data */
-	track_len = gcr_cycle - gcr_start;
-
-	/* Check for at least one Sync */
-	gcr_end = gcr_start + track_len;
-	sync_found = 0;
-
-	for (gcr_ptr = gcr_start; gcr_ptr < gcr_end; gcr_ptr++)
-	{
-		if (*gcr_ptr == 0xff)
-		{
-			if (sync_found < 2)
-				sync_found++;
-		}
-		else		/* (*gcr_ptr != 0xff) */
-		{
-			if (sync_found < 2)
-				sync_found = 0;
-			else
-				sync_found = 3;
-		}
-	}
-	if (sync_found != 3)
-		return (SYNC_NOT_FOUND);
-
 	/* Check for missing SYNCs */
-	gcr_last = gcr_ptr;;
-	while (gcr_ptr < gcr_end)
-	{
-		find_sync(&gcr_ptr, gcr_end);
-		if ((gcr_ptr - gcr_last) > MAX_SYNC_OFFSET)
-		{
-			//printf("no sync for %d\n", gcr_ptr-gcr_last);
-			return (SYNC_NOT_FOUND);
-		}
-		else
-			gcr_last = gcr_ptr;
-	}
+  	gcr_last = gcr_ptr = gcr_start;
+  	gcr_end = gcr_cycle;
+    while (gcr_ptr < gcr_end)
+    {
+        find_sync(&gcr_ptr, gcr_end);
+        if ((gcr_ptr-gcr_last) > MAX_SYNC_OFFSET)
+            return (SYNC_NOT_FOUND);
+        else
+            gcr_last = gcr_ptr;
+   }
 
-	/* Try to find a good block header for Track/Sector */
-	gcr_ptr = gcr_start;
-	gcr_end = gcr_start + track_len;
+	/* Try to find block header for Track/Sector */
+    gcr_ptr = gcr_start;
+    do
+    {
+        if (!find_sync(&gcr_ptr, gcr_end)) return (HEADER_NOT_FOUND);
+        if (gcr_ptr >= gcr_end - 10) return (HEADER_NOT_FOUND);
+        convert_4bytes_from_GCR(gcr_ptr, header);
+        convert_4bytes_from_GCR(gcr_ptr+5, header+4);
+        gcr_ptr++;
+    } while ((header[0]==0x07) || (header[2]!=sector) || (header[3]!=track));
 
-	do
-	{
-		if (!find_sync(&gcr_ptr, gcr_end) || gcr_ptr >= gcr_end - 10)
-		{
-			error_code = HEADER_NOT_FOUND;
-			break;
-		}
-		convert_4bytes_from_GCR(gcr_ptr, header);
-		convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
-		gcr_ptr++;
-
-	} while (header[0] != 0x08 || header[2] != sector ||
-	  header[3] != track || header[5] != id[0] || header[4] != id[1]);
-
-	if (error_code == HEADER_NOT_FOUND)
-	{
-		error_code = SECTOR_OK;
-		/* Try to find next best match for header */
-		gcr_ptr = gcr_start;
-		gcr_end = gcr_start + track_len;
-		do
-		{
-			if (!find_sync(&gcr_ptr, gcr_end))
-				return (HEADER_NOT_FOUND);
-
-			if (gcr_ptr >= gcr_end - 10)
-				return (HEADER_NOT_FOUND);
-
-			convert_4bytes_from_GCR(gcr_ptr, header);
-			convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
-			gcr_ptr++;
-
-		} while (header[0] == 0x07 || header[2] != sector || header[3] != track);
-	}
-
-	if (header[0] != 0x08)
+    if (header[0] != 0x08)
 		error_code = (error_code == SECTOR_OK) ? HEADER_NOT_FOUND : error_code;
 
 	/* Header checksum */
@@ -339,15 +306,12 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
 		else
 			printf("Not repaired\n");
 
-
 		error_code = (error_code == SECTOR_OK) ? BAD_HEADER_CHECKSUM : error_code;
 	}
 
 	/* verify that our header contains no bad GCR, since it can be false positive checksum match */
 	for(j = 0; j < 10; j++)
-	{
 		if (is_bad_gcr(gcr_ptr - 1, 10, j)) error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
-	}
 
 	/* check for data sector */
 	if (!find_sync(&gcr_ptr, gcr_end))
