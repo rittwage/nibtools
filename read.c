@@ -480,7 +480,6 @@ scan_track(CBM_FILE fd, int track)
 			density_stats[bin] += count;
 			if (count >= 0x40) density_major[bin]++;
 		}
-		cbm_parallel_burst_read(fd);
 
 		// calculate best guess at density
 		iMajorMax = iStatsMax = 0;
@@ -498,6 +497,9 @@ scan_track(CBM_FILE fd, int track)
 			density = iStatsMax;
 
 	} while ( (density != speed_map[track/2]) || (i > 5) );
+
+	cbm_parallel_burst_read(fd);
+	cbm_parallel_burst_read(fd);
 
 	return (density | killer_info);
 }
