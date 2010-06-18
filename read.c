@@ -173,20 +173,20 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 		// if we get less than what a track holds,
 		// try again, probably bad read or a bad GCR match
-		if (leno < capacity_min[denso & 3] - CAP_MIN_ALLOWANCE)
+		if (leno < capacity_min[denso & 3] - CAP_ALLOWANCE)
 		{
 			printf("Short Read! (%d) ", leno);
-			fprintf(fplog, "[%d<%d!] ", leno, capacity_min[denso & 3] - CAP_MIN_ALLOWANCE);
+			fprintf(fplog, "[%d<%d!] ", leno, capacity_min[denso & 3] - CAP_ALLOWANCE);
 			if(l < (error_retries - 3)) l = error_retries - 3;
 			continue;
 		}
 
 		// if we get more than capacity
 		// try again to make sure it's intentional
-		if (leno > capacity_max[denso & 3] + CAP_MIN_ALLOWANCE)
+		if (leno > capacity_max[denso & 3] + CAP_ALLOWANCE)
 		{
 			printf("Long Read! (%d) ", leno);
-			fprintf(fplog, "[%d>%d!] ", leno, capacity_max[denso & 3] + CAP_MIN_ALLOWANCE);
+			fprintf(fplog, "[%d>%d!] ", leno, capacity_max[denso & 3] + CAP_ALLOWANCE);
 			if(l < (error_retries - 3)) l = error_retries - 3;
 			continue;
 		}
@@ -277,8 +277,8 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 	if (badgcr)
 	{
-		printf("(bad/weak:%d)", badgcr);
-		fprintf(fplog, "(bad/weak:%d) ", badgcr);
+		printf("(bgcr:%d)", badgcr);
+		fprintf(fplog, "(bgcr:%d) ", badgcr);
 	}
 
 	//printf("\n");
@@ -453,10 +453,12 @@ scan_track(CBM_FILE fd, int track)
 	BYTE count;
 	BYTE density_major[4], iMajorMax; /* 50% majorities for bit rate */
 	BYTE density_stats[4], iStatsMax; /* total occurrences */
-	int bin, i;
+	int bin, i=0;
+
+	/* Use bitrate close to default for scan */
+	density = (BYTE)set_default_bitrate(fd, track);
 
 	/* Scan for killer track */
-	density = (BYTE)set_default_bitrate(fd, track);
 	send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
 	killer_info = cbm_parallel_burst_read(fd);
 
@@ -466,45 +468,36 @@ scan_track(CBM_FILE fd, int track)
 	memset(density_major, 0, sizeof(density_major));
 	memset(density_stats, 0, sizeof(density_stats));
 
-	/* Use bitrate close to default for scan */
-	set_bitrate(fd, density);
-	send_mnib_cmd(fd, FL_SCANDENSITY, NULL, 0);
-
-	/* Floppy sends statistic data in reverse bit-rate order */
-	for(i=0; i<5; i++)
+	/* scan... routine sends statistic data in reverse bit-rate order */
+	do
 	{
+		i++;
+		send_mnib_cmd(fd, FL_SCANDENSITY, NULL, 0);
+
 		for (bin=3; bin>=0; bin--)
 		{
 			count = cbm_parallel_burst_read(fd);
-
-			if (count >= 0x40)
-				density_major[bin]++;
-
-			if(density_major[bin] > 1) goto rescan;  // found it most likely, ignore calculations
-
 			density_stats[bin] += count;
+			//if (count >= 0x40) density_major[bin]++;
+			if (count >= 0x40) return (density | killer_info);
 		}
-	}
 
-	// calculate
-	iMajorMax = iStatsMax = 0;
-	for (bin=0; bin<=3; bin++)
-	{
-		if (density_major[bin] > density_major[iMajorMax])
-			iMajorMax = (BYTE) bin;
-		if (density_stats[bin] > density_stats[iStatsMax])
-			iStatsMax = (BYTE) bin;
-	}
+		// calculate best guess at density
+		iMajorMax = iStatsMax = 0;
+		for (bin=0; bin<=3; bin++)
+		{
+			if (density_major[bin] > density_major[iMajorMax])
+				iMajorMax = (BYTE) bin;
+			if (density_stats[bin] > density_stats[iStatsMax])
+				iStatsMax = (BYTE) bin;
+		}
 
-	if (density_major[iMajorMax] > 0)
-		density = iMajorMax;
-	else if (density_stats[iStatsMax] > density_stats[density])
-		density = iStatsMax;
+		if (density_major[iMajorMax] > 0)
+			density = iMajorMax;
+		else if (density_stats[iStatsMax] > density_stats[density])
+			density = iStatsMax;
 
-rescan:
-	/* Set bitrate to the discovered density and scan again for NOSYNC/KILLER */
-	set_bitrate(fd, density);
-	send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
-	killer_info = cbm_parallel_burst_read(fd);
+	} while ( (density != speed_map[track/2]) || (i > 5) );
+
 	return (density | killer_info);
 }

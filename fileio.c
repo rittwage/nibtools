@@ -203,8 +203,8 @@ void parseargs(char *argv[])
 			break;
 
 		case 'c':
-			printf("* Minimum capacity ignore on\n");
-			cap_min_ignore = 1;
+			printf("* Capacity ignore on\n");
+			cap_relax = 1;
 			break;
 
 		case 's':

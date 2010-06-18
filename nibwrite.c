@@ -40,7 +40,7 @@ int verify;
 int auto_capacity_adjust;
 int align_disk;
 int gap_match_length;
-int cap_min_ignore;
+int cap_relax;
 int verbose = 0;
 float motor_speed;
 int skew = 0;
@@ -93,7 +93,7 @@ main(int argc, char *argv[])
 	auto_capacity_adjust = 1;
 	verbose = 0;
 	gap_match_length = 7;
-	cap_min_ignore = 0;
+	cap_relax = 0;
 	motor_speed = 300;
 	rpm_real = 0;
 	unformat_passes = 1;

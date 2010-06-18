@@ -47,7 +47,7 @@ int reduce_badgcr;
 int reduce_gap;
 int waitkey = 0;
 int gap_match_length;
-int cap_min_ignore;
+int cap_relax;
 int verbose = 0;
 int rpm_real = 0;
 int drive;
@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 	force_align = ALIGN_NONE;
 	fix_gcr = 1;
 	gap_match_length = 7;
-	cap_min_ignore = 0;
+	cap_relax = 0;
 	mode = 0;
 	reduce_sync = 3;
 	reduce_badgcr = 0;
