@@ -475,7 +475,8 @@ scan_track(CBM_FILE fd, int track)
 		{
 			count = cbm_parallel_burst_read(fd);
 			density_stats[bin] += count;
-			return (density | killer_info);
+			if (count >= 0x40) density_major[bin]++;
+			if(density_major[bin] > 1) return (density | killer_info);
 		}
 
 		// calculate best guess at density

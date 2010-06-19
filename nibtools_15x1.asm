@@ -127,13 +127,14 @@ _read_gcr_loop:
         BVS  _read_gcr_1
         BVS  _read_gcr_1
         BVS  _read_gcr_1
+        BVS  _read_gcr_1
         LDX  #$ff                 ; if pause too long, send 0xff  
         BVS  _read_gcr_1
         EOR  #$ff                 ; toggle handshake value
         BVS  _read_gcr_2          ; read and transfer GCR byte
         STX  PP_BASE              ; PA, port A (8 bit parallel data)
         BVS  _read_gcr_2          ; read and transfer GCR byte
-        STA  $1800                ; send handshake (send 0xff byte)
+        STA  $1701,x                ; send handshake (send 0xff byte)
         INY                       ;
 _rtp6:
         BNE  _read_gcr_loop
@@ -216,7 +217,7 @@ _ihsr_read_gcr_loop:
         BVS  _ihsr_read_gcr_2     ; read and transfer GCR byte
         STX  PP_BASE              ; PA, port A (8 bit parallel data)
         BVS  _ihsr_read_gcr_2     ; read and transfer GCR byte
-        STA  $1800                ; send handshake (send 0xff byte)
+        STA  $1701,x                ; send handshake (send 0xff byte)
         INY                       ;
 _ihsr_rtp6:
         BNE  _ihsr_read_gcr_loop
