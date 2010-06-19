@@ -747,6 +747,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	/* second pass to find a cycle in track w/o syncs */
 	if (track_len > cap_max)
 	{
+		//printf("{%d>%d}", track_len, cap_max);
 		printf(">");
 		find_raw_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
 		track_len = cycle_stop - cycle_start;
@@ -754,6 +755,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 
 	if (track_len < cap_min)
 	{
+		//printf("{%d<%d}", track_len, cap_min);
 		printf("<");
 		find_raw_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
 		track_len = cycle_stop - cycle_start;

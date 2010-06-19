@@ -26,66 +26,68 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 	step_to_halftrack(fd, halftrack);
 
-	if(newtrack)
-	{
-		printf("\n%4.1f: ", (float) halftrack / 2);
-		fprintf(fplog, "\n%4.1f: ", (float) halftrack / 2);
-	}
-	else
-	{
-		printf("\n      ");
-		fprintf(fplog, "\n      ");
-	}
-
-	if(halftrack/2 > 35)
-	{
-		density = scan_track(fd, halftrack);
-	}
-	else	 if(force_density)
-	{
-		density = speed_map[halftrack/2];
-		printf("{DEFAULT }");
-	}
-	else
-	{
-		// we scan for the disk density
-		density = scan_track(fd, halftrack);
-	}
-
-	/* output current density */
-	printf("(%d",density&3);
-	fprintf(fplog,"(%d",density&3);
-
-	if ( (density&3) != speed_map[halftrack/2])
-		printf("!=%d", speed_map[halftrack/2]);
-
-	if(density & BM_FF_TRACK)
-	{
-		printf(" KILLER");
-		fprintf(fplog, " KILLER");
-	}
-
-	if(density & BM_NO_SYNC)
-	{
-		printf(" NOSYNC");
-		fprintf(fplog," NOSYNC");
-	}
-
-	printf(") ");
-	fprintf(fplog,") ");
-
-	// bail if we don't want to read killer tracks
-	// some drives/disks timeout
-	if ((density & BM_FF_TRACK) && (!read_killer))
-	{
-		memset(buffer, 0xff, NIB_TRACK_LENGTH);
-		return (density);
-	}
-
-	set_density(fd, density & 3);
-
 	for (i = 0; i < 10; i++)
 	{
+		if(newtrack)
+		{
+			printf("\n%4.1f: ", (float) halftrack / 2);
+			fprintf(fplog, "\n%4.1f: ", (float) halftrack / 2);
+		}
+		else
+		{
+			printf("\n      ");
+			fprintf(fplog, "\n      ");
+		}
+
+		if(halftrack/2 > 35)
+		{
+			density = scan_track(fd, halftrack);
+		}
+		else	 if(force_density)
+		{
+			density = speed_map[halftrack/2];
+			printf("{DEFAULT }");
+		}
+		else
+		{
+			// we scan for the disk density
+			density = scan_track(fd, halftrack);
+		}
+
+		set_density(fd, density & 3);
+		send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
+		density |= cbm_parallel_burst_read(fd);
+
+		/* output current density */
+		printf("(%d",density&3);
+		fprintf(fplog,"(%d",density&3);
+
+		if ( (density&3) != speed_map[halftrack/2])
+			printf("!=%d", speed_map[halftrack/2]);
+
+		if(density & BM_FF_TRACK)
+		{
+			printf(":KILLER");
+			fprintf(fplog, ":KILLER");
+		}
+
+		if(density & BM_NO_SYNC)
+		{
+			printf(":NOSYNC");
+			fprintf(fplog,":NOSYNC");
+		}
+
+		printf(") ");
+		fprintf(fplog,") ");
+
+		// bail if we don't want to read killer tracks
+		// some drives/disks timeout
+		if ((density & BM_FF_TRACK) && (!read_killer))
+		{
+			memset(buffer, 0xff, NIB_TRACK_LENGTH);
+			return (density);
+		}
+
 		// read track
 		if((ihs) && (!(density & BM_NO_SYNC)))
 			send_mnib_cmd(fd, FL_READIHS, NULL, 0);
@@ -103,12 +105,9 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		else
 		{
 			// If we got a timeout, reset the port before retrying.
-			printf("!");
+			printf("(timed out, retrying track read)");
 			fprintf(fplog,"(timeout) ");
 			fflush(stdout);
-			cbm_parallel_burst_read(fd);
-			//delay(500);
-			//printf("%c ", test_par_port(fd)? '+' : '-');
 			cbm_parallel_burst_read(fd);
 		}
 	}
@@ -455,18 +454,16 @@ scan_track(CBM_FILE fd, int track)
 	BYTE density_stats[4], iStatsMax; /* total occurrences */
 	int bin, i=0;
 
+	memset(density_major, 0, sizeof(density_major));
+	memset(density_stats, 0, sizeof(density_stats));
+
 	/* Use bitrate close to default for scan */
 	density = (BYTE)set_default_bitrate(fd, track);
 
 	/* Scan for killer track */
 	send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
 	killer_info = cbm_parallel_burst_read(fd);
-
-	if (killer_info & BM_FF_TRACK)
-			return (density | killer_info);
-
-	memset(density_major, 0, sizeof(density_major));
-	memset(density_stats, 0, sizeof(density_stats));
+	if (killer_info & BM_FF_TRACK) return (density | killer_info);
 
 	/* scan... routine sends statistic data in reverse bit-rate order */
 	do
@@ -478,7 +475,7 @@ scan_track(CBM_FILE fd, int track)
 		{
 			count = cbm_parallel_burst_read(fd);
 			density_stats[bin] += count;
-			if (count >= 0x40) density_major[bin]++;
+			return (density | killer_info);
 		}
 
 		// calculate best guess at density
@@ -497,9 +494,6 @@ scan_track(CBM_FILE fd, int track)
 			density = iStatsMax;
 
 	} while ( (density != speed_map[track/2]) || (i > 5) );
-
-	cbm_parallel_burst_read(fd);
-	cbm_parallel_burst_read(fd);
 
 	return (density | killer_info);
 }

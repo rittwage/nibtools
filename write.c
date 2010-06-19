@@ -87,13 +87,9 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 			break;
 		else
 		{
-			//putchar('?');
 			printf("(timeout) ");
 			fflush(stdin);
 			cbm_parallel_burst_read(fd);
-			//msleep(500);
-			//printf("%c ", test_par_port(fd)? '+' : '-');
-			test_par_port(fd);
 		}
 	}
 }
