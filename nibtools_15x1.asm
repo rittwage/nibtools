@@ -363,17 +363,23 @@ _step_dest_end:
 _adjust_density:
         JSR  _read_byte           ; read byte from parallel data port
         STA  _rtp1+1
+        STA  _ihsr_rtp2+1  
         CLC                       ;
         ADC  #$04                 ;
         STA  _rtp2+1              ; adjust read routines to the
-        ADC  #$11                 ; density (timing) value read
+        STA  _ihsr_rtp2+1      
+    	ADC  #$11                 ; density (timing) value read
         STA  _rtp3+1              ; from computer
+        STA  _ihsr_rtp3+1  
         ADC  #$04                 ;
         STA  _rtp4+1              ;
+        STA  _ihsr_rtp2+1  
         ADC  #$13                 ;
         STA  _rtp5+1              ;
+        STA  _ihsr_rtp2+1  
         ADC  #$06                 ;
         STA  _rtp6+1              ;
+        STA  _ihsr_rtp2+1  
 
 ;----------------------------------------
 ; set $1c00 bits (head/motor)
