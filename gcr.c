@@ -1465,7 +1465,10 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 					total++;
 
 					if(fix_gcr > 2)
+					{
 						sbadgcr = S_BADGCR_LOST;  /* most aggressive */
+						gcrdata[i] = 0x00;
+					}
 					else
 						sbadgcr = S_BADGCR_ONCE_BAD;
 				}

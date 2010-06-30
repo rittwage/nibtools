@@ -507,7 +507,6 @@ scandisk(void)
 	size_t empty = 0, temp_empty = 0;
 	size_t errors = 0, temp_errors = 0;
 	int defdensity;
-	size_t length;
 	char errorstring[0x1000];
 	char testfilename[16];
 	FILE *trkout;
@@ -632,13 +631,12 @@ scandisk(void)
 		printf("\n");
 
 		// process and dump to disk for manual compare
-		length = track_length[track];
-		//length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+		//track_length[track] = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
 
 		sprintf(testfilename, "raw/tr%.1fd%d", (float) track/2, (track_density[track] & 3));
 		if(NULL != (trkout = fopen(testfilename, "w")))
 		{
-			fwrite(track_buffer + (track * NIB_TRACK_LENGTH), length, 1, trkout);
+			fwrite(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track], 1, trkout);
 			fclose(trkout);
 		}
 	}

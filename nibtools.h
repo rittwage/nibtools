@@ -4,7 +4,7 @@
  * based on MNIB by Markus Brenner <markus(at)brenner(dot)de>
  */
 
-#define VERSION "0.7.8 (Built "__DATE__" "__TIME__")"
+#define VERSION "0.7.9 (Built "__DATE__" "__TIME__")"
 
 #define FL_STEPTO      0x00
 #define FL_MOTOR       0x01

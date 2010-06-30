@@ -200,7 +200,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		// if we got all good sectors we dont retry
 		if (errors == 0) break;
 
-		// if all bad sectors (protection) we only retry once
+		// if all bad sectors (protection) we only retry twice
 		if (errors == sector_map[halftrack/2])
 		{
 			if(l < (error_retries - 3))
@@ -475,8 +475,10 @@ scan_track(CBM_FILE fd, int track)
 		{
 			count = cbm_parallel_burst_read(fd);
 			density_stats[bin] += count;
-			if (count >= 0x40) density_major[bin]++;
-			if(density_major[bin] > 1) return (density | killer_info);
+			if (count >= 0x40)
+				density_major[bin]++;
+			if((density_major[bin] > 1) && (density == speed_map[track/2]))
+				return (density | killer_info);
 		}
 
 		// calculate best guess at density

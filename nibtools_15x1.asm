@@ -127,7 +127,6 @@ _read_gcr_loop:
         BVS  _read_gcr_1
         BVS  _read_gcr_1
         BVS  _read_gcr_1
-        BVS  _read_gcr_1
         LDX  #$ff                 ; if pause too long, send 0xff  
         BVS  _read_gcr_1
         EOR  #$ff                 ; toggle handshake value
@@ -190,9 +189,9 @@ _ihsr_wait_start:
         BIT  $2000                ; now, wait for beginning of index hole
         BEQ  _ihsr_wait_start     ;
 
-_ihsr_in_sync:
-        BIT  $1c00
-        BMI  _ihsr_in_sync        ; wait for end of Sync
+;_ihsr_in_sync:
+;        BIT  $1c00
+;        BMI  _ihsr_in_sync        ; wait for end of Sync
 
         LDA  #$ff
         STA  $1800                ; send handshake
@@ -205,7 +204,6 @@ _ihsr_wait_byte:
         BVC  _ihsr_wait_byte
 _ihsr_read_gcr_loop:
         BVS  _ihsr_read_gcr_1     ; wait for next GCR byte
-        BVS  _ihsr_read_gcr_1
         BVS  _ihsr_read_gcr_1
         BVS  _ihsr_read_gcr_1
         BVS  _ihsr_read_gcr_1
@@ -398,11 +396,8 @@ _set_1c00:
 ; detect 'killer tracks' (all SYNC)
 _detect_killer:
 
-;        LDX #$10                  ; check for 16 non-SYNC bytes in a row
-;        STX  $c0                  ;
-
-        LDX  #$80                 ;
-        STY  $C0                  ; Y = 0 (look for 256 non-SYNC bytes in a row)
+	LDX  #$80	;   	
+	STY  $c0		;  y=0
 
 _dkL1:
         LDA  $1c00                ; wait for SYNC

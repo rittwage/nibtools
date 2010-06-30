@@ -79,7 +79,7 @@ void parseargs(char *argv[])
 					printf("SecuriSpeed/Early Rainbow Arts\n"); /* turn off reduction for track > 36 */
 					for(count = 36; count <= MAX_TRACKS_1541+1; count ++)
 					{
-						reduce_map[count] = REDUCE_NONE;
+						reduce_map[count] = REDUCE_GAP;
 						align_map[count] = ALIGN_AUTOGAP;
 					}
 					fix_gcr = 0;
