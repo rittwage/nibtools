@@ -841,7 +841,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
 	BYTE gcr_track[G64_TRACK_MAXLEN + 2];
 	size_t track_len;
-	int track, index;
+	int track, index, badgcr;
 	FILE * fpout;
 	BYTE buffer[NIB_TRACK_LENGTH];
 
@@ -919,7 +919,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 		if(track_len)
 		{
 			/* process/compress GCR data */
-			check_bad_gcr(buffer, track_length[track]);
+			badgcr = check_bad_gcr(buffer, track_length[track]);
 
 			if(rpm_real)
 			{
@@ -931,6 +931,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 				capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
 				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 			}
+			printf("{badgcr:%d}",badgcr);
 		}
 		else
 		{

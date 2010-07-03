@@ -54,31 +54,23 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			density = scan_track(fd, halftrack);
 		}
 
-		set_density(fd, density & 3);
+		/* Set bitrate and scan for NOSYNC/KILLER */
+		set_bitrate(fd, density);
 		send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
-		density |= cbm_parallel_burst_read(fd);
-
-		/* output current density */
-		printf("(%d",density&3);
-		fprintf(fplog,"(%d",density&3);
-
-		if ( (density&3) != speed_map[halftrack/2])
-			printf("!=%d", speed_map[halftrack/2]);
+		density  |= cbm_parallel_burst_read(fd);
+		set_density(fd, density&3);
 
 		if(density & BM_FF_TRACK)
 		{
-			printf(":KILLER");
-			fprintf(fplog, ":KILLER");
+			printf("{KILLER} ");
+			fprintf(fplog, "{KILLER} ");
 		}
 
 		if(density & BM_NO_SYNC)
 		{
-			printf(":NOSYNC");
-			fprintf(fplog,":NOSYNC");
+			printf("{NOSYNC} ");
+			fprintf(fplog,"{NOSYNC} ");
 		}
-
-		printf(") ");
-		fprintf(fplog,") ");
 
 		// bail if we don't want to read killer tracks
 		// some drives/disks timeout
@@ -276,8 +268,8 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 	if (badgcr)
 	{
-		printf("(bgcr:%d)", badgcr);
-		fprintf(fplog, "(bgcr:%d) ", badgcr);
+		printf("(badgcr:%d)", badgcr);
+		fprintf(fplog, "(badgcr:%d) ", badgcr);
 	}
 
 	//printf("\n");
@@ -444,59 +436,74 @@ void get_disk_id(CBM_FILE fd)
 		fprintf(fplog,"\n");
 }
 
+
 /* $152b Density Scan */
 BYTE
 scan_track(CBM_FILE fd, int track)
 {
 	BYTE density, killer_info;
+	int bin, i;
 	BYTE count;
 	BYTE density_major[4], iMajorMax; /* 50% majorities for bit rate */
 	BYTE density_stats[4], iStatsMax; /* total occurrences */
-	int bin, i=0;
-
-	memset(density_major, 0, sizeof(density_major));
-	memset(density_stats, 0, sizeof(density_stats));
-
-	/* Use bitrate close to default for scan */
-	density = (BYTE)set_default_bitrate(fd, track);
 
 	/* Scan for killer track */
+	density = set_default_bitrate(fd, track);
 	send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
 	killer_info = cbm_parallel_burst_read(fd);
-	if (killer_info & BM_FF_TRACK) return (density | killer_info);
 
-	/* scan... routine sends statistic data in reverse bit-rate order */
-	do
+	if (killer_info & BM_FF_TRACK)
+			return (density | killer_info);
+
+	for (bin = 0; bin < 4; bin++)
+		density_major[bin] = density_stats[bin] = 0;
+
+	/* Use standard bitrate for track */
+	set_default_bitrate(fd, track);
+
+	/* we have to sample density 2 tracks more because they are sometimes on the edge of 1 and 2 by this routine. */
+	for (i = 0; i < 5; i++)
 	{
-		i++;
 		send_mnib_cmd(fd, FL_SCANDENSITY, NULL, 0);
 
-		for (bin=3; bin>=0; bin--)
+		/* Floppy sends statistic data in reverse bit-rate order */
+		for (bin = 3; bin >= 0; bin--)
 		{
 			count = cbm_parallel_burst_read(fd);
-			density_stats[bin] += count;
 			if (count >= 0x40)
 				density_major[bin]++;
-			if((density_major[bin] > 1) && (density == speed_map[track/2]))
-				return (density | killer_info);
-		}
 
-		// calculate best guess at density
-		iMajorMax = iStatsMax = 0;
-		for (bin=0; bin<=3; bin++)
+			density_stats[bin] += count;
+		}
+		cbm_parallel_burst_read(fd);
+	}
+
+	for(i = 0; i <= 3; i++)
+	{
+		if(density_major[i] > 1)
 		{
-			if (density_major[bin] > density_major[iMajorMax])
-				iMajorMax = (BYTE) bin;
-			if (density_stats[bin] > density_stats[iStatsMax])
-				iStatsMax = (BYTE) bin;
+			printf("(%d) {%3d/%d} ",i,density_stats[i],density_major[i]);
+			return (density | killer_info);
 		}
+		fprintf(fplog,"(%d) {%3d/%d} ",i,density_stats[i],density_major[i]);
+	}
 
-		if (density_major[iMajorMax] > 0)
-			density = iMajorMax;
-		else if (density_stats[iStatsMax] > density_stats[density])
-			density = iStatsMax;
+	// not standard GCR encoding, most likely so calculate best guess
+	iMajorMax = iStatsMax = 0;
+	for (bin = 1; bin < 4; bin++)
+	{
+		if (density_major[bin] > density_major[iMajorMax])
+			iMajorMax = (BYTE) bin;
+		if (density_stats[bin] > density_stats[iStatsMax])
+			iStatsMax = (BYTE) bin;
+	}
 
-	} while ( (density != speed_map[track/2]) || (i > 5) );
+	if (density_major[iMajorMax] > 0)
+		density = iMajorMax;
+	else if (density_stats[iStatsMax] > density_stats[density])
+		density = iStatsMax;
+
+	printf("(%d) {NONGCR} ", density);
 
 	return (density | killer_info);
 }
