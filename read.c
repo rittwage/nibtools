@@ -55,7 +55,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		}
 
 		/* Set bitrate and scan for NOSYNC/KILLER */
-		set_bitrate(fd, density);
+		set_bitrate(fd, density&3);
 		send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
 		density  |= cbm_parallel_burst_read(fd);
 		set_density(fd, density&3);
