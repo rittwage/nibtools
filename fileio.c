@@ -235,6 +235,31 @@ void parseargs(char *argv[])
 			rpm_real = 1;
 			break;
 
+		case 'b':
+			// custom fillbyte
+			printf("* Custom fillbyte: ");
+			if ((*argv)[2] == '0')
+			{
+				printf("$00\n");
+				fillbyte = 0x00;
+			}
+			if ((*argv)[2] == '5')
+			{
+				printf("$55\n");
+				fillbyte = 0x55;
+			}
+			if ((*argv)[2] == 'f')
+			{
+				printf("$ff\n");
+				fillbyte = 0xff;
+			}
+			if ((*argv)[2] == '?')
+			{
+				printf("loop last byte in track\n");
+				fillbyte = 0xfe;
+			}
+			break;
+
 		default:
 			usage();
 			break;
@@ -843,7 +868,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	size_t track_len;
 	int track, index, badgcr;
 	FILE * fpout;
-	BYTE buffer[NIB_TRACK_LENGTH];
+	BYTE buffer[NIB_TRACK_LENGTH], tempfillbyte;
 
 	printf("\nWriting G64 file...");
 
@@ -908,7 +933,13 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	{
 		size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
 
-		memset(&gcr_track[2], 0x55, G64_TRACK_MAXLEN);
+		/* loop last byte of track data for filler */
+		if(fillbyte == 0xfe) /* $fe is special case for loop */
+			tempfillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length[track] - 1];
+		else
+			tempfillbyte = fillbyte;
+
+		memset(&gcr_track[2], tempfillbyte, G64_TRACK_MAXLEN);
 
 		gcr_track[0] = (BYTE) (raw_track_size[speed_map[track/2]] % 256);
 		gcr_track[1] = (BYTE) (raw_track_size[speed_map[track/2]] / 256);
@@ -931,6 +962,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 				capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
 				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 			}
+			printf("(fill:$%.2x) ",tempfillbyte);
 			printf("{badgcr:%d}",badgcr);
 		}
 		else
@@ -1012,7 +1044,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_t lengt
 			printf("rgaps:%d ", orglen - length);
 		}
 
-		/* still not small enough, we have to truncate the end (reduce tail) */
+		/* still not small enough, we have to truncate the end (reduce tail gap) */
 		orglen = length;
 		if (length > capacity[density & 3])
 		{

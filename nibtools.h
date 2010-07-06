@@ -4,7 +4,7 @@
  * based on MNIB by Markus Brenner <markus(at)brenner(dot)de>
  */
 
-#define VERSION "0.7.10 (Built "__DATE__" "__TIME__")"
+#define VERSION "0.7.11 (Built "__DATE__" "__TIME__")"
 
 #define FL_STEPTO      0x00
 #define FL_MOTOR       0x01
@@ -64,6 +64,7 @@ extern char bitrate_value[4];
 extern char density_branch[4];
 extern BYTE density_map;
 extern BYTE skew_map[];
+extern BYTE fillbyte;
 extern FILE * fplog;
 extern float motor_speed;
 extern size_t error_retries;
