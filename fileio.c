@@ -970,6 +970,10 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 						capacity[speed_map[track/2]] = DENSITY3/rpm_real;
 						break;
 				}
+
+				if(capacity[speed_map[track/2]] > G64_TRACK_MAXLEN)
+					capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
+
 				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 			}
 			else
