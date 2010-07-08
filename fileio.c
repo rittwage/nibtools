@@ -230,9 +230,9 @@ void parseargs(char *argv[])
 			ihs = 1;
 			break;
 
-		case '3':
-			printf("* Simulate 'real' 300RPM track capacity\n");
-			rpm_real = 1;
+		case 'C':
+			rpm_real = atoi(&(*argv)[2]);
+			printf("* Simulate track capacity: %dRPM\n",rpm_real);
 			break;
 
 		case 'b':
@@ -954,7 +954,22 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 
 			if(rpm_real)
 			{
-				capacity[speed_map[track/2]] = raw_track_size[speed_map[track/2]];
+				//capacity[speed_map[track/2]] = raw_track_size[speed_map[track/2]];
+				switch (track_density[track])
+				{
+					case 0:
+						capacity[speed_map[track/2]] = DENSITY0/rpm_real;
+						break;
+					case 1:
+						capacity[speed_map[track/2]] = DENSITY1/rpm_real;
+						break;
+					case 2:
+						capacity[speed_map[track/2]] = DENSITY2/rpm_real;
+						break;
+					case 3:
+						capacity[speed_map[track/2]] = DENSITY3/rpm_real;
+						break;
+				}
 				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 			}
 			else
