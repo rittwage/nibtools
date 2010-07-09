@@ -91,7 +91,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 
 		cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
 
-		if (cbm_parallel_burst_write_track(fd, rawtrack, track_length + LEADER + skewbytes))
+		if (cbm_parallel_burst_write_track(fd, rawtrack, track_length + LEADER + skewbytes + 1))
 			break;
 		else
 		{
