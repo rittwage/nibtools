@@ -541,7 +541,7 @@ scandisk(void)
 		printf("%4.1f: ", (float) track/2);
 
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
-			printf("UNFORMATTED!\n");
+			printf("UNFORMATTED!");
 		else
 			printf("%d", track_length[track]);
 

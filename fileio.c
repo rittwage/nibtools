@@ -711,7 +711,8 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		return 0;
 	}
 
-	for (track = start_track; track <= end_track; track += track_inc)
+	//for (track = start_track; track <= end_track; track += track_inc)
+	for (track = 1*2; track <= 41*2; track += track_inc)
 	{
 		header[0x10 + (header_entry * 2)] = (BYTE)track;
 		header[0x10 + (header_entry * 2) + 1] = track_density[track];

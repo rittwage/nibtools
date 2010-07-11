@@ -62,9 +62,11 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 			printf("{presync} ");
 	}
 
-	/*
-	printf("[%.2x%.2x%.2x] ", track_buffer[track*NIB_TRACK_LENGTH],
-			track_buffer[track*NIB_TRACK_LENGTH+1],track_buffer[track*NIB_TRACK_LENGTH+2]);
+	/* debug
+	printf("[%.2x%.2x%.2x] ",
+			rawtrack[LEADER + skewbytes + track_length - 1],
+			rawtrack[LEADER + skewbytes + track_length],
+			rawtrack[LEADER + skewbytes + track_length +1]);
 	*/
 
 	/* handle short tracks */
@@ -82,7 +84,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	set_density(fd, track_density[track]&3);
 
 	/* burst send track */
-	for (i = 0; i < 10; i ++)
+	for (i=0; i<5; i++)
 	{
 		if(ihs)
 			send_mnib_cmd(fd, FL_WRITEIHS, NULL, 0);
@@ -95,7 +97,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 			break;
 		else
 		{
-			printf("(timeout) ");
+			printf(".");
 			fflush(stdin);
 			cbm_parallel_burst_read(fd);
 		}
