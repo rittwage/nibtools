@@ -127,6 +127,7 @@ _read_gcr_loop:
         BVS  _read_gcr_1
         BVS  _read_gcr_1
         BVS  _read_gcr_1
+        BVS  _read_gcr_1
         LDX  #$ff                 ; if pause too long, send 0xff  
         BVS  _read_gcr_1
         EOR  #$ff                 ; toggle handshake value
@@ -204,6 +205,7 @@ _ihsr_wait_byte:
         BVC  _ihsr_wait_byte
 _ihsr_read_gcr_loop:
         BVS  _ihsr_read_gcr_1     ; wait for next GCR byte
+        BVS  _ihsr_read_gcr_1
         BVS  _ihsr_read_gcr_1
         BVS  _ihsr_read_gcr_1
         BVS  _ihsr_read_gcr_1
