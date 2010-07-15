@@ -79,7 +79,7 @@ void parseargs(char *argv[])
 					printf("SecuriSpeed/Early Rainbow Arts\n"); /* turn off reduction for track > 36 */
 					for(count = 36; count <= MAX_TRACKS_1541+1; count ++)
 					{
-						reduce_map[count] = REDUCE_GAP;
+						reduce_map[count] = REDUCE_NONE;
 						align_map[count] = ALIGN_AUTOGAP;
 					}
 					fix_gcr = 0;
@@ -874,8 +874,8 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	printf("\nWriting G64 file...");
 
 	/* when writing a G64 file, we don't care about the limitations of drive hardware
-		However, VICE currently ignores G64 header and hardcodes 7928 as the largest track size,
-		and also requires it to be 84 tracks no matter if they're used or not.
+		However, VICE (as of 2.2) currently ignores G64 header and hardcodes 7928 as the largest
+		track size, and also requires it to be 84 tracks no matter if they're used or not.
 	*/
 
 	fpout = fopen(filename, "wb");

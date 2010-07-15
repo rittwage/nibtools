@@ -310,7 +310,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	if (hdr_chksum != header[5])
 	{
 		if(verbose)
-			printf("(S%d HEAD_CHKSUM $%.2x != $%.2x)\n", sector, hdr_chksum, header[5]);
+			printf("(S%d Header Checksum Mismatch $%.2x!=$%.2x)\n", sector, hdr_chksum, header[5]);
 
 		error_code = (error_code == SECTOR_OK) ? BAD_HEADER_CHECKSUM : error_code;
 	}
@@ -354,7 +354,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	if (blk_chksum != d64_sector[257])
 	{
 		if(verbose)
-			printf("(S%d DATA_CHKSUM $%.2x != $%.2x)\n", sector, blk_chksum, d64_sector[257]);
+			printf("(S%d Data Checksum Mismatch $%.2x!=$%.2x)\n", sector, blk_chksum, d64_sector[257]);
 
 		error_code = (error_code == SECTOR_OK) ? BAD_DATA_CHECKSUM : error_code;
 	}
@@ -867,7 +867,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 
 	if((sectorgap_pos-work_buffer == sector0_pos-work_buffer) &&
 		(sectorgap_pos != NULL) &&	(sector0_pos != NULL) && verbose)
-		printf("(sec0=gap) ");
+			printf("(sec0=gap) ");
 
 	/* if (sectorgap_len >= sector0_len + 0x40) */ /* Burstnibbler's calc */
 	if (sectorgap_len > GCR_BLOCK_DATA_LEN + SIGNIFICANT_GAPLEN_DIFF)
@@ -1246,24 +1246,25 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 			}
 			else
 			{
-				sprintf(tmpstr,"S%d: non-std sector (%.2x/E%d)(%.2x/E%d)\n",sector,checksum1,error1,checksum2,error2);
+				sprintf(tmpstr,"T%dS%d: Non-CBM (%.2x/E%d)(%.2x/E%d)\n",track/2,sector,checksum1,error1,checksum2,error2);
 			}
 			sec_match++;
 		}
 		else
 		{
-			sprintf(tmpstr, "S%d mismatch (%.2x/E%d/CRC:%x) (%.2x/E%d/CRC:%x)\n",
-				sector, checksum1, error1, crcresult1, checksum2, error2, crcresult2);
+			sprintf(tmpstr, "T%dS%d Mismatch (%.2x/E%d/CRC:%x) (%.2x/E%d/CRC:%x)\n",
+				track/2, sector, checksum1, error1, crcresult1, checksum2, error2, crcresult2);
 
 			if(verbose)
 			{
-				printf(tmpstr, "S%d mismatch (%.2x/E%d/CRC:%x) (%.2x/E%d/CRC:%x)\n",
-					sector, checksum1, error1, crcresult1, checksum2, error2, crcresult2);
+				printf(tmpstr, "T%dS%d Mismatch (%.2x/E%d/CRC:%x) (%.2x/E%d/CRC:%x)\n",
+					track/2, sector, checksum1, error1, crcresult1, checksum2, error2, crcresult2);
 
-				printf("\nT%dS%d image #1 dump:\n", track/2, sector);
+				printf("T%dS%d converted from GCR:\n", track/2, sector);
 
 				for (i=1; i<=4; i++)
 				{
+					printf("1:");
 					for(j=0; j<32; j++)
 					{
 						if(secbuf1[i*j] >= 32)
@@ -1271,8 +1272,8 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 						else
 							printf("%c", secbuf1[i*j]+32);
 					}
-					printf("\n");
-						for(k=0;k<32; k++)
+					printf("\n2:");
+					for(k=0;k<32; k++)
 					{
 						if(secbuf2[i*k] >= 32)
 							printf("%c", secbuf2[i*k]);
@@ -1281,7 +1282,6 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 					}
 					printf("\n");
 				}
-					printf("\n");
 				getchar();
 			}
 		}
