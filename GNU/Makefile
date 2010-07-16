@@ -96,6 +96,8 @@ clean:
 
 distclean: clean
 	${RM} ${PROG} *.exe
+	
+drive.o: nibtools_1541.inc nibtools_1571.inc
 
 nibtools_1541.bin: nibtools_15x1.asm
 	$(CA65) $(CA65_FLAGS) -D DRIVE=1541 -o $*.tmp $<
