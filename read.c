@@ -474,11 +474,6 @@ scan_track(CBM_FILE fd, int track)
                 iMajorMax = iStatsMax = 0;
                 for (i=0; i<=3; i++)
                 {
-					if ( (track/2 < 35) && (density_major[i] > 0) && (i == speed_map[track/2]) )
-					{
-						iMajorMax = (BYTE) i;
-                		break;
-					}
                 	if (density_major[i] > density_major[iMajorMax])
                 		 iMajorMax = (BYTE) i;
                 	if (density_stats[i] > density_stats[iStatsMax])
