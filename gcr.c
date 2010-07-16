@@ -110,7 +110,8 @@ find_sync(BYTE ** gcr_pptr, BYTE * gcr_end)
 		}
 
 		// sync flag goes up after the 10th bit
-		if ( ((*gcr_pptr)[0] & 0x03) == 0x03 && (*gcr_pptr)[1] == 0xff)
+		//if ( ((*gcr_pptr)[0] & 0x03) == 0x03 && (*gcr_pptr)[1] == 0xff)
+		if ((*gcr_pptr)[0] == 0xff)
 			break;
 
 		(*gcr_pptr)++;

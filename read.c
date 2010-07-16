@@ -447,7 +447,8 @@ scan_track(CBM_FILE fd, int track)
         memset(density_stats, 0, sizeof(density_stats));
 
         /* Use bitrate close to default for scan */
-        density = (BYTE)set_default_bitrate(fd, track);
+        //density = (BYTE)set_default_bitrate(fd, track);
+        density = set_bitrate(fd, 2);
 
         /* Scan for killer track */
         send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
@@ -473,7 +474,7 @@ scan_track(CBM_FILE fd, int track)
                 iMajorMax = iStatsMax = 0;
                 for (i=0; i<=3; i++)
                 {
-					if ((density_major[i] > 0) && (i == speed_map[track/2]))
+					if ( (track/2 < 35) && (density_major[i] > 0) && (i == speed_map[track/2]) )
 					{
 						iMajorMax = (BYTE) i;
                 		break;
@@ -491,7 +492,7 @@ scan_track(CBM_FILE fd, int track)
                 else if (density_stats[iStatsMax] > density_stats[density])
                         density = iStatsMax;
 
-        } while ( (density != speed_map[track/2]) && (j < 3) );
+        } while ( (density != speed_map[track/2]) && (j <= 5) );
 
         printf("{%d:%3d/%1d} ",density,density_stats[density],density_major[density]);
 
