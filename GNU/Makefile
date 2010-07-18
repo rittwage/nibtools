@@ -99,6 +99,8 @@ distclean: clean
 	
 drive.o: nibtools_1541.inc nibtools_1571.inc
 
+*.o: gcr.h nibtools.h
+
 nibtools_1541.bin: nibtools_15x1.asm
 	$(CA65) $(CA65_FLAGS) -D DRIVE=1541 -o $*.tmp $<
 	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp

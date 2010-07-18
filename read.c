@@ -52,7 +52,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			density = scan_track(fd, halftrack);
 		}
 
-		set_density(fd, density & 3);
+		set_density(fd, density&3);
 		send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
 		density |= cbm_parallel_burst_read(fd);
 
@@ -76,6 +76,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		}
 
 		// read track
+		set_bitrate(fd, density&3);
 		if((ihs) && (!(density & BM_NO_SYNC)))
 			send_mnib_cmd(fd, FL_READIHS, NULL, 0);
 		else
@@ -84,8 +85,8 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			 	send_mnib_cmd(fd, FL_READWOSYNC, NULL, 0);
 			 else
 			 	send_mnib_cmd(fd, FL_READNORMAL, NULL, 0);
-			}
-			cbm_parallel_burst_read(fd);
+		}
+		cbm_parallel_burst_read(fd);
 
 		for(i=0;i<5;i++)
 		{
@@ -446,14 +447,11 @@ scan_track(CBM_FILE fd, int track)
         memset(density_major, 0, sizeof(density_major));
         memset(density_stats, 0, sizeof(density_stats));
 
-        /* Use bitrate close to default for scan */
-        //density = (BYTE)set_default_bitrate(fd, track);
-        density = set_bitrate(fd, 2);
-
         /* Scan for killer track */
         send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
         killer_info = cbm_parallel_burst_read(fd);
-        if (killer_info & BM_FF_TRACK) return (density | killer_info);
+        if (killer_info & BM_FF_TRACK)
+        	return (killer_info);
 
         /* scan... routine sends statistic data in reverse bit-rate order */
         do
