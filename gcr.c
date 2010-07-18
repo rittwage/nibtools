@@ -555,22 +555,14 @@ int
 check_valid_data(BYTE * data, int matchlen)
 {
 	/* makes a simple assumption whether this is good data to match track cycle overlap */
-	int i;
+	int i, redund;
 
 	for (i = 0; i < matchlen; i++)
 	{
+		if (data[i] == data[i + 1] || data[i] == data[i + 2] || data[i] == data[i + 3] || data[i] == data[i + 4])
+			redund++;
 
-		if(data[i] == 0xff) return 0; /* sync marks */
-		if ((data[i] == data[i+1]) && (data[i+1] == data[i+2])) return 0;  /* repeating bytes */
-
-		/* check we aren't matching gap data (GCR is 555555 or AAAAAA) */
-		if((data[i] == 0x55) && (data[i+1] == 0xaa) && (data[i+2] == 0x55)) return 0;
-		if((data[i] == 0xaa) && (data[i+1] == 0x55) && (data[i+2] == 0xaa)) return 0;
-		if((data[i] == 0x5a) && (data[i+1] == 0xa5) && (data[i+2] == 0x5a)) return 0;
-
-		/* check we aren't matching gap data (GCR encoded 555555 or AAAAAA) */
-		if((data[i] == 0x52) && (data[i+1] == 0xd4) && (data[i+2] == 0xb5)) return 0;
-		if((data[i] == 0x2d) && (data[i+1] == 0x4b) && (data[i+2] == 0x52)) return 0;
+		if(redund>1) return 0;
 	}
 	return 1;
 }
