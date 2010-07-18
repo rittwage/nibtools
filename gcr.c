@@ -111,6 +111,7 @@ find_sync(BYTE ** gcr_pptr, BYTE * gcr_end)
 
 		// sync flag goes up after the 10th bit
 		//if ( ((*gcr_pptr)[0] & 0x03) == 0x03 && (*gcr_pptr)[1] == 0xff)
+		// but sometimes are detected too short or wrapped to end of track due to cycle detection
 		if ((*gcr_pptr)[0] == 0xff)
 			break;
 
@@ -235,42 +236,63 @@ extract_cosmetic_id(BYTE * gcr_track, BYTE * id)
 }
 
 BYTE
-convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track, int sector, BYTE *id)
+convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_cycle, BYTE * d64_sector,
+  int track, int sector, BYTE * id)
 {
-
-	/* we should later try to repair some common GCR errors
-			1) tri-bit error, in which 01110 is misinterpreted as 01000
-			2) low frequency error, in which 10010 is misinterpreted as 11000
-	*/
-
-
 	BYTE header[10];	/* block header */
 	BYTE hdr_chksum;	/* header checksum */
 	BYTE blk_chksum;	/* block  checksum */
-	BYTE *gcr_buffer;
+	BYTE gcr_buffer[2 * NIB_TRACK_LENGTH];
 	BYTE *gcr_ptr, *gcr_end, *gcr_last;
 	BYTE *sectordata;
 	BYTE error_code;
-    int i, j;
+    int sync_found, i, j, nConverted;
     size_t track_len;
 
 	error_code = SECTOR_OK;
-	track_len = gcr_cycle - gcr_start;
-	gcr_buffer = gcr_start;
 
-	if ((track > MAX_TRACK_D64) || (!track_len) || (gcr_cycle == NULL))
-		return SYNC_NOT_FOUND;
+	if (track > MAX_TRACK_D64)
+		return (0);
+	if (gcr_cycle == NULL || gcr_cycle <= gcr_start)
+		return (0);
 
 	/* initialize sector data with Original Format Pattern */
 	memset(d64_sector, 0x01, 260);
 	d64_sector[0] = 0x07;	/* Block header mark */
 	d64_sector[1] = 0x4b;	/* Use Original Format Pattern */
+
 	for (blk_chksum = 0, i = 1; i < 257; i++)
 		blk_chksum ^= d64_sector[i + 1];
 	d64_sector[257] = blk_chksum;
 
-	/* Check for missing SYNC */
+	/* copy to  temp. buffer with twice the track data */
+	track_len = gcr_cycle - gcr_start;
+	memcpy(gcr_buffer, gcr_start, track_len);
+	memcpy(gcr_buffer + track_len, gcr_start, track_len);
+	track_len *= 2;
+
+	/* Check for at least one Sync */
 	gcr_end = gcr_buffer + track_len;
+	sync_found = 0;
+	for (gcr_ptr = gcr_buffer; gcr_ptr < gcr_end; gcr_ptr++)
+	{
+		if (*gcr_ptr == 0xff)
+		{
+			if (sync_found < 2)
+				sync_found++;
+		}
+		else		/* (*gcr_ptr != 0xff) */
+		{
+			if (sync_found < 2)
+				sync_found = 0;
+			else
+				sync_found = 3;
+		}
+	}
+	if (sync_found != 3)
+		return (SYNC_NOT_FOUND);
+
+	/* Check for missing SYNCs */
 	gcr_last = gcr_ptr = gcr_buffer;
 	while (gcr_ptr < gcr_end)
 	{
@@ -284,21 +306,46 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 			gcr_last = gcr_ptr;
 	}
 
-	/* Try to find next best match for header */
+	/* Try to find a good block header for Track/Sector */
 	gcr_ptr = gcr_buffer;
 	gcr_end = gcr_buffer + track_len;
+
 	do
 	{
-		if (!find_sync(&gcr_ptr, gcr_end))
-			return (HEADER_NOT_FOUND);
-
-		if (gcr_ptr >= gcr_end - 10)
-			return (HEADER_NOT_FOUND);
-
+		if (!find_sync(&gcr_ptr, gcr_end) || gcr_ptr >= gcr_end - 10)
+		{
+			error_code = HEADER_NOT_FOUND;
+			break;
+		}
 		convert_4bytes_from_GCR(gcr_ptr, header);
 		convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
 		gcr_ptr++;
-	} while (header[0] == 0x07 || header[2] != sector || header[3] != track);
+
+		//printf("%0.2d: t%0.2d s%0.2d id1:%0.1x id2:%0.1x\n",
+		//header[0],header[3],header[2],header[5],header[4]);
+	} while (header[0] != 0x08 || header[2] != sector ||
+	  header[3] != track || header[5] != id[0] || header[4] != id[1]);
+
+	if (error_code == HEADER_NOT_FOUND)
+	{
+		error_code = SECTOR_OK;
+		/* Try to find next best match for header */
+		gcr_ptr = gcr_buffer;
+		gcr_end = gcr_buffer + track_len;
+		do
+		{
+			if (!find_sync(&gcr_ptr, gcr_end))
+				return (HEADER_NOT_FOUND);
+
+			if (gcr_ptr >= gcr_end - 10)
+				return (HEADER_NOT_FOUND);
+
+			convert_4bytes_from_GCR(gcr_ptr, header);
+			convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
+			gcr_ptr++;
+
+		} while (header[0] == 0x07 || header[2] != sector || header[3] != track);
+	}
 
 	if (header[0] != 0x08)
 		error_code = (error_code == SECTOR_OK) ? HEADER_NOT_FOUND : error_code;
@@ -310,23 +357,19 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 
 	if (hdr_chksum != header[5])
 	{
-		if(verbose)
-			printf("(S%d Header Checksum Mismatch $%.2x!=$%.2x)\n", sector, hdr_chksum, header[5]);
-
-		error_code = (error_code == SECTOR_OK) ? BAD_HEADER_CHECKSUM : error_code;
+		//printf("(S%d HEAD_CHKSUM $%0.2x != $%0,2x) ",
+		//  sector, hdr_chksum, header[5]);
+		error_code = (error_code == SECTOR_OK) ?
+		  BAD_HEADER_CHECKSUM : error_code;
 	}
 
-	/* verify that our header contains no bad GCR, since it can be false positive checksum match */
+	// verify that our header contains no bad GCR, since it can be false positive checksum match
 	for(j = 0; j < 10; j++)
 	{
-		if (is_bad_gcr(gcr_ptr - 1, 10, j))
-		{
-			error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
-			//printf("BADGCR in header! ");
-		}
+		if (is_bad_gcr(gcr_ptr - 1, 10, j)) error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
 	}
 
-	/* check for data sector */
+	// next look for data portion
 	if (!find_sync(&gcr_ptr, gcr_end))
 		return (DATA_NOT_FOUND);
 
@@ -335,7 +378,15 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 		if (gcr_ptr >= gcr_end - 5)
 			return (DATA_NOT_FOUND);
 
-		convert_4bytes_from_GCR(gcr_ptr, sectordata);
+		if (4 != (nConverted = convert_4bytes_from_GCR(gcr_ptr, sectordata)))
+		{
+#if 0
+			// XXX Disabled for unknown reason.
+			if ((i < 64) || (nConverted == 0))
+				error_code = BAD_GCR_CODE;
+#endif
+		}
+
 		gcr_ptr += 5;
 		sectordata += 4;
 	}
@@ -354,21 +405,15 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 
 	if (blk_chksum != d64_sector[257])
 	{
-		if(verbose)
-			printf("(S%d Data Checksum Mismatch $%.2x!=$%.2x)\n", sector, blk_chksum, d64_sector[257]);
-
+		//printf("(S%d DATA_CHKSUM $%0.2x != $%0.2x) ",
+		//  sector, blk_chksum, d64_sector[257]);
 		error_code = (error_code == SECTOR_OK) ? BAD_DATA_CHECKSUM : error_code;
 	}
 
-	/* verify that our data contains no bad GCR, since it can be false positive checksum match */
+	// verify that our data contains no bad GCR, since it can be false positive checksum match
 	for(j = 0; j < 320; j++)
-	{
-		if (is_bad_gcr(gcr_ptr - 325, 320, j))
-		{
-			error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
-			//printf("Bad GCR in data!\n");
-		}
-	}
+		if (is_bad_gcr(gcr_ptr - 325, 320, j)) error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
+
 	return (error_code);
 }
 
@@ -463,9 +508,7 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 	BYTE *p1, *p2;          /* local pointers for comparisons */
 
 	nib_track = *cycle_start;
-	cycle_pos = NULL;
 	stop_pos = nib_track + NIB_TRACK_LENGTH - gap_match_length;
-	//stop_pos = nib_track + cap_max;
 
 	/* try to find a normal track cycle  */
 	for (start_pos = nib_track;; find_sync(&start_pos, stop_pos))
@@ -486,10 +529,8 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 					cycle_pos = NULL;
 					break;
 				}
-
 				if (!find_sync(&p1, stop_pos))
 					break;
-
 				if (!find_sync(&p2, stop_pos))
 					break;
 			}
@@ -675,7 +716,6 @@ find_sector_gap(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 	while (pos >= work_buffer + tracklen)
 		pos -= tracklen;
 
-	//return pos - 1;  // go to  last byte that contains first few bits of sync
 	return pos; // return at first byte of sync
 }
 
