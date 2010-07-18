@@ -494,7 +494,7 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 					break;
 			}
 
-			if ( (cycle_pos != NULL) && (check_valid_data(cycle_pos, gap_match_length)) )
+			if (cycle_pos != NULL)
 			{
 				*cycle_start = start_pos;
 				*cycle_stop = cycle_pos;
