@@ -110,9 +110,9 @@ find_sync(BYTE ** gcr_pptr, BYTE * gcr_end)
 		}
 
 		// sync flag goes up after the 10th bit
-		//if ( ((*gcr_pptr)[0] & 0x03) == 0x03 && (*gcr_pptr)[1] == 0xff)
+		if ( ((*gcr_pptr)[0] & 0x03) == 0x03 && (*gcr_pptr)[1] == 0xff)
 		// but sometimes are detected too short or wrapped to end of track due to cycle detection
-		if ((*gcr_pptr)[0] == 0xff)
+		//if ((*gcr_pptr)[0] == 0xff)
 			break;
 
 		(*gcr_pptr)++;
@@ -236,8 +236,7 @@ extract_cosmetic_id(BYTE * gcr_track, BYTE * id)
 }
 
 BYTE
-convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_cycle, BYTE * d64_sector,
-  int track, int sector, BYTE * id)
+convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_cycle, BYTE * d64_sector, int track, int sector, BYTE * id)
 {
 	BYTE header[10];	/* block header */
 	BYTE hdr_chksum;	/* header checksum */
