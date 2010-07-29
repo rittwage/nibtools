@@ -454,9 +454,8 @@ scan_track(CBM_FILE fd, int track)
         	return (killer_info);
 
         /* scan... routine sends statistic data in reverse bit-rate order */
-        do
+       	for(j=0; j<10; j++)
         {
-                j++;
                 send_mnib_cmd(fd, FL_SCANDENSITY, NULL, 0);
 
                 for (i=3; i>=0; i--)
@@ -477,7 +476,7 @@ scan_track(CBM_FILE fd, int track)
                 	if (density_stats[i] > density_stats[iStatsMax])
                 		iStatsMax = (BYTE) i;
 
-				    fprintf(fplog,"{%d:%3d/%1d} ",i,density_stats[i],density_major[i]);
+				    fprintf(fplog,"{%d:%3d/%1d}\n",i,density_stats[i],density_major[i]);
 			    }
 
                 if (density_major[iMajorMax] > 0)
@@ -485,9 +484,9 @@ scan_track(CBM_FILE fd, int track)
                 else if (density_stats[iStatsMax] > density_stats[density])
                         density = iStatsMax;
 
-        } while ( (density != speed_map[track/2]) && (j <= 5) );
-
+				if (density == speed_map[track/2])
+					break;
+        }
         printf("{%d:%3d/%1d} ",density,density_stats[density],density_major[density]);
-
         return (density | killer_info);
 }
