@@ -15,7 +15,8 @@
 
 static BYTE diskid[3];
 
-BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
+BYTE
+read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 {
         BYTE density;
  		int i, newtrack;
@@ -77,19 +78,20 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 		// read track
 		set_bitrate(fd, density&3);
-		if((ihs) && (!(density & BM_NO_SYNC)))
-			send_mnib_cmd(fd, FL_READIHS, NULL, 0);
-		else
-       	 {
-			 if ((density & BM_NO_SYNC) || (density & BM_FF_TRACK) || (force_nosync))
-			 	send_mnib_cmd(fd, FL_READWOSYNC, NULL, 0);
-			 else
-			 	send_mnib_cmd(fd, FL_READNORMAL, NULL, 0);
-		}
-		cbm_parallel_burst_read(fd);
 
-		for(i=0;i<5;i++)
+		for(i=0;i<10;i++)
 		{
+			if((ihs) && (!(density & BM_NO_SYNC)))
+				send_mnib_cmd(fd, FL_READIHS, NULL, 0);
+			else
+	       	 {
+				 if ((density & BM_NO_SYNC) || (density & BM_FF_TRACK) || (force_nosync))
+				 	send_mnib_cmd(fd, FL_READWOSYNC, NULL, 0);
+				 else
+				 	send_mnib_cmd(fd, FL_READNORMAL, NULL, 0);
+			}
+			cbm_parallel_burst_read(fd);
+
 			if (cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
 				break;
 			else
@@ -100,7 +102,14 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 				fflush(stdout);
 				cbm_parallel_burst_read(fd);
 			}
-        }
+		}
+
+     	if (i==10)
+     	{
+			printf("\n\nToo many timeouts!  Check cabling or high CPU usage.\n");
+			exit(1);
+		}
+
         return (density);
 }
 
@@ -434,7 +443,6 @@ void get_disk_id(CBM_FILE fd)
                 fprintf(fplog,"\n");
 }
 
-/* $152b Density Scan */
 BYTE
 scan_track(CBM_FILE fd, int track)
 {
@@ -448,10 +456,12 @@ scan_track(CBM_FILE fd, int track)
         memset(density_stats, 0, sizeof(density_stats));
 
         /* Scan for killer track */
+        density = set_default_bitrate(fd, track);
         send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
         killer_info = cbm_parallel_burst_read(fd);
+
         if (killer_info & BM_FF_TRACK)
-        	return (killer_info);
+        	return (density | killer_info);
 
         /* scan... routine sends statistic data in reverse bit-rate order */
        	for(j=0; j<10; j++)
@@ -476,7 +486,7 @@ scan_track(CBM_FILE fd, int track)
                 	if (density_stats[i] > density_stats[iStatsMax])
                 		iStatsMax = (BYTE) i;
 
-				    fprintf(fplog,"{%d:%3d/%1d}\n",i,density_stats[i],density_major[i]);
+				    fprintf(fplog,"{%d:%3d/%1d} ",i,density_stats[i],density_major[i]);
 			    }
 
                 if (density_major[iMajorMax] > 0)
