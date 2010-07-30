@@ -70,9 +70,9 @@ size_t capacity_max[] = 	{ 6311, 6726, 7201, 7824 };
 */
 
 /* New calculated defaults */
-size_t capacity_min[] =		{ (int) (DENSITY0 / 305), (int) (DENSITY1 / 305), (int) (DENSITY2 / 305), (int) (DENSITY3 / 305) };
+size_t capacity_min[] =		{ (int) (DENSITY0 / 303), (int) (DENSITY1 / 303), (int) (DENSITY2 / 303), (int) (DENSITY3 / 303) };
 size_t capacity[] = 			{ (int) (DENSITY0 / 300), (int) (DENSITY1 / 300), (int) (DENSITY2 / 300), (int) (DENSITY3 / 300) };
-size_t capacity_max[] =	{ (int) (DENSITY0 / 295), (int) (DENSITY1 / 295), (int) (DENSITY2 / 295), (int) (DENSITY3 / 295) };
+size_t capacity_max[] =	{ (int) (DENSITY0 / 297), (int) (DENSITY1 / 297), (int) (DENSITY2 / 297), (int) (DENSITY3 / 297) };
 
 /* Nibble-to-GCR conversion table */
 static BYTE GCR_conv_data[16] = {
