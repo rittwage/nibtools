@@ -85,10 +85,10 @@ speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 #define DENSITY1 2000000.000
 #define DENSITY0 1875000.000
 
-/* Some disks have much less or more data than we normally expect to be able to write at a given density.
+/* Some disks have much less data than we normally expect to be able to write at a given density.
 	It's like short tracks, but it's a mastering issue not a protection.
     This keeps us from getting errors in the track cycle detection */
-#define CAP_ALLOWANCE 0x100
+#define CAP_MIN_ALLOWANCE 140
 
 /* minimum amount of good sequential GCR for formatted track */
 #define GCR_MIN_FORMATTED 16
@@ -136,7 +136,7 @@ extern size_t capacity[];
 extern size_t capacity_min[];
 extern size_t capacity_max[];\
 extern int gap_match_length;
-extern int cap_relax;
+extern int cap_min_ignore;
 extern int verbose;
 
 /* enums */
@@ -149,7 +149,7 @@ int convert_4bytes_from_GCR(BYTE * gcr, BYTE * plain);
 int extract_id(BYTE * gcr_track, BYTE * id);
 int extract_cosmetic_id(BYTE * gcr_track, BYTE * id);
 size_t find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t cap_max);
-size_t find_raw_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t cap_max);
+size_t find_track_cycle_sectors(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t cap_max);
 BYTE convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_end, BYTE * d64_sector, int track, int sector, BYTE * id);
 void convert_sector_to_GCR(BYTE * buffer, BYTE * ptr, int track, int sector, BYTE * diskID, int error);
 BYTE * find_sector_gap(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen);

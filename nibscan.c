@@ -47,7 +47,7 @@ int reduce_badgcr;
 int reduce_gap;
 int waitkey = 0;
 int gap_match_length;
-int cap_relax;
+int cap_min_ignore;
 int verbose = 0;
 int rpm_real = 0;
 int drive;
@@ -58,7 +58,6 @@ int ihs;
 int unformat_passes;
 int capacity_margin;
 int align_delay;
-BYTE fillbyte = 0x55;
 
 unsigned char md5_hash_result[16];
 unsigned char md5_dir_hash_result[16];
@@ -100,7 +99,7 @@ main(int argc, char *argv[])
 	force_align = ALIGN_NONE;
 	fix_gcr = 1;
 	gap_match_length = 7;
-	cap_relax = 0;
+	cap_min_ignore = 0;
 	mode = 0;
 	reduce_sync = 3;
 	reduce_badgcr = 0;
@@ -508,6 +507,7 @@ scandisk(void)
 	size_t empty = 0, temp_empty = 0;
 	size_t errors = 0, temp_errors = 0;
 	int defdensity;
+	size_t length;
 	char errorstring[0x1000];
 	char testfilename[16];
 	FILE *trkout;
@@ -541,7 +541,7 @@ scandisk(void)
 		printf("%4.1f: ", (float) track/2);
 
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
-			printf("UNFORMATTED!");
+			printf("UNFORMATTED!\n");
 		else
 			printf("%d", track_length[track]);
 
@@ -632,12 +632,13 @@ scandisk(void)
 		printf("\n");
 
 		// process and dump to disk for manual compare
-		//track_length[track] = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+		length = track_length[track];
+		//length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
 
 		sprintf(testfilename, "raw/tr%.1fd%d", (float) track/2, (track_density[track] & 3));
 		if(NULL != (trkout = fopen(testfilename, "w")))
 		{
-			fwrite(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track], 1, trkout);
+			fwrite(track_buffer + (track * NIB_TRACK_LENGTH), length, 1, trkout);
 			fclose(trkout);
 		}
 	}

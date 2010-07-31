@@ -203,8 +203,8 @@ void parseargs(char *argv[])
 			break;
 
 		case 'c':
-			printf("* Capacity ignore on\n");
-			cap_relax = 1;
+			printf("* Minimum capacity ignore on\n");
+			cap_min_ignore = 1;
 			break;
 
 		case 's':
@@ -230,34 +230,9 @@ void parseargs(char *argv[])
 			ihs = 1;
 			break;
 
-		case 'C':
-			rpm_real = atoi(&(*argv)[2]);
-			printf("* Simulate track capacity: %dRPM\n",rpm_real);
-			break;
-
-		case 'b':
-			// custom fillbyte
-			printf("* Custom fillbyte: ");
-			if ((*argv)[2] == '0')
-			{
-				printf("$00\n");
-				fillbyte = 0x00;
-			}
-			if ((*argv)[2] == '5')
-			{
-				printf("$55\n");
-				fillbyte = 0x55;
-			}
-			if ((*argv)[2] == 'f')
-			{
-				printf("$ff\n");
-				fillbyte = 0xff;
-			}
-			if ((*argv)[2] == '?')
-			{
-				printf("loop last byte in track\n");
-				fillbyte = 0xfe;
-			}
+		case '3':
+			printf("* Simulate 'real' 300RPM track capacity\n");
+			rpm_real = 1;
 			break;
 
 		default:
@@ -711,8 +686,7 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		return 0;
 	}
 
-	//for (track = start_track; track <= end_track; track += track_inc)
-	for (track = 1*2; track <= 41*2; track += track_inc)
+	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		header[0x10 + (header_entry * 2)] = (BYTE)track;
 		header[0x10 + (header_entry * 2) + 1] = track_density[track];
@@ -867,15 +841,15 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
 	BYTE gcr_track[G64_TRACK_MAXLEN + 2];
 	size_t track_len;
-	int track, index, badgcr;
+	int track, index;
 	FILE * fpout;
-	BYTE buffer[NIB_TRACK_LENGTH], tempfillbyte;
+	BYTE buffer[NIB_TRACK_LENGTH];
 
 	printf("\nWriting G64 file...");
 
 	/* when writing a G64 file, we don't care about the limitations of drive hardware
-		However, VICE (as of 2.2) currently ignores G64 header and hardcodes 7928 as the largest
-		track size, and also requires it to be 84 tracks no matter if they're used or not.
+		However, VICE currently ignores G64 header and hardcodes 7928 as the largest track size,
+		and also requires it to be 84 tracks no matter if they're used or not.
 	*/
 
 	fpout = fopen(filename, "wb");
@@ -934,13 +908,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	{
 		size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
 
-		/* loop last byte of track data for filler */
-		if(fillbyte == 0xfe) /* $fe is special case for loop */
-			tempfillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length[track] - 1];
-		else
-			tempfillbyte = fillbyte;
-
-		memset(&gcr_track[2], tempfillbyte, G64_TRACK_MAXLEN);
+		memset(&gcr_track[2], 0x55, G64_TRACK_MAXLEN);
 
 		gcr_track[0] = (BYTE) (raw_track_size[speed_map[track/2]] % 256);
 		gcr_track[1] = (BYTE) (raw_track_size[speed_map[track/2]] / 256);
@@ -951,30 +919,11 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 		if(track_len)
 		{
 			/* process/compress GCR data */
-			badgcr = check_bad_gcr(buffer, track_length[track]);
+			check_bad_gcr(buffer, track_length[track]);
 
 			if(rpm_real)
 			{
-				//capacity[speed_map[track/2]] = raw_track_size[speed_map[track/2]];
-				switch (track_density[track])
-				{
-					case 0:
-						capacity[speed_map[track/2]] = DENSITY0/rpm_real;
-						break;
-					case 1:
-						capacity[speed_map[track/2]] = DENSITY1/rpm_real;
-						break;
-					case 2:
-						capacity[speed_map[track/2]] = DENSITY2/rpm_real;
-						break;
-					case 3:
-						capacity[speed_map[track/2]] = DENSITY3/rpm_real;
-						break;
-				}
-
-				if(capacity[speed_map[track/2]] > G64_TRACK_MAXLEN)
-					capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
-
+				capacity[speed_map[track/2]] = raw_track_size[speed_map[track/2]];
 				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 			}
 			else
@@ -982,8 +931,6 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 				capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
 				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 			}
-			printf("(fill:$%.2x) ",tempfillbyte);
-			printf("{badgcr:%d}",badgcr);
 		}
 		else
 		{
@@ -1064,7 +1011,7 @@ compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_t lengt
 			printf("rgaps:%d ", orglen - length);
 		}
 
-		/* still not small enough, we have to truncate the end (reduce tail gap) */
+		/* still not small enough, we have to truncate the end (reduce tail) */
 		orglen = length;
 		if (length > capacity[density & 3])
 		{

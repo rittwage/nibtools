@@ -25,7 +25,7 @@ int start_track, end_track, track_inc;
 int reduce_sync, reduce_badgcr, reduce_gap;
 int fix_gcr, align, force_align;
 int gap_match_length;
-int cap_relax;
+int cap_min_ignore;
 int skip_halftracks;
 int verbose;
 int rpm_real;
@@ -38,7 +38,6 @@ int mode;
 int unformat_passes;
 int capacity_margin;
 int align_delay;
-BYTE fillbyte = 0x55;
 
 int ARCH_MAINDECL
 main(int argc, char **argv)
@@ -57,7 +56,7 @@ main(int argc, char **argv)
 	align = ALIGN_NONE;
 	force_align = ALIGN_NONE;
 	gap_match_length = 7;
-	cap_relax = 0;
+	cap_min_ignore = 0;
 	verbose = 0;
 	rpm_real = 0;
 

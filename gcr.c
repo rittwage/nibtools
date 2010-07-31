@@ -40,7 +40,7 @@ BYTE speed_map[MAX_TRACKS_1541 + 1] = {
 	3, 3, 3, 3, 3, 3, 3, 2, 2, 2,	/* 11 - 20 */
 	2, 2, 2, 2, 1, 1, 1, 1, 1, 1,	/* 21 - 30 */
 	0, 0, 0, 0, 0,					/* 31 - 35 */
-	2, 2, 2, 2, 2, 2, 2				/* 36 - 42 (non-standard) */
+	0, 0, 0, 0, 0, 0, 0				/* 36 - 42 (non-standard) */
 };
 
 BYTE align_map[MAX_TRACKS_1541 + 1] = {
@@ -69,10 +69,10 @@ size_t capacity[] = 				{ 6231, 6646, 7121, 7664 };
 size_t capacity_max[] = 	{ 6311, 6726, 7201, 7824 };
 */
 
-/* New calculated defaults */
-size_t capacity_min[] =		{ (int) (DENSITY0 / 303), (int) (DENSITY1 / 303), (int) (DENSITY2 / 303), (int) (DENSITY3 / 303) };
-size_t capacity[] = 			{ (int) (DENSITY0 / 300), (int) (DENSITY1 / 300), (int) (DENSITY2 / 300), (int) (DENSITY3 / 300) };
-size_t capacity_max[] =	{ (int) (DENSITY0 / 297), (int) (DENSITY1 / 297), (int) (DENSITY2 / 297), (int) (DENSITY3 / 297) };
+/* New calculated defaults: 297rpm, 300rpm, 303rpm */
+size_t capacity_min[] =		{ (int) (DENSITY0 / 305), (int) (DENSITY1 / 305), (int) (DENSITY2 / 305), (int) (DENSITY3 / 305) };
+size_t capacity[] = 				{ (int) (DENSITY0 / 300), (int) (DENSITY1 / 300), (int) (DENSITY2 / 300), (int) (DENSITY3 / 300) };
+size_t capacity_max[] =		{ (int) (DENSITY0 / 295), (int) (DENSITY1 / 295), (int) (DENSITY2 / 295), (int) (DENSITY3 / 295) };
 
 /* Nibble-to-GCR conversion table */
 static BYTE GCR_conv_data[16] = {
@@ -111,8 +111,6 @@ find_sync(BYTE ** gcr_pptr, BYTE * gcr_end)
 
 		// sync flag goes up after the 10th bit
 		if ( ((*gcr_pptr)[0] & 0x03) == 0x03 && (*gcr_pptr)[1] == 0xff)
-		// but sometimes are detected too short or wrapped to end of track due to cycle detection
-		//if ((*gcr_pptr)[0] == 0xff)
 			break;
 
 		(*gcr_pptr)++;
@@ -236,62 +234,42 @@ extract_cosmetic_id(BYTE * gcr_track, BYTE * id)
 }
 
 BYTE
-convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_cycle, BYTE * d64_sector, int track, int sector, BYTE * id)
+convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track, int sector, BYTE *id)
 {
+
+	/* we should later try to repair some common GCR errors
+			1) tri-bit error, in which 01110 is misinterpreted as 01000
+			2) low frequency error, in which 10010 is misinterpreted as 11000
+	*/
+
+
 	BYTE header[10];	/* block header */
 	BYTE hdr_chksum;	/* header checksum */
 	BYTE blk_chksum;	/* block  checksum */
-	BYTE gcr_buffer[2 * NIB_TRACK_LENGTH];
+	BYTE *gcr_buffer;
 	BYTE *gcr_ptr, *gcr_end, *gcr_last;
 	BYTE *sectordata;
 	BYTE error_code;
-    int sync_found, i, j, nConverted;
+    int i, j;
     size_t track_len;
 
 	error_code = SECTOR_OK;
+	track_len = gcr_cycle - gcr_start;
+	gcr_buffer = gcr_start;
 
-	if (track > MAX_TRACK_D64)
-		return (0);
-	if (gcr_cycle == NULL || gcr_cycle <= gcr_start)
-		return (0);
+	if ((track > MAX_TRACK_D64) || (!track_len) || (gcr_cycle == NULL))
+		return SYNC_NOT_FOUND;
 
 	/* initialize sector data with Original Format Pattern */
 	memset(d64_sector, 0x01, 260);
 	d64_sector[0] = 0x07;	/* Block header mark */
 	d64_sector[1] = 0x4b;	/* Use Original Format Pattern */
-
 	for (blk_chksum = 0, i = 1; i < 257; i++)
 		blk_chksum ^= d64_sector[i + 1];
 	d64_sector[257] = blk_chksum;
 
-	/* copy to  temp. buffer with twice the track data */
-	track_len = gcr_cycle - gcr_start;
-	memcpy(gcr_buffer, gcr_start, track_len);
-	memcpy(gcr_buffer + track_len, gcr_start, track_len);
-	track_len *= 2;
-
-	/* Check for at least one Sync */
+	/* Check for missing SYNC */
 	gcr_end = gcr_buffer + track_len;
-	sync_found = 0;
-	for (gcr_ptr = gcr_buffer; gcr_ptr < gcr_end; gcr_ptr++)
-	{
-		if (*gcr_ptr == 0xff)
-		{
-			if (sync_found < 2)
-				sync_found++;
-		}
-		else		/* (*gcr_ptr != 0xff) */
-		{
-			if (sync_found < 2)
-				sync_found = 0;
-			else
-				sync_found = 3;
-		}
-	}
-	if (sync_found != 3)
-		return (SYNC_NOT_FOUND);
-
-	/* Check for missing SYNCs */
 	gcr_last = gcr_ptr = gcr_buffer;
 	while (gcr_ptr < gcr_end)
 	{
@@ -305,46 +283,21 @@ convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_cycle, BYTE * d64_sector, int tr
 			gcr_last = gcr_ptr;
 	}
 
-	/* Try to find a good block header for Track/Sector */
+	/* Try to find next best match for header */
 	gcr_ptr = gcr_buffer;
 	gcr_end = gcr_buffer + track_len;
-
 	do
 	{
-		if (!find_sync(&gcr_ptr, gcr_end) || gcr_ptr >= gcr_end - 10)
-		{
-			error_code = HEADER_NOT_FOUND;
-			break;
-		}
+		if (!find_sync(&gcr_ptr, gcr_end))
+			return (HEADER_NOT_FOUND);
+
+		if (gcr_ptr >= gcr_end - 10)
+			return (HEADER_NOT_FOUND);
+
 		convert_4bytes_from_GCR(gcr_ptr, header);
 		convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
 		gcr_ptr++;
-
-		//printf("%0.2d: t%0.2d s%0.2d id1:%0.1x id2:%0.1x\n",
-		//header[0],header[3],header[2],header[5],header[4]);
-	} while (header[0] != 0x08 || header[2] != sector ||
-	  header[3] != track || header[5] != id[0] || header[4] != id[1]);
-
-	if (error_code == HEADER_NOT_FOUND)
-	{
-		error_code = SECTOR_OK;
-		/* Try to find next best match for header */
-		gcr_ptr = gcr_buffer;
-		gcr_end = gcr_buffer + track_len;
-		do
-		{
-			if (!find_sync(&gcr_ptr, gcr_end))
-				return (HEADER_NOT_FOUND);
-
-			if (gcr_ptr >= gcr_end - 10)
-				return (HEADER_NOT_FOUND);
-
-			convert_4bytes_from_GCR(gcr_ptr, header);
-			convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
-			gcr_ptr++;
-
-		} while (header[0] == 0x07 || header[2] != sector || header[3] != track);
-	}
+	} while (header[0] == 0x07 || header[2] != sector || header[3] != track);
 
 	if (header[0] != 0x08)
 		error_code = (error_code == SECTOR_OK) ? HEADER_NOT_FOUND : error_code;
@@ -356,19 +309,23 @@ convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_cycle, BYTE * d64_sector, int tr
 
 	if (hdr_chksum != header[5])
 	{
-		//printf("(S%d HEAD_CHKSUM $%0.2x != $%0,2x) ",
-		//  sector, hdr_chksum, header[5]);
-		error_code = (error_code == SECTOR_OK) ?
-		  BAD_HEADER_CHECKSUM : error_code;
+		if(verbose)
+			printf("(S%d HEAD_CHKSUM $%.2x != $%.2x)\n", sector, hdr_chksum, header[5]);
+
+		error_code = (error_code == SECTOR_OK) ? BAD_HEADER_CHECKSUM : error_code;
 	}
 
-	// verify that our header contains no bad GCR, since it can be false positive checksum match
+	/* verify that our header contains no bad GCR, since it can be false positive checksum match */
 	for(j = 0; j < 10; j++)
 	{
-		if (is_bad_gcr(gcr_ptr - 1, 10, j)) error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
+		if (is_bad_gcr(gcr_ptr - 1, 10, j))
+		{
+			error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
+			//printf("BADGCR in header! ");
+		}
 	}
 
-	// next look for data portion
+	/* check for data sector */
 	if (!find_sync(&gcr_ptr, gcr_end))
 		return (DATA_NOT_FOUND);
 
@@ -377,15 +334,7 @@ convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_cycle, BYTE * d64_sector, int tr
 		if (gcr_ptr >= gcr_end - 5)
 			return (DATA_NOT_FOUND);
 
-		if (4 != (nConverted = convert_4bytes_from_GCR(gcr_ptr, sectordata)))
-		{
-#if 0
-			// XXX Disabled for unknown reason.
-			if ((i < 64) || (nConverted == 0))
-				error_code = BAD_GCR_CODE;
-#endif
-		}
-
+		convert_4bytes_from_GCR(gcr_ptr, sectordata);
 		gcr_ptr += 5;
 		sectordata += 4;
 	}
@@ -404,15 +353,21 @@ convert_GCR_sector(BYTE * gcr_start, BYTE * gcr_cycle, BYTE * d64_sector, int tr
 
 	if (blk_chksum != d64_sector[257])
 	{
-		//printf("(S%d DATA_CHKSUM $%0.2x != $%0.2x) ",
-		//  sector, blk_chksum, d64_sector[257]);
+		if(verbose)
+			printf("(S%d DATA_CHKSUM $%.2x != $%.2x)\n", sector, blk_chksum, d64_sector[257]);
+
 		error_code = (error_code == SECTOR_OK) ? BAD_DATA_CHECKSUM : error_code;
 	}
 
-	// verify that our data contains no bad GCR, since it can be false positive checksum match
+	/* verify that our data contains no bad GCR, since it can be false positive checksum match */
 	for(j = 0; j < 320; j++)
-		if (is_bad_gcr(gcr_ptr - 325, 320, j)) error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
-
+	{
+		if (is_bad_gcr(gcr_ptr - 325, 320, j))
+		{
+			error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
+			//printf("Bad GCR in data!\n");
+		}
+	}
 	return (error_code);
 }
 
@@ -499,21 +454,64 @@ convert_sector_to_GCR(BYTE * buffer, BYTE * ptr, int track, int sector, BYTE * d
 size_t
 find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t cap_max)
 {
-	BYTE *nib_track;        /* start of nibbled track data */
-	BYTE *start_pos;        /* start of periodic area */
-	BYTE *cycle_pos;        /* start of cycle repetition */
-	BYTE *stop_pos;         /* maximum position allowed for cycle */
-	BYTE *data_pos;         /* cycle search variable */
-	BYTE *p1, *p2;          /* local pointers for comparisons */
+	BYTE *nib_track;	/* start of nibbled track data */
+	BYTE *start_pos;	/* start of periodic area */
+	BYTE *cycle_pos;	/* start of cycle repetition */
+	BYTE *stop_pos;		/* maximum position allowed for cycle */
+	BYTE *p1, *p2;		/* local pointers for comparisons */
+
+	nib_track = *cycle_start;
+	start_pos = nib_track;
+	stop_pos = nib_track + NIB_TRACK_LENGTH - gap_match_length;
+	cycle_pos = NULL;
+
+	/* try to find a track cycle ignoring sync  */
+	for (p1 = start_pos; p1 < stop_pos; p1++)
+	{
+		/* now try to match it */
+		for (p2 = p1 + cap_min; p2 < stop_pos; p2++)
+		{
+			/* try to match data */
+			if (memcmp(p1, p2, gap_match_length) != 0)
+				cycle_pos = NULL;
+			else
+				cycle_pos = p2;
+
+			/* we found one! */
+			if (cycle_pos != NULL && check_valid_data(cycle_pos, gap_match_length))
+			{
+				*cycle_start = p1;
+				*cycle_stop = cycle_pos;
+				return (cycle_pos - p1);
+			}
+		}
+	}
+
+	/* we got nothing useful */
+	*cycle_start = nib_track;
+	*cycle_stop = nib_track + NIB_TRACK_LENGTH;
+	return NIB_TRACK_LENGTH;
+}
+
+size_t
+find_track_cycle_sectors(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t cap_max)
+{
+	BYTE *nib_track;	/* start of nibbled track data */
+	BYTE *start_pos;	/* start of periodic area */
+	BYTE *cycle_pos;	/* start of cycle repetition */
+	BYTE *stop_pos;		/* maximum position allowed for cycle */
+	BYTE *data_pos;		/* cycle search variable */
+	BYTE *p1, *p2;		/* local pointers for comparisons */
 
 	nib_track = *cycle_start;
 	stop_pos = nib_track + NIB_TRACK_LENGTH - gap_match_length;
+	cycle_pos = NULL;
 
 	/* try to find a normal track cycle  */
 	for (start_pos = nib_track;; find_sync(&start_pos, stop_pos))
 	{
 		if ((data_pos = start_pos + cap_min) >= stop_pos)
-			break;  /* no cycle found */
+			break;	/* no cycle found */
 
 		while (find_sync(&data_pos, stop_pos))
 		{
@@ -534,61 +532,19 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 					break;
 			}
 
-			if (cycle_pos != NULL)
+			if (cycle_pos != NULL && check_valid_data(data_pos, gap_match_length))
 			{
 				*cycle_start = start_pos;
 				*cycle_stop = cycle_pos;
 				return (cycle_pos - start_pos);
 			}
-		 }
+		}
 	}
 
 	/* we got nothing useful, return it all */
 	*cycle_start = nib_track;
 	*cycle_stop = nib_track + NIB_TRACK_LENGTH;
 	return NIB_TRACK_LENGTH;
-}
-
-size_t
-find_raw_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t cap_max)
-{
-	BYTE *nib_track;        /* start of nibbled track data */
-	BYTE *start_pos;        /* start of periodic area */
-	BYTE *cycle_pos;        /* start of cycle repetition */
-	BYTE *stop_pos;         /* maximum position allowed for cycle */
-	BYTE *p1, *p2;          /* local pointers for comparisons */
-
-	nib_track = *cycle_start;
-	cycle_pos = NULL;
-	start_pos = nib_track;
-	stop_pos = nib_track + NIB_TRACK_LENGTH - gap_match_length;
-
-	/* try to find a track cycle ignoring sync  */
-	for (p1 = start_pos; p1 < stop_pos; p1++)
-	{
-		/* now try to match it */
-		for (p2 = p1 + cap_min; p2 < stop_pos; p2++)
-		{
-			/* try to match data */
-			if (memcmp(p1, p2, gap_match_length) != 0)
-				cycle_pos = NULL;
-			else
-				cycle_pos = p2;
-
-			/* we found one! */
-			if ( (cycle_pos != NULL) && (check_valid_data(cycle_pos, gap_match_length)) )
-			{
-				*cycle_start = p1;
-				*cycle_stop = cycle_pos;
-				return (cycle_pos - p1);
-			}
-		}
-	}
-
-	/* we got nothing useful */
-	*cycle_start = nib_track;
-    *cycle_stop = nib_track + NIB_TRACK_LENGTH;
-    return NIB_TRACK_LENGTH;
 }
 
 int
@@ -599,19 +555,18 @@ check_valid_data(BYTE * data, int matchlen)
 
 	for (i = 0; i < matchlen; i++)
 	{
+
 		if(data[i] == 0xff) return 0; /* sync marks */
 		if ((data[i] == data[i+1]) && (data[i+1] == data[i+2])) return 0;  /* repeating bytes */
 
-		/* check we aren't matching gap data (GCR is 5555 or AAAA) */
+		/* check we aren't matching gap data (GCR is 555555 or AAAAAA) */
 		if((data[i] == 0x55) && (data[i+1] == 0xaa) && (data[i+2] == 0x55)) return 0;
 		if((data[i] == 0xaa) && (data[i+1] == 0x55) && (data[i+2] == 0xaa)) return 0;
 		if((data[i] == 0x5a) && (data[i+1] == 0xa5) && (data[i+2] == 0x5a)) return 0;
 
-		/* check we aren't matching gap data (GCR encoded 5555,AAAA,5A5A,A5A5) */
-		//if((data[i] == 0x52) && (data[i+1] == 0xd4) && (data[i+2] == 0xb5)) return 0;
-		//if((data[i] == 0x2d) && (data[i+1] == 0x4b) && (data[i+2] == 0x52)) return 0;
-		//if((data[i] == 0x52) && (data[i+1] == 0x94) && (data[i+2] == 0xa5)) return 0;
-		//if((data[i] == 0x29) && (data[i+1] == 0x4a) && (data[i+2] == 0x52)) return 0;
+		/* check we aren't matching gap data (GCR encoded 555555 or AAAAAA) */
+		if((data[i] == 0x52) && (data[i+1] == 0xd4) && (data[i+2] == 0xb5)) return 0;
+		if((data[i] == 0x2d) && (data[i+1] == 0x4b) && (data[i+2] == 0x52)) return 0;
 	}
 	return 1;
 }
@@ -715,6 +670,7 @@ find_sector_gap(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 	while (pos >= work_buffer + tracklen)
 		pos -= tracklen;
 
+	//return pos - 1;  // go to  last byte that contains first few bits of sync
 	return pos; // return at first byte of sync
 }
 
@@ -767,11 +723,8 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	marker_pos = NULL;
 
 	/* ignore minumum capacity by RPM/density */
-	if(!cap_relax)
-	{
-		cap_min -= CAP_ALLOWANCE;
-		cap_max += CAP_ALLOWANCE;
-	}
+	if(!cap_min_ignore)
+		cap_min -= CAP_MIN_ALLOWANCE;
 
 	/* if this track doesn't have enough formatted data, return blank */
 	if (!check_formatted(source, NIB_TRACK_LENGTH))
@@ -782,23 +735,14 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	memcpy(work_buffer, cycle_start, NIB_TRACK_LENGTH);
 
 	/* find cycle */
-	find_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
+	find_track_cycle_sectors(&cycle_start, &cycle_stop, cap_min, cap_max);
 	track_len = cycle_stop - cycle_start;
 
 	/* second pass to find a cycle in track w/o syncs */
-	if (track_len > cap_max)
+	if ((track_len > cap_max) || (track_len < cap_min))
 	{
-		//printf("{%d>%d}", track_len, cap_max);
-		printf(">");
-		find_raw_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
-		track_len = cycle_stop - cycle_start;
-	}
-
-	if (track_len < cap_min)
-	{
-		//printf("{%d<%d}", track_len, cap_min);
-		printf("<");
-		find_raw_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
+		printf("!");
+		find_track_cycle(&cycle_start, &cycle_stop, cap_min, cap_max);
 		track_len = cycle_stop - cycle_start;
 	}
 
@@ -908,7 +852,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 
 	if((sectorgap_pos-work_buffer == sector0_pos-work_buffer) &&
 		(sectorgap_pos != NULL) &&	(sector0_pos != NULL) && verbose)
-			printf("(sec0=gap) ");
+		printf("(sec0=gap) ");
 
 	/* if (sectorgap_len >= sector0_len + 0x40) */ /* Burstnibbler's calc */
 	if (sectorgap_len > GCR_BLOCK_DATA_LEN + SIGNIFICANT_GAPLEN_DIFF)
@@ -1287,25 +1231,24 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 			}
 			else
 			{
-				sprintf(tmpstr,"T%dS%d: Non-CBM (%.2x/E%d)(%.2x/E%d)\n",track/2,sector,checksum1,error1,checksum2,error2);
+				sprintf(tmpstr,"S%d: non-std sector (%.2x/E%d)(%.2x/E%d)\n",sector,checksum1,error1,checksum2,error2);
 			}
 			sec_match++;
 		}
 		else
 		{
-			sprintf(tmpstr, "T%dS%d Mismatch (%.2x/E%d/CRC:%x) (%.2x/E%d/CRC:%x)\n",
-				track/2, sector, checksum1, error1, crcresult1, checksum2, error2, crcresult2);
+			sprintf(tmpstr, "S%d mismatch (%.2x/E%d/CRC:%x) (%.2x/E%d/CRC:%x)\n",
+				sector, checksum1, error1, crcresult1, checksum2, error2, crcresult2);
 
 			if(verbose)
 			{
-				printf(tmpstr, "T%dS%d Mismatch (%.2x/E%d/CRC:%x) (%.2x/E%d/CRC:%x)\n",
-					track/2, sector, checksum1, error1, crcresult1, checksum2, error2, crcresult2);
+				printf(tmpstr, "S%d mismatch (%.2x/E%d/CRC:%x) (%.2x/E%d/CRC:%x)\n",
+					sector, checksum1, error1, crcresult1, checksum2, error2, crcresult2);
 
-				printf("T%dS%d converted from GCR:\n", track/2, sector);
+				printf("\nT%dS%d image #1 dump:\n", track/2, sector);
 
 				for (i=1; i<=4; i++)
 				{
-					printf("1:");
 					for(j=0; j<32; j++)
 					{
 						if(secbuf1[i*j] >= 32)
@@ -1313,8 +1256,8 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 						else
 							printf("%c", secbuf1[i*j]+32);
 					}
-					printf("\n2:");
-					for(k=0;k<32; k++)
+					printf("\n");
+						for(k=0;k<32; k++)
 					{
 						if(secbuf2[i*k] >= 32)
 							printf("%c", secbuf2[i*k]);
@@ -1323,6 +1266,7 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 					}
 					printf("\n");
 				}
+					printf("\n");
 				getchar();
 			}
 		}
@@ -1506,10 +1450,7 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 					total++;
 
 					if(fix_gcr > 2)
-					{
 						sbadgcr = S_BADGCR_LOST;  /* most aggressive */
-						gcrdata[i] = 0x00;
-					}
 					else
 						sbadgcr = S_BADGCR_ONCE_BAD;
 				}

@@ -38,7 +38,7 @@ int mode;
 int force_density;
 int track_match;
 int gap_match_length;
-int cap_relax;
+int cap_min_ignore;
 int interactive_mode;
 int verbose;
 int extended_parallel_test;
@@ -53,7 +53,6 @@ int rpm_real;
 int unformat_passes;
 int capacity_margin;
 int align_delay;
-BYTE fillbyte = 0x55;
 
 BYTE density_map;
 float motor_speed;
@@ -108,7 +107,7 @@ main(int argc, char *argv[])
 	force_nosync = 0;
 	align = ALIGN_NONE;
 	gap_match_length = 7;
-	cap_relax = 0;
+	cap_min_ignore = 0;
 	ihs = 0;
 	mode = MODE_READ_DISK;
 	rpm_real = 0;
@@ -204,7 +203,7 @@ main(int argc, char *argv[])
 
 		case 'm':
 			printf("* Minimum capacity ignore on\n");
-			cap_relax = 1;
+			cap_min_ignore = 1;
 			break;
 
 		default:

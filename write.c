@@ -20,19 +20,10 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	int i;
 	static size_t skewbytes = 0;
 	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
-	BYTE tempfillbyte;
 
-	/* loop last byte of track data for filler */
-	if(fillbyte == 0xfe) /* $fe is special case for loop */
-		tempfillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length - 1];
-	else
-		tempfillbyte = fillbyte;
-
-	printf("(fill:$%.2x) ",tempfillbyte);
-
-	/* unformat track with filler - default is 0x55 (01010101)
+	/* unformat track with 0x55 (01010101)
 	    some of this is the "leader" which is overwritten by wraparound */
-	memset(rawtrack, tempfillbyte, sizeof(rawtrack));
+	memset(rawtrack, 0x55, sizeof(rawtrack));
 
 	/* apply skew, if specified */
 	if(skew)
@@ -42,10 +33,11 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		if(skewbytes > NIB_TRACK_LENGTH)
 			skewbytes = skewbytes - NIB_TRACK_LENGTH;
 
-		printf("{skew=%d} ", skewbytes);
+		printf(" {skew=%d} ", skewbytes);
 	}
 
-	/* check that our first sync is long enough (if the track has sync) and if not, lengthen it */
+	/* check that our first sync is long enough (if the track has sync)
+		and if not, lengthen it */
 	if( (track_density[track] & BM_NO_SYNC) ||
 		(align_map[track/2] == ALIGN_AUTOGAP) ||
 		((track_buffer[track * NIB_TRACK_LENGTH] == 0xff) && (track_buffer[(track * NIB_TRACK_LENGTH) + 1] == 0xff)) )
@@ -55,18 +47,16 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	}
 	else
 	{
-			/* merge in our track data after a small sync mark */
+			/* merge in our track data with an extended sync mark */
 			memset(rawtrack + LEADER + skewbytes,  0xff, 2);
 			memcpy(rawtrack + LEADER + skewbytes  + 2,  track_buffer + (track * NIB_TRACK_LENGTH), track_length);
 			track_length += 2;
 			printf("{presync} ");
 	}
 
-	/* debug
-	printf("[%.2x%.2x%.2x] ",
-			rawtrack[LEADER + skewbytes + track_length - 1],
-			rawtrack[LEADER + skewbytes + track_length],
-			rawtrack[LEADER + skewbytes + track_length +1]);
+	/*
+	printf("[%.2x%.2x%.2x] ", track_buffer[track*NIB_TRACK_LENGTH],
+			track_buffer[track*NIB_TRACK_LENGTH+1],track_buffer[track*NIB_TRACK_LENGTH+2]);
 	*/
 
 	/* handle short tracks */
@@ -84,7 +74,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	set_density(fd, track_density[track]&3);
 
 	/* burst send track */
-	for (i=0; i<5; i++)
+	for (i = 0; i < 10; i ++)
 	{
 		if(ihs)
 			send_mnib_cmd(fd, FL_WRITEIHS, NULL, 0);
@@ -93,13 +83,17 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 
 		cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
 
-		if (cbm_parallel_burst_write_track(fd, rawtrack, track_length + LEADER + skewbytes + 1))
+		if (cbm_parallel_burst_write_track(fd, rawtrack, track_length + LEADER + skewbytes))
 			break;
 		else
 		{
-			printf(".");
+			//putchar('?');
+			printf("(timeout) ");
 			fflush(stdin);
 			cbm_parallel_burst_read(fd);
+			//msleep(500);
+			//printf("%c ", test_par_port(fd)? '+' : '-');
+			test_par_port(fd);
 		}
 	}
 }
@@ -134,6 +128,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
 		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
 		printf("[badgcr:%d] ", badgcr);
+
 		master_track(fd, track_buffer, track_density, track, length);
 	}
 }
@@ -214,15 +209,18 @@ unformat_disk(CBM_FILE fd)
 	set_density(fd, 2);
 
 	printf("\nUnformatting...\n\n");
+	printf("00000000011111111112222222222333333333344\n");
+	printf("12345678901234567890123456789012345678901\n");
+	printf("-----------------------------------------\n");
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		printf("\n%4.1f: UNFORMATTED\n", (float) track / 2);
 		for(i=0;i<unformat_passes; i++)
 		{
 			kill_track(fd,track);
 			zero_track(fd, track);
 		}
+		printf("X");
 	}
 	printf("\n");
 }
@@ -312,7 +310,7 @@ adjust_target(CBM_FILE fd)
 	printf("Drive motor speed average: %.2f RPM.\n", motor_speed);
 	printf("Track capacity margin: %d\n",capacity_margin + EXTRA_CAPACITY_MARGIN);
 
-	if( (motor_speed > 315) || (motor_speed < 285))
+	if( (motor_speed > 310) || (motor_speed < 290))
 	{
 		printf("\n\nERROR!\nDrive speed out of range.\nCheck motor, write-protect, or bad media.\n");
 		exit(0);
