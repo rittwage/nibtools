@@ -134,7 +134,7 @@ _read_gcr_loop:
         BVS  _read_gcr_2          ; read and transfer GCR byte
         STX  PP_BASE              ; PA, port A (8 bit parallel data)
         BVS  _read_gcr_2          ; read and transfer GCR byte
-        STA  $1800                ; send handshake (send 0xff byte)
+        STA  $1701,x                ; send handshake (send 0xff byte)
         INY                       ;
 _rtp6:
         BNE  _read_gcr_loop
@@ -190,9 +190,9 @@ _ihsr_wait_start:
         BIT  $2000                ; now, wait for beginning of index hole
         BEQ  _ihsr_wait_start     ;
 
-_ihsr_in_sync:
-        BIT  $1c00
-        BMI  _ihsr_in_sync        ; wait for end of Sync
+;_ihsr_in_sync:
+;        BIT  $1c00
+;        BMI  _ihsr_in_sync        ; wait for end of Sync
 
         LDA  #$ff
         STA  $1800                ; send handshake
@@ -217,7 +217,7 @@ _ihsr_read_gcr_loop:
         BVS  _ihsr_read_gcr_2     ; read and transfer GCR byte
         STX  PP_BASE              ; PA, port A (8 bit parallel data)
         BVS  _ihsr_read_gcr_2     ; read and transfer GCR byte
-        STA  $1800                ; send handshake (send 0xff byte)
+        STA  $1701,x                ; send handshake (send 0xff byte)
         INY                       ;
 _ihsr_rtp6:
         BNE  _ihsr_read_gcr_loop
@@ -363,17 +363,23 @@ _step_dest_end:
 _adjust_density:
         JSR  _read_byte           ; read byte from parallel data port
         STA  _rtp1+1
+        STA  _ihsr_rtp1+1  
         CLC                       ;
         ADC  #$04                 ;
         STA  _rtp2+1              ; adjust read routines to the
-        ADC  #$11                 ; density (timing) value read
+        STA  _ihsr_rtp2+1      
+    	ADC  #$11                 ; density (timing) value read
         STA  _rtp3+1              ; from computer
+        STA  _ihsr_rtp3+1  
         ADC  #$04                 ;
         STA  _rtp4+1              ;
+        STA  _ihsr_rtp4+1  
         ADC  #$13                 ;
         STA  _rtp5+1              ;
+        STA  _ihsr_rtp5+1  
         ADC  #$06                 ;
         STA  _rtp6+1              ;
+        STA  _ihsr_rtp6+1  
 
 ;----------------------------------------
 ; set $1c00 bits (head/motor)
@@ -392,11 +398,8 @@ _set_1c00:
 ; detect 'killer tracks' (all SYNC)
 _detect_killer:
 
-;        LDX #$10                  ; check for 16 non-SYNC bytes in a row
-;        STX  $c0                  ;
-
-        LDX  #$80                 ;
-        STY  $C0                  ; Y = 0 (look for 256 non-SYNC bytes in a row)
+	LDX  #$80	;   	
+	STY  $c0		;  y=0
 
 _dkL1:
         LDA  $1c00                ; wait for SYNC

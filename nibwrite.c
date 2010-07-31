@@ -49,6 +49,7 @@ int drive;
 int rpm_real;
 int unformat_passes;
 int align_delay;
+BYTE fillbyte = 0x55;
 
 CBM_FILE fd;
 FILE *fplog;

@@ -53,6 +53,7 @@ int rpm_real;
 int unformat_passes;
 int capacity_margin;
 int align_delay;
+BYTE fillbyte = 0x55;
 
 BYTE density_map;
 float motor_speed;

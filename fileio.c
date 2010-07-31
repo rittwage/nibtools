@@ -235,6 +235,31 @@ void parseargs(char *argv[])
 			rpm_real = 1;
 			break;
 
+		case 'b':
+			// custom fillbyte
+			printf("* Custom fillbyte: ");
+			if ((*argv)[2] == '0')
+			{
+				printf("$00\n");
+				fillbyte = 0x00;
+			}
+			if ((*argv)[2] == '5')
+			{
+				printf("$55\n");
+				fillbyte = 0x55;
+			}
+			if ((*argv)[2] == 'f')
+			{
+				printf("$ff\n");
+				fillbyte = 0xff;
+			}
+			if ((*argv)[2] == '?')
+			{
+				printf("loop last byte in track\n");
+				fillbyte = 0xfe;
+			}
+			break;
+
 		default:
 			usage();
 			break;
@@ -908,7 +933,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	{
 		size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
 
-		memset(&gcr_track[2], 0x55, G64_TRACK_MAXLEN);
+		memset(&gcr_track[2], fillbyte, G64_TRACK_MAXLEN);
 
 		gcr_track[0] = (BYTE) (raw_track_size[speed_map[track/2]] % 256);
 		gcr_track[1] = (BYTE) (raw_track_size[speed_map[track/2]] / 256);

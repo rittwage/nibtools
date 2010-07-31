@@ -46,6 +46,7 @@ int mode;
 int unformat_passes;
 int capacity_margin;
 int align_delay;
+BYTE fillbyte = 0x55;
 
 /* local prototypes */
 int repair(void);

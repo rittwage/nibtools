@@ -20,10 +20,19 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	int i;
 	static size_t skewbytes = 0;
 	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
+	BYTE tempfillbyte;
 
-	/* unformat track with 0x55 (01010101)
+	/* loop last byte of track data for filler */
+	if(fillbyte == 0xfe) /* $fe is special case for loop */
+		tempfillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length - 1];
+	else
+		tempfillbyte = fillbyte;
+
+	printf("(fill:$%.2x) ",tempfillbyte);
+
+	/* unformat track with filler - default is 0x55 (01010101)
 	    some of this is the "leader" which is overwritten by wraparound */
-	memset(rawtrack, 0x55, sizeof(rawtrack));
+	memset(rawtrack, tempfillbyte, sizeof(rawtrack));
 
 	/* apply skew, if specified */
 	if(skew)
@@ -83,7 +92,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 
 		cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
 
-		if (cbm_parallel_burst_write_track(fd, rawtrack, track_length + LEADER + skewbytes))
+		if (cbm_parallel_burst_write_track(fd, rawtrack, track_length + LEADER + skewbytes +1))
 			break;
 		else
 		{
