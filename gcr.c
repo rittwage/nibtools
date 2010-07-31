@@ -724,7 +724,10 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 
 	/* ignore minumum capacity by RPM/density */
 	if(!cap_min_ignore)
-		cap_min -= CAP_MIN_ALLOWANCE;
+	{
+		cap_min -= CAP_ALLOWANCE;
+		cap_max += CAP_ALLOWANCE;
+	}
 
 	/* if this track doesn't have enough formatted data, return blank */
 	if (!check_formatted(source, NIB_TRACK_LENGTH))
