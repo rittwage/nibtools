@@ -494,7 +494,7 @@ scandisk(void)
 	char testfilename[16];
 	FILE *trkout;
 
-	//track_inc = 2;
+	track_inc = 2;
 
 	// clear buffers
 	memset(badgcr_tracks, 0, sizeof(badgcr_tracks));
