@@ -238,8 +238,6 @@ loadimage(char * filename)
 
 int writeimage(CBM_FILE fd)
 {
-	track_inc = 2;  /* 15x1 can't write halftracks */
-
 	/* turn on motor and measure speed */
 	motor_on(fd);
 

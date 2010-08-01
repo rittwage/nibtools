@@ -47,8 +47,8 @@ int reduce_badgcr;
 int reduce_gap;
 int waitkey = 0;
 int gap_match_length;
-int cap_min_ignore;
-int verbose = 0;
+int cap_relax;
+int verbose;
 int rpm_real = 0;
 int drive;
 int auto_capacity_adjust;
@@ -58,6 +58,7 @@ int ihs;
 int unformat_passes;
 int capacity_margin;
 int align_delay;
+int cap_min_ignore;
 BYTE fillbyte = 0x55;
 
 unsigned char md5_hash_result[16];
@@ -65,26 +66,6 @@ unsigned char md5_dir_hash_result[16];
 unsigned char md5_hash_result2[16];
 unsigned char md5_dir_hash_result2[16];
 int crc, crc_dir, crc2, crc2_dir;
-
-void
-usage(void)
-{
-	fprintf(stderr, "usage: nibscan [options] <filename1> [filename2]\n"
-		"\nsupported file extensions:\n"
-		"NIB, NB2, D64, G64\n"
-		"\noptions:\n"
-		" -a[x]: Force alternative track alignments (advanced users only)\n"
-		" -p[x]: Custom protection handlers (advanced users only)\n"
-		" -g: Enable gap reduction\n"
-		" -f: Disable automatic bad GCR detection\n"
-		" -0: Enable bad GCR run reduction\n"
-		" -g: Enable gap reduction\n"
-		" -r: Disable automatic sync reduction\n"
-		" -G: Manual gap match length\n"
-		" -w: Wait for a keypress upon errors or compare differences\n"
-		" -v: Verbose (output more detailed track data)\n");
-	exit(1);
-}
 
 int ARCH_MAINDECL
 main(int argc, char *argv[])
@@ -100,16 +81,14 @@ main(int argc, char *argv[])
 	force_align = ALIGN_NONE;
 	fix_gcr = 1;
 	gap_match_length = 7;
-	cap_min_ignore = 0;
+	cap_relax = 0;
 	mode = 0;
 	reduce_sync = 3;
 	reduce_badgcr = 0;
 	reduce_gap = 0;
 	rpm_real = 0;
-
-	fprintf(stdout,
-	  "\nnibscan - Commodore disk image scanner / comparator\n"
-	  "(C) 2004-2010 Peter Rittwage\nC64 Preservation Project\nhttp://c64preservation.com\n" "Version " VERSION "\n\n");
+	verbose = 1;
+	cap_min_ignore = 0;
 
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
@@ -134,6 +113,9 @@ main(int argc, char *argv[])
 
 	while (--argc && (*(++argv)[0] == '-'))
 		parseargs(argv);
+
+	printf("\nnibscan - Commodore disk image scanner / comparator\n"
+	  "(C) 2004-2010 Peter Rittwage\nC64 Preservation Project\nhttp://c64preservation.com\n" "Version " VERSION "\n\n");
 
 	if (argc < 0)	usage();
 	strcpy(file1, argv[0]);
@@ -368,13 +350,13 @@ compare_disks(void)
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
 		{
 			track_length[track] = 0;
-			printf("1 - UNFORMATTED!");
+			printf("1 - UNFORMATTED!\n");
 		}
 
 		if(!check_formatted(track_buffer2 + (track * NIB_TRACK_LENGTH), track_length[track]))
 		{
 			track_length2[track] = 0;
-			printf("2 - UNFORMATTED!");
+			printf("2 - UNFORMATTED!\n");
 		}
 
 		if( ((track_length[track] > 0) && (track_length2[track] == 0)) ||
@@ -508,12 +490,11 @@ scandisk(void)
 	size_t empty = 0, temp_empty = 0;
 	size_t errors = 0, temp_errors = 0;
 	int defdensity;
-	size_t length;
 	char errorstring[0x1000];
 	char testfilename[16];
 	FILE *trkout;
 
-	track_inc = 2;
+	//track_inc = 2;
 
 	// clear buffers
 	memset(badgcr_tracks, 0, sizeof(badgcr_tracks));
@@ -624,22 +605,21 @@ scandisk(void)
 			if (temp_empty)
 			{
 				empty += temp_empty;
-				if(verbose) printf("\n%s", errorstring);
+				if(verbose>1) printf("\n%s", errorstring);
 			}
 
-			if (verbose)
+			if (verbose>1)
 					raw_track_info(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track]);
 		}
 		printf("\n");
 
 		// process and dump to disk for manual compare
-		length = track_length[track];
-		//length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+		//track_length[track] = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
 
 		sprintf(testfilename, "raw/tr%.1fd%d", (float) track/2, (track_density[track] & 3));
 		if(NULL != (trkout = fopen(testfilename, "w")))
 		{
-			fwrite(track_buffer + (track * NIB_TRACK_LENGTH), length, 1, trkout);
+			fwrite(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track], 1, trkout);
 			fclose(trkout);
 		}
 	}
@@ -837,5 +817,24 @@ size_t check_rapidlok(int track)
 #endif // 0
 
 	return keylen;
+}
+
+void
+usage(void)
+{
+	printf("usage: nibscan [options] <filename1> [filename2]\n"
+		"\nsupported file extensions:\n"
+		"NIB, NB2, D64, G64\n"
+		"\noptions:\n"
+		" -a[x]: Force alternative track alignments (advanced users only)\n"
+		" -p[x]: Custom protection handlers (advanced users only)\n"
+		" -g: Enable gap reduction\n"
+		" -f: Disable automatic bad GCR detection\n"
+		" -0: Enable bad GCR run reduction\n"
+		" -g: Enable gap reduction\n"
+		" -r: Disable automatic sync reduction\n"
+		" -G: Manual gap match length\n"
+		" -v: Verbose (output more detailed track data)\n");
+	exit(1);
 }
 
