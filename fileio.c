@@ -230,9 +230,9 @@ void parseargs(char *argv[])
 			ihs = 1;
 			break;
 
-		case '3':
-			printf("* Simulate 'real' 300RPM track capacity\n");
-			rpm_real = 1;
+		case 'C':
+			rpm_real = atoi(&(*argv)[2]);
+			printf("* Simulate track capacity: %dRPM\n",rpm_real);
 			break;
 
 		case 'b':
@@ -866,21 +866,21 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
 	BYTE gcr_track[G64_TRACK_MAXLEN + 2];
 	size_t track_len;
-	int track, index;
+	int track, index, badgcr;
 	FILE * fpout;
-	BYTE buffer[NIB_TRACK_LENGTH];
+	BYTE buffer[NIB_TRACK_LENGTH], tempfillbyte;
 
 	printf("\nWriting G64 file...");
 
 	/* when writing a G64 file, we don't care about the limitations of drive hardware
-		However, VICE currently ignores G64 header and hardcodes 7928 as the largest track size,
-		and also requires it to be 84 tracks no matter if they're used or not.
+		However, VICE (as of 2.2) currently ignores G64 header and hardcodes 7928 as the largest
+		track size, and also requires it to be 84 tracks no matter if they're used or not.
 	*/
 
 	fpout = fopen(filename, "wb");
 	if (fpout == NULL)
 	{
-		fprintf(stderr, "Cannot open G64 image %s.\n", filename);
+		printf("Cannot open G64 image %s.\n", filename);
 		return 0;
 	}
 
@@ -893,7 +893,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 
 	if (fwrite(header, sizeof(header), 1, fpout) != 1)
 	{
-		fprintf(stderr, "Cannot write G64 header.\n");
+		printf("Cannot write G64 header.\n");
 		return 0;
 	}
 
@@ -919,12 +919,12 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	/* write headers */
 	if (write_dword(fpout, gcr_track_p, sizeof(gcr_track_p)) < 0)
 	{
-		fprintf(stderr, "Cannot write track header.\n");
+		printf("Cannot write track header.\n");
 		return 0;
 	}
 	if (write_dword(fpout, gcr_speed_p, sizeof(gcr_speed_p)) < 0)
 	{
-		fprintf(stderr, "Cannot write speed header.\n");
+		printf("Cannot write speed header.\n");
 		return 0;
 	}
 
@@ -933,7 +933,13 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	{
 		size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
 
-		memset(&gcr_track[2], fillbyte, G64_TRACK_MAXLEN);
+		/* loop last byte of track data for filler */
+		if(fillbyte == 0xfe) /* $fe is special case for loop */
+			tempfillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length[track] - 1];
+		else
+			tempfillbyte = fillbyte;
+
+		memset(&gcr_track[2], tempfillbyte, G64_TRACK_MAXLEN);
 
 		gcr_track[0] = (BYTE) (raw_track_size[speed_map[track/2]] % 256);
 		gcr_track[1] = (BYTE) (raw_track_size[speed_map[track/2]] / 256);
@@ -944,11 +950,30 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 		if(track_len)
 		{
 			/* process/compress GCR data */
-			check_bad_gcr(buffer, track_length[track]);
+			badgcr = check_bad_gcr(buffer, track_length[track]);
 
 			if(rpm_real)
 			{
-				capacity[speed_map[track/2]] = raw_track_size[speed_map[track/2]];
+				//capacity[speed_map[track/2]] = raw_track_size[speed_map[track/2]];
+				switch (track_density[track])
+				{
+					case 0:
+						capacity[speed_map[track/2]] = DENSITY0/rpm_real;
+						break;
+					case 1:
+						capacity[speed_map[track/2]] = DENSITY1/rpm_real;
+						break;
+					case 2:
+						capacity[speed_map[track/2]] = DENSITY2/rpm_real;
+						break;
+					case 3:
+						capacity[speed_map[track/2]] = DENSITY3/rpm_real;
+						break;
+				}
+
+				if(capacity[speed_map[track/2]] > G64_TRACK_MAXLEN)
+					capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
+
 				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 			}
 			else
@@ -956,6 +981,8 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 				capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
 				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 			}
+			printf("(fill:$%.2x) ",tempfillbyte);
+			printf("{badgcr:%d}",badgcr);
 		}
 		else
 		{
@@ -973,7 +1000,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 
 		if (fwrite(gcr_track, (G64_TRACK_MAXLEN + 2), 1, fpout) != 1)
 		{
-			fprintf(stderr, "Cannot write track data.\n");
+			printf("Cannot write track data.\n");
 			return 0;
 		}
 	}
