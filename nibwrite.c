@@ -102,16 +102,16 @@ main(int argc, char *argv[])
 	mode = MODE_WRITE_DISK;
 	align = ALIGN_NONE;
 
-	// cache our arguments for logfile generation
+	/* default is to reduce sync */
+	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541 + 1);
+
+	/* cache our arguments for logfile generation */
 	strcpy(argcache, "");
 	for (i = 0; i < argc; i++)
 	{
 		strcat(argcache, argv[i]);
 		strcat(argcache," ");
 	}
-
-	/* default is to reduce sync */
-	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541 + 1);
 
 	while (--argc && (*(++argv)[0] == '-'))
 		parseargs(argv);
@@ -154,7 +154,6 @@ main(int argc, char *argv[])
 	{
 		case MODE_WRITE_DISK:
 		case MODE_WRITE_RAW:
-			//printf("Ready to write '%s'.\n", filename);
 			//printf("Current disk WILL be OVERWRITTEN!\n"
 			//	"Press ENTER to continue or CTRL-C to quit.\n");
 			//getchar();

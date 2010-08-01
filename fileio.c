@@ -27,8 +27,6 @@ void parseargs(char *argv[])
 	{
 		case 'h':
 			track_inc = 1;
-			//start_track = 1;  /* my drive knocks on this track - PJR */
-			end_track = 83;
 			printf("* Using halftracks\n");
 			break;
 
