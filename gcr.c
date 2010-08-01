@@ -66,11 +66,11 @@ char alignments[][20] = { "NONE", "GAP", "SEC0", "SYNC", "BADGCR", "VMAX", "AUTO
 /* Burst Nibbler defaults
 size_t capacity_min[] = 		{ 6183, 6598, 7073, 7616 };
 size_t capacity[] = 				{ 6231, 6646, 7121, 7664 };
-size_t capacity_max[] = 	{ 6311, 6726, 7201, 7824 };
+size_t capacity_max[] = 		{ 6311, 6726, 7201, 7824 };
 */
 
-/* New calculated defaults: 297rpm, 300rpm, 303rpm */
-size_t capacity_min[] =		{ (int) (DENSITY0 / 305), (int) (DENSITY1 / 305), (int) (DENSITY2 / 305), (int) (DENSITY3 / 305) };
+/* New calculated defaults */
+size_t capacity_min[] =			{ (int) (DENSITY0 / 305), (int) (DENSITY1 / 305), (int) (DENSITY2 / 305), (int) (DENSITY3 / 305) };
 size_t capacity[] = 				{ (int) (DENSITY0 / 300), (int) (DENSITY1 / 300), (int) (DENSITY2 / 300), (int) (DENSITY3 / 300) };
 size_t capacity_max[] =		{ (int) (DENSITY0 / 295), (int) (DENSITY1 / 295), (int) (DENSITY2 / 295), (int) (DENSITY3 / 295) };
 
@@ -555,7 +555,6 @@ check_valid_data(BYTE * data, int matchlen)
 
 	for (i = 0; i < matchlen; i++)
 	{
-
 		if(data[i] == 0xff) return 0; /* sync marks */
 		if ((data[i] == data[i+1]) && (data[i+1] == data[i+2])) return 0;  /* repeating bytes */
 

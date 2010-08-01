@@ -466,12 +466,12 @@ scan_track(CBM_FILE fd, int track)
 	memset(density_major, 0, sizeof(density_major));
 	memset(density_stats, 0, sizeof(density_stats));
 
-	/* Use bitrate close to default for scan */
-	set_bitrate(fd, density);
+	/* Use medium bitrate for scan */
+	set_bitrate(fd, 2);
 	send_mnib_cmd(fd, FL_SCANDENSITY, NULL, 0);
 
 	/* Floppy sends statistic data in reverse bit-rate order */
-	for(i=0; i<5; i++)
+	for(i=0; i<10; i++)
 	{
 		for (bin=3; bin>=0; bin--)
 		{
@@ -480,28 +480,28 @@ scan_track(CBM_FILE fd, int track)
 			if (count >= 0x40)
 				density_major[bin]++;
 
-			if(density_major[bin] > 1) goto rescan;  // found it most likely, ignore calculations
-
 			density_stats[bin] += count;
 		}
+
+		// calculate
+		iMajorMax = iStatsMax = 0;
+		for (bin=0; bin<=3; bin++)
+		{
+			if (density_major[bin] > density_major[iMajorMax])
+				iMajorMax = (BYTE) bin;
+			if (density_stats[bin] > density_stats[iStatsMax])
+				iStatsMax = (BYTE) bin;
+		}
+
+		if (density_major[iMajorMax] > 0)
+			density = iMajorMax;
+		else if (density_stats[iStatsMax] > density_stats[density])
+			density = iStatsMax;
+
+		if(density == speed_map[track/2])
+			break;
 	}
 
-	// calculate
-	iMajorMax = iStatsMax = 0;
-	for (bin=0; bin<=3; bin++)
-	{
-		if (density_major[bin] > density_major[iMajorMax])
-			iMajorMax = (BYTE) bin;
-		if (density_stats[bin] > density_stats[iStatsMax])
-			iStatsMax = (BYTE) bin;
-	}
-
-	if (density_major[iMajorMax] > 0)
-		density = iMajorMax;
-	else if (density_stats[iStatsMax] > density_stats[density])
-		density = iStatsMax;
-
-rescan:
 	/* Set bitrate to the discovered density and scan again for NOSYNC/KILLER */
 	set_bitrate(fd, density);
 	send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
