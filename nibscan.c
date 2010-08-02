@@ -87,7 +87,7 @@ main(int argc, char *argv[])
 	reduce_badgcr = 0;
 	reduce_gap = 0;
 	rpm_real = 0;
-	verbose = 1;
+	verbose = 0;
 	cap_min_ignore = 0;
 
 	/* we can do nothing with no switches */
@@ -140,13 +140,13 @@ main(int argc, char *argv[])
 		printf("\n1: %s\n", file1);
 
 		crc_dir = crc_dir_track(track_buffer, track_length);
-		printf("BAM/DIR CRC:\t0x%X\n", crc_dir);
+		printf("BAM/DIR CRC:\t\t\t0x%X\n", crc_dir);
 		crc = crc_all_tracks(track_buffer, track_length);
 		printf("Full CRC:\t0x%X\n", crc);
 
 		memset(md5_dir_hash_result, 0 , sizeof(md5_dir_hash_result));
 		md5_dir_track(track_buffer, track_length, md5_dir_hash_result);
-		printf("BAM/DIR MD5:\t0x");
+		printf("BAM/DIR MD5:\t\t\t0x");
 		for (i = 0; i < 16; i++)
 		 	printf ("%02x", md5_dir_hash_result[i]);
 		printf("\n");
@@ -161,13 +161,13 @@ main(int argc, char *argv[])
 		/* disk 2 */
 		printf("\n2: %s\n", file2);
 		crc2_dir = crc_dir_track(track_buffer2, track_length2);
-		printf("BAM/DIR CRC:\t0x%X\n", crc2_dir);
+		printf("BAM/DIR CRC:\t\t\t0x%X\n", crc2_dir);
 		crc2 = crc_all_tracks(track_buffer2, track_length2);
 		printf("Full CRC:\t0x%X\n", crc2);
 
 		memset(md5_dir_hash_result2, 0 , sizeof(md5_dir_hash_result2));
 		md5_dir_track(track_buffer2, track_length2, md5_dir_hash_result2);
-		printf("BAM/DIR MD5:\t0x");
+		printf("BAM/DIR MD5:\t\t\t0x");
 		for (i = 0; i < 16; i++)
 		 	printf ("%02x", md5_dir_hash_result2[i]);
 		printf("\n");

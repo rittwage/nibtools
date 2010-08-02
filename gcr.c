@@ -309,8 +309,8 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 
 	if (hdr_chksum != header[5])
 	{
-		if(verbose)
-			printf("(S%d HEAD_CHKSUM $%.2x != $%.2x)\n", sector, hdr_chksum, header[5]);
+		//if(verbose)
+		//	printf("(S%d HEAD_CHKSUM $%.2x != $%.2x)\n", sector, hdr_chksum, header[5]);
 
 		error_code = (error_code == SECTOR_OK) ? BAD_HEADER_CHECKSUM : error_code;
 	}
@@ -353,8 +353,8 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 
 	if (blk_chksum != d64_sector[257])
 	{
-		if(verbose)
-			printf("(S%d DATA_CHKSUM $%.2x != $%.2x)\n", sector, blk_chksum, d64_sector[257]);
+		//if(verbose)
+		//	printf("(S%d DATA_CHKSUM $%.2x != $%.2x)\n", sector, blk_chksum, d64_sector[257]);
 
 		error_code = (error_code == SECTOR_OK) ? BAD_DATA_CHECKSUM : error_code;
 	}
