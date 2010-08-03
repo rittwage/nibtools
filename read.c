@@ -471,7 +471,8 @@ scan_track(CBM_FILE fd, int track)
 		memset(density_stats, 0, sizeof(density_stats));
 
 		/* Use medium bitrate for scan */
-		set_bitrate(fd, 2);
+		//set_bitrate(fd, 2);
+		set_bitrate(fd, (track/2 < 24) ? 2 : 1);
 		send_mnib_cmd(fd, FL_SCANDENSITY, NULL, 0);
 
 		for (bin=3; bin>=0; bin--)

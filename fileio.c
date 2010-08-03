@@ -191,8 +191,8 @@ void parseargs(char *argv[])
 			break;
 
 		case 'v':
-			verbose = 1;
-			printf("* Verbose mode on\n");
+			verbose++;
+			printf("* Verbose mode increased\n");
 			break;
 
 		case 'm':
