@@ -96,6 +96,13 @@ void parseargs(char *argv[])
 					memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541+1);
 					break;
 
+				case'p':
+					printf("Pirateslayer\n");
+					align_map[2] = ALIGN_PSLAYER;
+					align_map[36] = ALIGN_PSLAYER;
+					align_map[37] = ALIGN_PSLAYER;
+					break;
+
 				default:
 					printf("Unknown protection handler\n");
 					break;

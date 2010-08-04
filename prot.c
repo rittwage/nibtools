@@ -137,6 +137,43 @@ align_vmax_cw(BYTE * work_buffer, size_t tracklen)
 	return (0);
 }
 
+BYTE *
+align_pirateslayer(BYTE * work_buffer, size_t tracklen)
+{
+	BYTE *pos, *buffer_end;
+	int found = 0;
+
+	pos = work_buffer;
+	buffer_end = work_buffer + tracklen + 1;
+
+	/* try to find longest sync run */
+	while (pos < buffer_end-1)
+	{
+		if ((pos[0] == 0xd7) && (pos[1] = 0xeb))
+		{
+			found = 1;
+			break;
+		}
+		pos++;
+	}
+
+	if(found)
+	{
+		do
+		{
+			pos -= 1;
+			if (pos == work_buffer)
+				pos += tracklen;
+
+		} while (*pos == 0xd7);
+
+		/* return the d7 run */
+		return (pos);
+	}
+	else
+		return NULL;
+}
+
 // Line up the track cycle to the start of the longest gap mark
 // this helps some custom protection tracks master properly
 BYTE *

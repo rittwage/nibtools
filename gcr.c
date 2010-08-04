@@ -61,7 +61,7 @@ BYTE reduce_map[MAX_TRACKS_1541 + 1] = {
 	0,	0, 0, 0, 0, 0						/* 37 - 42  */
 };
 
-char alignments[][20] = { "NONE", "GAP", "SEC0", "SYNC", "BADGCR", "VMAX", "AUTO", "VMAX-CW"};
+char alignments[][20] = { "NONE", "GAP", "SEC0", "SYNC", "BADGCR", "VMAX", "AUTO", "VMAX-CW", "RAW", "PSLAYER"};
 
 /* Burst Nibbler defaults
 size_t capacity_min[] = 		{ 6183, 6598, 7073, 7616 };
@@ -783,6 +783,12 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 		{
 			*align = ALIGN_VMAX;
 			marker_pos = align_vmax_new(work_buffer, track_len);
+		}
+
+		if (align_map[track] == ALIGN_PSLAYER)
+		{
+			*align = ALIGN_PSLAYER;
+			marker_pos = align_pirateslayer(work_buffer, track_len);
 		}
 
 		if (align_map[track] == ALIGN_AUTOGAP)
