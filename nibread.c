@@ -148,8 +148,10 @@ main(int argc, char *argv[])
 			break;
 
 		case 't':
-			extended_parallel_test = 1;
-			printf("* Extended parallel port testing\n");
+			extended_parallel_test = atoi(&(*argv)[2]);
+			if(!extended_parallel_test)
+				extended_parallel_test = 100;
+			printf("* Extended parallel port test loops = %d\n", extended_parallel_test);
 			break;
 
 		case 'I':
@@ -192,7 +194,7 @@ main(int argc, char *argv[])
 			break;
 
 		case 'V':
-			verbose = 1;
+			verbose++;
 			printf("* Verbose mode on\n");
 			break;
 
@@ -214,24 +216,6 @@ main(int argc, char *argv[])
 	}
 	printf("\n");
 
-	if (argc < 1)	usage();
-	strcpy(filename, argv[0]);
-
-	/* create log file */
-	strcpy(logfilename, filename);
-	dotpos = strrchr(logfilename, '.');
-	if (dotpos != NULL)
-		*dotpos = '\0';
-	strcat(logfilename, ".log");
-
-	if ((fplog = fopen(logfilename, "wb")) == NULL)
-	{
-		fprintf(stderr, "Couldn't create log file %s!\n", logfilename);
-		exit(2);
-	}
-
-	fprintf(fplog, "%s\n", VERSION);
-	fprintf(fplog, "'%s'\n", argcache);
 
 #ifdef DJGPP
 	calibrate();
@@ -256,19 +240,26 @@ main(int argc, char *argv[])
 	}
 
 	if(extended_parallel_test)
+		parallel_test(extended_parallel_test);
+
+	if(argc < 1) usage();
+	strcpy(filename, argv[0]);
+
+	/* create log file */
+	strcpy(logfilename, filename);
+	dotpos = strrchr(logfilename, '.');
+	if (dotpos != NULL)
+		*dotpos = '\0';
+	strcat(logfilename, ".log");
+
+	if ((fplog = fopen(logfilename, "wb")) == NULL)
 	{
-		printf("Performing extended parallel port test\n");
-		for(i=0; i<100; i++)
-		{
-			if(!verify_floppy(fd))
-			{
-				printf("Parallel port failed extended testing.  Check wiring and sheilding.\n");
-				exit(0);
-			}
-			printf(".");
-		}
-		printf("\nPassed advanced parallel port test\n");
+		fprintf(stderr, "Couldn't create log file %s!\n", logfilename);
+		exit(2);
 	}
+
+	fprintf(fplog, "%s\n", VERSION);
+	fprintf(fplog, "'%s'\n", argcache);
 
 	if(strrchr(filename, '.') == NULL)  strcat(filename, ".nib");
 	disk2file(fd, filename);
@@ -277,6 +268,24 @@ main(int argc, char *argv[])
 	step_to_halftrack(fd, 18 * 2);
 
 	if(fplog) fclose(fplog);
+	exit(0);
+}
+
+void parallel_test(int iterations)
+{
+	int i;
+
+	printf("Performing extended parallel port test\n");
+	for(i=0; i<iterations; i++)
+	{
+		if(!verify_floppy(fd))
+		{
+			printf("Parallel port failed extended testing.  Check wiring and sheilding.\n");
+			exit(0);
+		}
+		printf(".");
+	}
+	printf("\nPassed advanced parallel port test\n");
 	exit(0);
 }
 
