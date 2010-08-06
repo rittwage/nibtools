@@ -281,7 +281,7 @@ adjust_target(CBM_FILE fd)
 		else
 			step_to_halftrack(fd, start_track);
 
-		set_bitrate(fd, i);
+		set_bitrate(fd, (BYTE)i);
 
 		printf("Density %d: ", i);
 

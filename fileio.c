@@ -963,16 +963,16 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 				switch (track_density[track])
 				{
 					case 0:
-						capacity[speed_map[track/2]] = DENSITY0/rpm_real;
+						capacity[speed_map[track/2]] = (size_t)(DENSITY0/rpm_real);
 						break;
 					case 1:
-						capacity[speed_map[track/2]] = DENSITY1/rpm_real;
+						capacity[speed_map[track/2]] = (size_t)(DENSITY1/rpm_real);
 						break;
 					case 2:
-						capacity[speed_map[track/2]] = DENSITY2/rpm_real;
+						capacity[speed_map[track/2]] = (size_t)(DENSITY2/rpm_real);
 						break;
 					case 3:
-						capacity[speed_map[track/2]] = DENSITY3/rpm_real;
+						capacity[speed_map[track/2]] = (size_t)(DENSITY3/rpm_real);
 						break;
 				}
 

@@ -311,7 +311,8 @@ write_nb2(CBM_FILE fd, char * filename)
 {
 	BYTE density;
 	FILE * fpout;
-	int track, i, header_entry, pass, pass_density;
+	int track, i, header_entry, pass;
+	BYTE pass_density;
 	BYTE buffer[NIB_TRACK_LENGTH];
 	char header[0x100];
 

@@ -149,7 +149,7 @@ align_pirateslayer(BYTE * work_buffer, size_t tracklen)
 	/* try to find longest sync run */
 	while (pos < buffer_end-1)
 	{
-		if ((pos[0] == 0xd7) && (pos[1] = 0xeb))
+		if ((pos[0] == 0xd7) && (pos[1] == 0xeb))
 		{
 			found = 1;
 			break;

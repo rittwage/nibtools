@@ -340,7 +340,7 @@ void perform_bump(CBM_FILE fd, BYTE drive)
 
 
 int
-set_density(CBM_FILE fd, int density)
+set_density(CBM_FILE fd, BYTE density)
 {
 	BYTE cmdArgs[] = {
 		density_branch[density],
@@ -355,8 +355,8 @@ set_density(CBM_FILE fd, int density)
 }
 
 /* $13d6 */
-int
-set_bitrate(CBM_FILE fd, int density)
+BYTE
+set_bitrate(CBM_FILE fd, BYTE density)
 {
 	BYTE cmdArgs[] = {
 		0x9f,			/* $1c00 CLEAR mask */
@@ -368,10 +368,10 @@ set_bitrate(CBM_FILE fd, int density)
 }
 
 /* $13bc */
-int
+BYTE
 set_default_bitrate(CBM_FILE fd, int track)
 {
-	int density;
+	BYTE density;
 
 	density = speed_map[track/2];
 	return set_bitrate(fd, density);
