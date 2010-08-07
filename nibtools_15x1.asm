@@ -111,6 +111,7 @@ _in_sync:
         BIT  $1c00
         BMI  _in_sync             ; wait for end of Sync
 
+_read_start:
         LDA  #$ff
         STA  $1800                ; send handshake
         LDX  #$20                 ; read $2000 GCR bytes
@@ -189,71 +190,10 @@ _ihsr_wait_end:
 _ihsr_wait_start:
         BIT  $2000                ; now, wait for beginning of index hole
         BEQ  _ihsr_wait_start     ;
-
-;_ihsr_in_sync:
-;        BIT  $1c00
-;        BMI  _ihsr_in_sync        ; wait for end of Sync
-
-        LDA  #$ff
-        STA  $1800                ; send handshake
-        LDX  #$20                 ; read $2000 GCR bytes
-        STX  $c0
-
-        LDX  $1c01                ; read GCR byte
-        CLV
-_ihsr_wait_byte:
-        BVC  _ihsr_wait_byte
-;----------------------------------------
-_ihsr_read_gcr_loop:
-        BVS  _ihsr_read_gcr_1
-        BVS  _ihsr_read_gcr_1
-        BVS  _ihsr_read_gcr_1
-        BVS  _ihsr_read_gcr_1
-        BVS  _ihsr_read_gcr_1
-        BVS  _ihsr_read_gcr_1
-        BVS  _ihsr_read_gcr_1
-        LDX  #$ff
-        BVS  _ihsr_read_gcr_1
-        EOR  #$ff
-        BVS  _ihsr_read_gcr_2
-        STX  PP_BASE
-        BVS  _ihsr_read_gcr_2
-        STA  $1701,X
-        DEY                      
-_ihsr_rtp6:
-        BNE  _ihsr_read_gcr_loop
-        DEC  $c0
-        BEQ  _ihsr_read_track_end
-_ihsr_rtp5:
-        BVC  _ihsr_read_gcr_loop
-_ihsr_read_gcr_1:
-        LDX  $1c01
-        CLV
-        EOR  #$ff
-        STX  PP_BASE
-        STA  $1800
-        DEY                       
-_ihsr_rtp4:
-        BNE  _ihsr_read_gcr_loop
-        DEC  $c0
-_ihsr_rtp3:
-        BNE  _ihsr_read_gcr_loop
-        BEQ  _ihsr_read_track_end    
-_ihsr_read_gcr_2:
-        LDX  $1c01
-        CLV
-        STX  PP_BASE
-        STA  $1800
-        DEY                      
-_ihsr_rtp2:
-        BNE  _ihsr_read_gcr_loop
-        DEC  $c0
-_ihsr_rtp1:
-        BNE  _ihsr_read_gcr_loop
-_ihsr_read_track_end:                  
-        STY  $1800
-        RTS
-
+        
+	BNE _read_start	;	
+	
+	
 ;----------------------------------------
 ; Density Scan for current track
 _scan_density:
@@ -365,23 +305,16 @@ _adjust_density:
         CLC
         ADC  #$04
         STA  _rtp1+1
-        STA  _ihsr_rtp1+1
         ADC  #$02
         STA  _rtp2+1
-        STA  _ihsr_rtp2+1
         ADC  #$11
         STA  _rtp3+1
-        STA  _ihsr_rtp3+1
         ADC  #$02
         STA  _rtp4+1
-        STA  _ihsr_rtp4+1
         ADC  #$15
         STA  _rtp5+1
-        STA  _ihsr_rtp5+1
         ADC  #$04
         STA  _rtp6+1
-        STA  _ihsr_rtp6+1
-
 
 ;----------------------------------------
 ; set $1c00 bits (head/motor)

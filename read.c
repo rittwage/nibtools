@@ -508,7 +508,7 @@ scan_track(CBM_FILE fd, int track)
 	if(scanned_density == 0xff)
 	{
 		density = speed_map[track/2];
-		printf("\n{NONGCR:%d}\n",density);
+		printf("{NONGCR:%d}",density);
 	}
 	else
 		density = scanned_density;
