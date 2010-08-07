@@ -552,6 +552,16 @@ check_valid_data(BYTE * data, int matchlen)
 {
 	/* makes a simple assumption whether this is good data to match track cycle overlap */
 	int i;
+	int redund = 0;
+
+	for (i = 0; i < matchlen; i++)
+	{
+		if (data[i] == data[i + 1] || data[i] == data[i + 2] ||
+		  data[i] == data[i + 3] || data[i] == data[i + 4])
+			redund++;
+	}
+	if (redund > 1)
+		return 0;
 
 	for (i = 0; i < matchlen; i++)
 	{
@@ -714,6 +724,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	size_t track_len;
 	size_t sector0_len;	/* length of gap before sector 0 */
 	size_t sectorgap_len;	/* length of longest gap */
+	int i;
 
 	sector0_pos = NULL;
 	sectorgap_pos = NULL;
@@ -754,6 +765,11 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 			printf("[LONG, max=%d<%d] ",cap_max, track_len);
 		if(track_len < cap_min)
 			printf("[SHORT, min=%d>%d] ", cap_min, track_len);
+
+		printf("{cycle:");
+		for(i=0;i<gap_match_length;i++)
+			printf("%.2x",cycle_start[i]);
+		printf("}");
 	}
 
 	/* copy twice the data to work buffer */
@@ -825,7 +841,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 		if (marker_pos)
 		{
 			memcpy(destination, marker_pos, track_len);
-			return (track_len);
+			goto aligned;
 		}
 	}
 
@@ -838,7 +854,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 		{
 			memcpy(destination, marker_pos, track_len);
 			*align = ALIGN_LONGSYNC;
-			return (track_len);
+			goto aligned;
 		}
 
 		/* we aren't dealing with a normal track here, so autogap it */
@@ -847,7 +863,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 		{
 			memcpy(destination, marker_pos, track_len);
 			*align = ALIGN_AUTOGAP;
-			return (track_len);
+			goto aligned;
 		}
 	}
 
@@ -867,7 +883,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	{
 		*align = ALIGN_GAP;
 		memcpy(destination, sectorgap_pos, track_len);
-		return (track_len);
+		goto aligned;
 	}
 
 	/* no large gap found, try sector 0 */
@@ -875,7 +891,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	{
 		*align = ALIGN_SEC0;
 		memcpy(destination, sector0_pos, track_len);
-		return (track_len);
+		goto aligned;
 	}
 
 	/* no sector 0 found, use gap anyway */
@@ -883,7 +899,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	{
 		memcpy(destination, sectorgap_pos, track_len);
 		*align = ALIGN_GAP;
-		return (track_len);
+		goto aligned;
 	}
 
 	/* if there is sync, align to the longest one */
@@ -892,7 +908,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	{
 		memcpy(destination, marker_pos, track_len);
 		*align = ALIGN_LONGSYNC;
-		return (track_len);
+		goto aligned;
 	}
 
 	/* we aren't dealing with a normal track here, so autogap it */
@@ -901,13 +917,23 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	{
 		memcpy(destination, marker_pos, track_len);
 		*align = ALIGN_AUTOGAP;
-		return (track_len);
+		goto aligned;
 	}
 
 	/* we give up, just return everything */
 	memcpy(destination, work_buffer, track_len);
 	*align = ALIGN_NONE;
-	return (track_len);
+	goto aligned;
+
+aligned:
+	if(verbose)
+	{
+		printf("{align:");
+		for(i=0;i<gap_match_length;i++)
+			printf("%.2x",cycle_start[i]);
+		printf("}");
+	}
+	return track_len;
 }
 
 /*

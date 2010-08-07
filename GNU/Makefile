@@ -18,7 +18,7 @@ CBM_LNX_PATH=	/usr/local
 CBM_WIN_PATH=	../
 
 # Default compile flags.  Be careful with optimization (-O2)
-CFLAGS=		${WARNS} -Wno-char-subscripts
+CFLAGS=		${WARNS} 
 
 # cl65 defs, contributed by Ullrich von Bassewitz <uz(at)musoftware(dot)de>
 # (cc65 >= 2.6 required)

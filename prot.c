@@ -141,37 +141,21 @@ BYTE *
 align_pirateslayer(BYTE * work_buffer, size_t tracklen)
 {
 	BYTE *pos, *buffer_end;
-	int found = 0;
 
 	pos = work_buffer;
 	buffer_end = work_buffer + tracklen + 1;
 
-	/* try to find longest sync run */
-	while (pos < buffer_end-1)
+	/* try to find pslayer signature */
+	while (pos < buffer_end-5)
 	{
-		if ((pos[0] == 0xd7) && (pos[1] == 0xeb))
+		if ( ((pos[0] == 0xd7) && (pos[1] == 0xd7) && (pos[2] == 0xeb) && (pos[3] == 0xcc) && (pos[4] == 0xad)) ||
+			 ((pos[0] == 0xeb) && (pos[1] == 0xd7) && (pos[2] == 0xaa) && (pos[3] == 0x55)) )
 		{
-			found = 1;
-			break;
+			return pos;
 		}
 		pos++;
 	}
-
-	if(found)
-	{
-		do
-		{
-			pos -= 1;
-			if (pos == work_buffer)
-				pos += tracklen;
-
-		} while (*pos == 0xd7);
-
-		/* return the d7 run */
-		return (pos);
-	}
-	else
-		return NULL;
+	return NULL;
 }
 
 // Line up the track cycle to the start of the longest gap mark
@@ -211,9 +195,9 @@ auto_gap(BYTE * work_buffer, size_t tracklen)
 
 	/* last 5 bytes of gap */
 	// printf("gapbyte: %x, len: %d\n",gapbyte,longest);
-	//if(key >= work_buffer + 5)
-	//	return(key - 5);
-	//else
+	if(key >= work_buffer + 5)
+		return(key - 5);
+	else
 		return(key);
 }
 
