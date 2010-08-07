@@ -287,7 +287,7 @@ load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *trac
 
 	if(iszip)
 	{
-		unlink(filename);
+		remove(filename);
 		printf("Temporary file deleted (%s)\n", filename);
 	}
 

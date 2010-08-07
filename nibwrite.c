@@ -228,7 +228,7 @@ loadimage(char * filename)
 
 	if(iszip)
 	{
-		unlink(filename);
+		remove(filename);
 		printf("Temporary file deleted.\n");
 	}
 

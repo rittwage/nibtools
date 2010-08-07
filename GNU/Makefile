@@ -8,6 +8,7 @@
 DJGPP_PATH=	c:/djgpp
 
 # Recent Cygwin defaults to gcc-4, which has -mno-cygwin removed (among other things)
+#CC=gcc-4
 CC=gcc-3
 
 # If building for Linux or Windows, change this to the base path to your
@@ -17,7 +18,7 @@ CBM_LNX_PATH=	/usr/local
 CBM_WIN_PATH=	../
 
 # Default compile flags.  Be careful with optimization (-O2)
-CFLAGS=		${WARNS}
+CFLAGS=		${WARNS} -Wno-char-subscripts
 
 # cl65 defs, contributed by Ullrich von Bassewitz <uz(at)musoftware(dot)de>
 # (cc65 >= 2.6 required)

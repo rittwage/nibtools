@@ -150,7 +150,7 @@ main(int argc, char **argv)
 
 	if(iszip)
 	{
-			unlink(inname);
+			remove(inname);
 			printf("Temporary file deleted.\n");
 	}
 
