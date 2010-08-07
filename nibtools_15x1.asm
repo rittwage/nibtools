@@ -120,57 +120,57 @@ _in_sync:
         CLV
 _wait_for_byte:
         BVC  _wait_for_byte
+;----------------------------------------
 _read_gcr_loop:
-        BVS  _read_gcr_1          ; wait for next GCR byte
         BVS  _read_gcr_1
         BVS  _read_gcr_1
         BVS  _read_gcr_1
         BVS  _read_gcr_1
         BVS  _read_gcr_1
         BVS  _read_gcr_1
-        LDX  #$ff                 ; if pause too long, send 0xff  
         BVS  _read_gcr_1
-        EOR  #$ff                 ; toggle handshake value
-        BVS  _read_gcr_2          ; read and transfer GCR byte
-        STX  PP_BASE              ; PA, port A (8 bit parallel data)
-        BVS  _read_gcr_2          ; read and transfer GCR byte
-        STA  $1701,x                ; send handshake (send 0xff byte)
-        INY                       ;
+        LDX  #$ff
+        BVS  _read_gcr_1
+        EOR  #$ff
+        BVS  _read_gcr_2
+        STX  PP_BASE
+        BVS  _read_gcr_2
+        STA  $1701,X
+        DEY                   
 _rtp6:
         BNE  _read_gcr_loop
-        DEC  $c0                  ; total byte counter hb
+        DEC  $c0
         BEQ  _read_track_end
 _rtp5:
         BVC  _read_gcr_loop
 _read_gcr_1:
-        LDX  $1c01                ; read GCR byte
+        LDX  $1c01
         CLV
-        EOR  #$ff                 ; toggle handshake flag
-        STX  PP_BASE              ; PA, port A (8 bit parallel data)
-        STA  $1800                ; send handshake
-        INY
+        EOR  #$ff
+        STX  PP_BASE
+        STA  $1800
+        DEY                      
 _rtp4:
         BNE  _read_gcr_loop
         DEC  $c0
 _rtp3:
         BNE  _read_gcr_loop
-_read_track_end:
-        STY  $1800                ; send handshake: $00
-        RTS                       ; done reading
+        BEQ  _read_track_end    
 _read_gcr_2:
-        LDX  $1c01                ; read GCR byte
-        CLV                       ;
-        STX  PP_BASE              ; PA, port A (8 bit parallel data)
-        STA  $1800                ; send handshake
-        INY                       ;
+        LDX  $1c01
+        CLV
+        STX  PP_BASE
+        STA  $1800
+        DEY                     
 _rtp2:
         BNE  _read_gcr_loop
-        DEC  $c0                  ; total byte counter hb
+        DEC  $c0
 _rtp1:
         BNE  _read_gcr_loop
-        STY  $1800                ; send handshake: $00
-        RTS                       ; done reading
-        
+_read_track_end:              
+        STY  $1800
+        RTS
+
         
 ;----------------------------------------
 ; read out track after index hole
@@ -203,56 +203,56 @@ _ihsr_wait_start:
         CLV
 _ihsr_wait_byte:
         BVC  _ihsr_wait_byte
+;----------------------------------------
 _ihsr_read_gcr_loop:
-        BVS  _ihsr_read_gcr_1     ; wait for next GCR byte
         BVS  _ihsr_read_gcr_1
         BVS  _ihsr_read_gcr_1
         BVS  _ihsr_read_gcr_1
         BVS  _ihsr_read_gcr_1
         BVS  _ihsr_read_gcr_1
         BVS  _ihsr_read_gcr_1
-        LDX  #$ff                 ; if pause too long, send 0xff (Sync?)
         BVS  _ihsr_read_gcr_1
-        EOR  #$ff                 ; toggle handshake value
-        BVS  _ihsr_read_gcr_2     ; read and transfer GCR byte
-        STX  PP_BASE              ; PA, port A (8 bit parallel data)
-        BVS  _ihsr_read_gcr_2     ; read and transfer GCR byte
-        STA  $1701,x                ; send handshake (send 0xff byte)
-        INY                       ;
+        LDX  #$ff
+        BVS  _ihsr_read_gcr_1
+        EOR  #$ff
+        BVS  _ihsr_read_gcr_2
+        STX  PP_BASE
+        BVS  _ihsr_read_gcr_2
+        STA  $1701,X
+        DEY                      
 _ihsr_rtp6:
         BNE  _ihsr_read_gcr_loop
-        DEC  $c0                  ; total byte counter hb
+        DEC  $c0
         BEQ  _ihsr_read_track_end
 _ihsr_rtp5:
         BVC  _ihsr_read_gcr_loop
 _ihsr_read_gcr_1:
-        LDX  $1c01                ; read GCR byte
+        LDX  $1c01
         CLV
-        EOR  #$ff                 ; toggle handshake flag
-        STX  PP_BASE              ; PA, port A (8 bit parallel data)
-        STA  $1800                ; send handshake
-        INY
+        EOR  #$ff
+        STX  PP_BASE
+        STA  $1800
+        DEY                       
 _ihsr_rtp4:
         BNE  _ihsr_read_gcr_loop
         DEC  $c0
 _ihsr_rtp3:
         BNE  _ihsr_read_gcr_loop
-_ihsr_read_track_end:
-        STY  $1800                ; send handshake: $00
-        RTS                       ; done reading
+        BEQ  _ihsr_read_track_end    
 _ihsr_read_gcr_2:
-        LDX  $1c01                ; read GCR byte
-        CLV                       ;
-        STX  PP_BASE              ; PA, port A (8 bit parallel data)
-        STA  $1800                ; send handshake
-        INY                       ;
+        LDX  $1c01
+        CLV
+        STX  PP_BASE
+        STA  $1800
+        DEY                      
 _ihsr_rtp2:
         BNE  _ihsr_read_gcr_loop
-        DEC  $c0                  ; total byte counter hb
+        DEC  $c0
 _ihsr_rtp1:
         BNE  _ihsr_read_gcr_loop
-        STY  $1800                ; send handshake: $00
-        RTS                       ; done reading
+_ihsr_read_track_end:                  
+        STY  $1800
+        RTS
 
 ;----------------------------------------
 ; Density Scan for current track
@@ -361,25 +361,27 @@ _step_dest_end:
 ;----------------------------------------
 ; adjust routines to density value
 _adjust_density:
-        JSR  _read_byte           ; read byte from parallel data port
+        JSR  _read_byte
+        CLC
+        ADC  #$04
         STA  _rtp1+1
-        STA  _ihsr_rtp1+1  
-        CLC                       ;
-        ADC  #$04                 ;
-        STA  _rtp2+1              ; adjust read routines to the
-        STA  _ihsr_rtp2+1      
-    	ADC  #$11                 ; density (timing) value read
-        STA  _rtp3+1              ; from computer
-        STA  _ihsr_rtp3+1  
-        ADC  #$04                 ;
-        STA  _rtp4+1              ;
-        STA  _ihsr_rtp4+1  
-        ADC  #$13                 ;
-        STA  _rtp5+1              ;
-        STA  _ihsr_rtp5+1  
-        ADC  #$06                 ;
-        STA  _rtp6+1              ;
-        STA  _ihsr_rtp6+1  
+        STA  _ihsr_rtp1+1
+        ADC  #$02
+        STA  _rtp2+1
+        STA  _ihsr_rtp2+1
+        ADC  #$11
+        STA  _rtp3+1
+        STA  _ihsr_rtp3+1
+        ADC  #$02
+        STA  _rtp4+1
+        STA  _ihsr_rtp4+1
+        ADC  #$15
+        STA  _rtp5+1
+        STA  _ihsr_rtp5+1
+        ADC  #$04
+        STA  _rtp6+1
+        STA  _ihsr_rtp6+1
+
 
 ;----------------------------------------
 ; set $1c00 bits (head/motor)
