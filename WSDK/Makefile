@@ -1,12 +1,12 @@
-# NIBTOOLS WSDK Makefile v1.00
+# NIBTOOLS WSDK Makefile
 #
-# Copyright 2009 Arnd Menge <arnd(at)jonnz(dot)de>
+# Copyright 2010 Arnd Menge <arnd(at)jonnz(dot)de>
 #
 # For use with
 #
-#   NIBTOOLS   v0.5.9    -- http://www.rittwage.com        (SVN Rev. 244 source code)
-#   OPENCBM    v0.4.3rc2 -- http://opencbm.trikaliotis.net (Win32/64 binaries for the target platforms)
-#   CC65 Win32 v2.13.0-1 -- http://www.cc65.org            (Win32 binary release, "cc65-win32-2.13.0-1.zip")
+#   NIBTOOLS   v0.7.6    -- http://www.rittwage.com
+#   OPENCBM    v0.4.3rc2 -- http://opencbm.trikaliotis.net
+#   CC65 Win32 v2.13.2-1 -- http://www.cc65.org
 #
 # and
 #
@@ -30,11 +30,11 @@
 #   (3) Run "Setenv" to configure your Build Environment
 #
 #       Usage:
-#       Setenv [/release | /debug] [/x86 | /x64]
+#       Setenv [/release | /debug] [/x86 | /x64] [/xp | /vista | /win7 | /2003 | /2008] [-h | /?]
 #
 #       E.g.:
-#       "Setenv /release /x86"  : RELEASE Build, 32bit x86 applications
-#       "Setenv /release /x64"  : RELEASE Build, 64bit x64 applications
+#       "Setenv /release /x86 /xp" : RELEASE Build, 32bit x86, Windows XP SP2
+#       "Setenv /release /x64 /xp" : RELEASE Build, 64bit x64, Windows XP SP2
 #
 #   (4) Change to this Makefile's directory.
 #
@@ -60,13 +60,15 @@
 #
 #   All NIBTOOLS files are required unmodified original, fetched from
 #   official SVN.
-#   The resource files "WIN-Resource\*.rc" must be copies of "WINBUILD*\*.rc".
 #
 #   You can build for platforms different from yours if you first build
 #   Bin2Array utility for your own platform (run this Makefile for your own
 #   platform), change Bin2Array's directory below to point to the output
 #   directory associated with your own platform, and finally run this
 #   Makefile for the target platform.
+#
+#   "Windows 7" applications may not run on older Windows versions,
+#   "Windows XP SP2" applications may be the most compatible.
 #
 # PROJECT DIRECTORY TREE AND FILE LIST:
 # =====================================
@@ -99,7 +101,6 @@
 #   \nibdev\nibtools\prot.h
 #   \nibdev\nibtools\read.c
 #   \nibdev\nibtools\readme.txt
-#   \nibdev\nibtools\version.h
 #   \nibdev\nibtools\write.c
 #   \nibdev\nibtools\GNU\Makefile
 #   \nibdev\nibtools\include\DOS\cbm.h
@@ -110,11 +111,6 @@
 #   \nibdev\nibtools\include\WINDOWS\mnibarch.h
 #   \nibdev\nibtools\include\WINDOWS\opencbm.h
 #   \nibdev\nibtools\LINUX\Makefile
-#   \nibdev\nibtools\WIN-Resource\nibconv.rc
-#   \nibdev\nibtools\WIN-Resource\nibread.rc
-#   \nibdev\nibtools\WIN-Resource\nibrepair.rc
-#   \nibdev\nibtools\WIN-Resource\nibscan.rc
-#   \nibdev\nibtools\WIN-Resource\nibwrite.rc
 #   \nibdev\nibtools\WINBUILD-nibconv\Makefile
 #   \nibdev\nibtools\WINBUILD-nibconv\nibconv.dsp
 #   \nibdev\nibtools\WINBUILD-nibconv\nibconv.rc
@@ -139,18 +135,14 @@
 #   \nibdev\nibtools\WINBUILD-nibwrite\sources
 #   \nibdev\nibtools\WSDK\bin2array.c
 #   \nibdev\nibtools\WSDK\Makefile
+#   \nibdev\nibtools\WSDK\version.h
 # 
-#   \nibdev\cc65-win32-2.13.0-1\bin\ca65.exe
-#   \nibdev\cc65-win32-2.13.0-1\bin\cl65.exe
-#   \nibdev\cc65-win32-2.13.0-1\bin\ld65.exe
+#   \nibdev\cc65-win32-2.13.2-1\bin\ca65.exe
+#   \nibdev\cc65-win32-2.13.2-1\bin\cl65.exe
+#   \nibdev\cc65-win32-2.13.2-1\bin\ld65.exe
 #
 #   \nibdev\opencbm-0.4.3rc2-i386\opencbm.dll
 #   \nibdev\opencbm-0.4.3rc2-amd64\opencbm.dll
-#
-# VERSION HISTORY:
-# ================
-#
-#   v1.00 -- initial Makefile version.
 #
 # LEGAL NOTICE:
 # =============
@@ -169,8 +161,8 @@
 # Print Makefile information
 # -------------------------------------------------------------------------
 
-!message NIBTOOLS WSDK Makefile v1.00
-!message Copyright 2009 Arnd Menge <arnd(at)jonnz(dot)de>
+!message NIBTOOLS WSDK Makefile
+!message Copyright 2010 Arnd Menge <arnd(at)jonnz(dot)de>
 !message
 
 # -------------------------------------------------------------------------
@@ -189,19 +181,16 @@ BINDIR = $(OUTDIR)
 # Include directory ("mnibarch.h" and "opencbm.h")
 INCLUDE_DIR = ..\include\WINDOWS
 
-# Resource directory
-RC_DIR = ..\WIN-Resource
-
 # "Bin2Array.exe" utility directory
+#B2A_DIR = XP32_RETAIL
 B2A_DIR = $(OUTDIR)
-B2A_DIR = XP32_RETAIL
 
 # "opencbm.dll" directories
-OPENCBM_DLL_DIR_x86  = ..\..\bin\i386
-OPENCBM_DLL_DIR_x64  = ..\..\bin\amd64
+OPENCBM_DLL_DIR_x86  = ..\..\opencbm-0.4.3rc2-i386
+OPENCBM_DLL_DIR_x64  = ..\..\opencbm-0.4.3rc2-amd64
 
 # CC65 directory
-CC65_BIN_DIR = ..\..\..\cc65\bin
+CC65_BIN_DIR = ..\..\cc65-win32-2.13.2-1\bin
 
 # -------------------------------------------------------------------------
 # Build targets
@@ -339,7 +328,19 @@ $(C_DIR)\DriveCode:
 # Update the resource files if necessary
 # -------------------------------------------------------------------------
 
-{$(RC_DIR)}.rc{$(OUTDIR)}.res:
+{..\WINBUILD-nibread}.rc{$(OUTDIR)}.res:
+    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)/%|fF.res" $**
+
+{..\WINBUILD-nibwrite}.rc{$(OUTDIR)}.res:
+    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)/%|fF.res" $**
+
+{..\WINBUILD-nibconv}.rc{$(OUTDIR)}.res:
+    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)/%|fF.res" $**
+
+{..\WINBUILD-nibrepair}.rc{$(OUTDIR)}.res:
+    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)/%|fF.res" $**
+
+{..\WINBUILD-nibscan}.rc{$(OUTDIR)}.res:
     $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)/%|fF.res" $**
 
 # -------------------------------------------------------------------------
