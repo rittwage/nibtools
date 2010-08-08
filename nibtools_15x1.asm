@@ -370,6 +370,68 @@ _dk_killer:
         RTS                       ; -> $80 = killer track (too many syncs)
 
 
+;----------------------------------------
+; send a short sync to all tracks on a disk
+; Pete Rittwage 3/7/2010
+_align_disk:
+        JSR  _read_byte           ; read byte from parallel data port
+        STA  _delay_loop+1         ; can change delay loop by 10ms
+      
+        LDA  #$ce
+        STA  $1c0c
+        DEC  $1c03                ; CA data direction head (0->$ff: write)
+        
+        LDA #$52  	 ; track 41	
+       	STA $cf
+
+ _admain:
+	JSR _step_dest_internal
+	LDA  #$ff                 ;
+        STA  $1c01                ; write $ff byte (Sync mark)
+_adL1:
+        BVC  _adL1                ;
+        STA  $1c01                ; write $ff byte (Sync mark)
+_adL2:
+        BVC  _adL2                ;
+
+_delay_loop:
+     	DEC $cf
+	DEC $cf
+	LDA $cf
+	BNE _admain 
+	
+        LDA  #$ee
+        STA  $1c0c
+        INC  $1c03                ; CA data direction head ($ff->$0: read)
+        RTS
+
+
+;----------------------------------------
+; completely fill a track with given byte
+; used for unformat/kill
+
+_fill_track:
+        LDA  #$ce
+        STA  $1c0c
+        DEC  $1c03                ; CA data direction head (0->$ff: write)
+
+	JSR  _read_byte           ; read byte from parallel data port
+        LDX  #$20                 ;
+        STA  $1c01                ; send byte to head
+_ftL1:
+        BVC  _ftL1                ;
+        CLV                       ;
+        INY                       ; write $2000 ($20 x $100) times
+        BNE  _ftL1                ;
+        DEX                       ;
+        BNE  _ftL1                ;
+
+        LDA  #$ee
+        STA  $1c0c
+        INC $1C03
+        RTS
+       
+       
 .if DRIVE = 1541
 ;----------------------------------------
 ; write a track on destination
@@ -582,6 +644,24 @@ _perform_ui:
         STA  $22                  ; current track = 18
         JMP  $eb22                ; UI command (?)
 
+
+;----------------------------------------
+_verify_code:
+        LDY  #$00
+        STY  $c0
+        LDA  #$03
+        STA  $c1
+_verify_L1:
+        LDA  ($c0),Y
+        JSR  _send_byte           ; parallel-send data byte to C64
+        INY
+        BNE  _verify_L1           ;
+        INC  $c1
+        LDA  $c1
+        CMP  #$08
+        BNE  _verify_L1
+        RTS
+        
 ;----------------------------------------
 ; measure destination track length
 _measure_trk_len:
@@ -627,83 +707,6 @@ _mt_end:
         TXA                       ; (0) : Track 'too long'
         JMP  _send_byte           ; parallel-send data byte to C64
 
-;----------------------------------------
-; send a short sync to all tracks on a disk
-; Pete Rittwage 3/7/2010
-_align_disk:
-        JSR  _read_byte           ; read byte from parallel data port
-        STA  _delay_loop+1         ; can change delay loop by 10ms
-      
-        LDA  #$ce
-        STA  $1c0c
-        DEC  $1c03                ; CA data direction head (0->$ff: write)
-        
-        LDA #$52  	 ; track 41	
-       	STA $cf
-
- _admain:
-	JSR _step_dest_internal
-	LDA  #$ff                 ;
-        STA  $1c01                ; write $ff byte (Sync mark)
-_adL1:
-        BVC  _adL1                ;
-        STA  $1c01                ; write $ff byte (Sync mark)
-_adL2:
-        BVC  _adL2                ;
-
-_delay_loop:
-     	DEC $cf
-	DEC $cf
-	LDA $cf
-	BNE _admain 
-	
-        LDA  #$ee
-        STA  $1c0c
-        INC  $1c03                ; CA data direction head ($ff->$0: read)
-        RTS
-
-;----------------------------------------
-_verify_code:
-        LDY  #$00
-        STY  $c0
-        LDA  #$03
-        STA  $c1
-_verify_L1:
-        LDA  ($c0),Y
-        JSR  _send_byte           ; parallel-send data byte to C64
-        INY
-        BNE  _verify_L1           ;
-        INC  $c1
-        LDA  $c1
-        CMP  #$08
-        BNE  _verify_L1
-        RTS
-
-;----------------------------------------
-; completely fill a track with given byte
-; used for unformat/kill
-
-_fill_track:
-        LDA  #$ce
-        STA  $1c0c
-        DEC  $1c03                ; CA data direction head (0->$ff: write)
-
-	JSR  _read_byte           ; read byte from parallel data port
-        LDX  #$20                 ;
-        STA  $1c01                ; send byte to head
-_ftL1:
-        BVC  _ftL1                ;
-        CLV                       ;
-        INY                       ; write $2000 ($20 x $100) times
-        BNE  _ftL1                ;
-        DEX                       ;
-        BNE  _ftL1                ;
-
-        LDA  #$ee
-        STA  $1c0c
-        INC $1C03
-        RTS
-       
 ;----------------------------------------
 ; Command Jump table, return value: Y
 _command_table:
