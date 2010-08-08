@@ -107,9 +107,9 @@ _read_track:
 _read_after_sync:
         JSR  _send_byte           ; parallel-send data byte to C64
 
-_in_sync:
+_read_in_sync:
         BIT  $1c00
-        BMI  _in_sync             ; wait for end of Sync
+        BMI  _read_in_sync             ; wait for end of Sync
 
 _read_start:
         LDA  #$ff
@@ -190,11 +190,12 @@ _ihsr_wait_1:
 _ihsr_wait_2:
         BIT  $2000                ; 
         BEQ  _ihsr_wait_2     ;
-_ihsr_wait_3:
+_ihsr_wait_3:			; wait for it to pass or start at beginning?  What did TRACE devices do?
         BIT  $2000                ; 
         BNE  _ihsr_wait_3       ; 
         
-	BEQ _read_start	;	
+        BEQ _read_in_sync ;  
+	BEQ _read_start	;  WARNING:  reading without waiting for a sync can cause a bad sector since it can be out of framing	
 	
 ;----------------------------------------
 ; step motor to destination halftrack
@@ -439,12 +440,15 @@ _ihs_wait:
         LDA  #$02                 ; index hole is bit 1 in WD177x status register
 _skipihs:
         BNE  _waitsync_start		; default is skip IHS	       
-_ihs_wait_end:
-        BIT  $2000                ; in case index hole is currently visible,
-        BNE  _ihs_wait_end       ; wait for its end
-_ihs_wait_start:
-        BIT  $2000                ; wait for beginning of index hole
-        BEQ  _ihs_wait_start
+_ihsw_wait_1:
+        BIT  $2000                ; 
+        BNE  _ihsw_wait_1       ; 
+_ihsw_wait_2:
+        BIT  $2000                ; 
+        BEQ  _ihsw_wait_2     ;
+_ihsw_wait_3:			; wait for it to pass or start at beginning?  What did TRACE devices do?
+        BIT  $2000                ; 
+        BNE  _ihsw_wait_3       ; 
 
 _waitsync_start:
         BIT  $1c00                ; wait for end of Sync, if writing
