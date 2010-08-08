@@ -1155,13 +1155,13 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 
 	if(byte_match)
 	{
-			sprintf(tmpstr, "(match:%d)", byte_match);
+			sprintf(tmpstr, "(match:%lu)", byte_match);
 			strcat(outputstring, tmpstr);
 	}
 
 	if(byte_diff)
 	{
-			sprintf(tmpstr, "(diff:%d)", byte_diff);
+			sprintf(tmpstr, "(diff:%lu)", byte_diff);
 			strcat(outputstring, tmpstr);
 	}
 	else
@@ -1169,31 +1169,31 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 
 	if (sync_diff)
 	{
-		sprintf(tmpstr, "(sync:%d)", sync_diff);
+		sprintf(tmpstr, "(sync:%lu)", sync_diff);
 		strcat(outputstring, tmpstr);
 	}
 
 	if (presync_diff)
 	{
-		sprintf(tmpstr, "(presync:%d)", presync_diff);
+		sprintf(tmpstr, "(presync:%lu)", presync_diff);
 		strcat(outputstring, tmpstr);
 	}
 
 	if (gap_diff)
 	{
-		sprintf(tmpstr, "(gap:%d)", gap_diff);
+		sprintf(tmpstr, "(gap:%lu)", gap_diff);
 		strcat(outputstring, tmpstr);
 	}
 
 	if (badgcr_diff)
 	{
-		sprintf(tmpstr, "(badgcr:%d)", badgcr_diff);
+		sprintf(tmpstr, "(badgcr:%lu)", badgcr_diff);
 		strcat(outputstring, tmpstr);
 	}
 
 	if (size_diff)
 	{
-		sprintf(tmpstr, "(size:%d)", size_diff);
+		sprintf(tmpstr, "(size:%lu)", size_diff);
 		strcat(outputstring, tmpstr);
 	}
 
