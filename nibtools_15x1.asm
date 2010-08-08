@@ -172,7 +172,6 @@ _read_track_end:
         STY  $1800
         RTS
 
-        
 ;----------------------------------------
 ; read out track after index hole
 _read_after_ihs:
@@ -183,17 +182,60 @@ _read_after_ihs:
 _ihsr_busywait:
         DEX
         BNE _ihsr_busywait;
+
         LDA #$02                  ; index hole is bit 1 in WD177x status register
-_ihsr_wait_end:
-        BIT  $2000                ; in case index hole is currently visible,
-        BNE  _ihsr_wait_end       ; wait for its end
-_ihsr_wait_start:
-        BIT  $2000                ; now, wait for beginning of index hole
-        BEQ  _ihsr_wait_start     ;
+_ihsr_wait_1:
+        BIT  $2000                ; 
+        BNE  _ihsr_wait_1       ; 
+_ihsr_wait_2:
+        BIT  $2000                ; 
+        BEQ  _ihsr_wait_2     ;
+_ihsr_wait_3:
+        BIT  $2000                ; 
+        BNE  _ihsr_wait_3       ; 
         
-	BNE _read_start	;	
+	BEQ _read_start	;	
 	
-	
+;----------------------------------------
+; step motor to destination halftrack
+_step_dest:
+        JSR  _read_byte           ; read byte from parallel data port
+_step_dest_internal:
+        LDX  #$01                 ; step value: step up
+        CMP  $c2                  ; compare with current track (CARRY!!!)
+        BEQ  _step_dest_end       ; destination track == current -> RTS
+        PHA                       ; push destination track
+        SBC  $c2                  ; calculate track difference
+        BPL  _step_up             ; destination track > current ->
+        EOR  #$ff                 ; else negate track difference
+        LDX  #$ff                 ; step value: step down
+_step_up:
+        TAY                       ; # of tracks to step
+_step_loop:
+        TXA                       ; step value
+        CLC                       ;
+        ADC  $1c00                ;
+        AND  #$03                 ;
+        STA  $c0                  ; temp store
+        LDA  $1c00                ;
+        AND  #$fc                 ; mask off stepper bits
+        ORA  $c0                  ;
+        STA  $1c00                ; perform half step
+        LDA  #$04                 ;
+        STA  $c1                  ;
+        LDA  #$00                 ; busy wait $0400 times
+        STA  $c0                  ;
+_stepL1:
+        DEC  $c0                  ;
+        BNE  _stepL1              ;
+        DEC  $c1                  ;
+        BNE  _stepL1              ;
+        DEY                       ;
+        BNE  _step_loop           ; repeat for # of halftracks
+        PLA                       ; pull destination track
+        STA  $c2                  ; current track = destination
+_step_dest_end:
+        RTS
 ;----------------------------------------
 ; Density Scan for current track
 _scan_density:
@@ -256,47 +298,6 @@ _scL3:
 
         LDY  #$00                 ;
         RTS                       ;
-
-;----------------------------------------
-; step motor to destination halftrack
-_step_dest:
-        JSR  _read_byte           ; read byte from parallel data port
-_step_dest_internal:
-        LDX  #$01                 ; step value: step up
-        CMP  $c2                  ; compare with current track (CARRY!!!)
-        BEQ  _step_dest_end       ; destination track == current -> RTS
-        PHA                       ; push destination track
-        SBC  $c2                  ; calculate track difference
-        BPL  _step_up             ; destination track > current ->
-        EOR  #$ff                 ; else negate track difference
-        LDX  #$ff                 ; step value: step down
-_step_up:
-        TAY                       ; # of tracks to step
-_step_loop:
-        TXA                       ; step value
-        CLC                       ;
-        ADC  $1c00                ;
-        AND  #$03                 ;
-        STA  $c0                  ; temp store
-        LDA  $1c00                ;
-        AND  #$fc                 ; mask off stepper bits
-        ORA  $c0                  ;
-        STA  $1c00                ; perform half step
-        LDA  #$04                 ;
-        STA  $c1                  ;
-        LDA  #$00                 ; busy wait $0400 times
-        STA  $c0                  ;
-_stepL1:
-        DEC  $c0                  ;
-        BNE  _stepL1              ;
-        DEC  $c1                  ;
-        BNE  _stepL1              ;
-        DEY                       ;
-        BNE  _step_loop           ; repeat for # of halftracks
-        PLA                       ; pull destination track
-        STA  $c2                  ; current track = destination
-_step_dest_end:
-        RTS
 
 ;----------------------------------------
 ; adjust routines to density value
