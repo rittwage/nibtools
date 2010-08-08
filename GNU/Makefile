@@ -28,6 +28,7 @@ CA65_FLAGS  =  --feature pc_assignment
 # No user-configurable parts below
 
 .SUFFIXES: .asm .bin .inc
+.PHONY: linux
 
 usage:
 	@echo Please specify a target: dos win32 linux clean distclean
@@ -56,7 +57,7 @@ win32:
 		buildall
 
 # Warning level.  Don't reduce, fix your new code instead.
-WARNS=	-Werror -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wpointer-arith 
+WARNS=	-W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wpointer-arith 
 
 # Common objects
 OBJ=gcr.o prot.o fileio.o crc.o md5.o

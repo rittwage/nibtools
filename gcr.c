@@ -469,7 +469,8 @@ find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t
 	for (p1 = start_pos; p1 < stop_pos; p1++)
 	{
 		/* now try to match it */
-		for (p2 = p1 + cap_min; p2 < stop_pos; p2++)
+		//for (p2 = p1 + cap_min; p2 < stop_pos; p2++)
+		for (p2 = p1 + cap_max; p2 > p1 + cap_min; p2--)
 		{
 			/* try to match data */
 			if (memcmp(p1, p2, gap_match_length) != 0)
@@ -762,9 +763,9 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	if(verbose)
 	{
 		if (track_len > cap_max)
-			printf("[LONG, max=%d<%d] ",cap_max, track_len);
+			printf("[LONG, max=%lu<%lu] ",cap_max, track_len);
 		if(track_len < cap_min)
-			printf("[SHORT, min=%d>%d] ", cap_min, track_len);
+			printf("[SHORT, min=%lu>%lu] ", cap_min, track_len);
 
 		printf("{cycle:");
 		for(i=0;i<gap_match_length;i++)
