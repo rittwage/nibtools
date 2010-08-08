@@ -13,6 +13,8 @@
 #include "gcr.h"
 #include "nibtools.h"
 
+extern int drivetype;
+
 void
 master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t track_length)
 {
@@ -85,10 +87,10 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	/* burst send track */
 	for (i = 0; i < 10; i ++)
 	{
-		if(ihs)
-			send_mnib_cmd(fd, FL_WRITEIHS, NULL, 0);
-		else
-			send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
+		send_mnib_cmd(fd, FL_WRITE, NULL, 0);
+
+		if(drivetype == 1571) /* this will lock forever if IHS is set and it sees no index hole, i.e. side 2 of flippy disk */
+			cbm_parallel_burst_write(fd, (__u_char)((ihs) ? 0x00 : 0x0a));
 
 		cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
 
@@ -330,53 +332,23 @@ void
 init_aligned_disk(CBM_FILE fd)
 {
 	int track;
-	BYTE sync[2];
-	BYTE pattern[0x2000];
-
-	memset(pattern, 0x55, 0x2000);
-	sync[0] = sync[1] = 0xff;
-	set_bitrate(fd, 2);
 
 	/* write all 0x55 */
 	printf("\nPreparing tracks...\n");
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
+		// step head
 		step_to_halftrack(fd, track);
-		send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
 
-		cbm_parallel_burst_write(fd, 0);
-
-		if(cbm_parallel_burst_write_track(fd, pattern, 0x2000))
-			break;
-		else
-		{
-			printf("\nTimeout during alignment- alignment failed!\n");
-			cbm_parallel_burst_read(fd);
-			exit(0);
-		}
+		// write all $55 bytes
+		send_mnib_cmd(fd, FL_FILLTRACK, NULL, 0);
+		cbm_parallel_burst_write(fd, 0x55);
+		cbm_parallel_burst_read(fd);
 	}
 
-	/* drive code version */
-	//send_mnib_cmd(fd, FL_ALIGNDISK, NULL, 0);
-	//cbm_parallel_burst_write(fd, skewtime/1000);
-	//cbm_parallel_burst_read(fd);
-	//return;
-
-	/* write short syncs */
-	printf("Aligning syncs\n");
-	for (track = end_track; track >= start_track; track -= track_inc)
-	{
-		step_to_halftrack(fd, track);
-		msleep((int)((180000*300)/motor_speed));
-		send_mnib_cmd(fd, FL_WRITENOSYNC, NULL, 0);
-		cbm_parallel_burst_write(fd, 0);
-		if(cbm_parallel_burst_write_track(fd, sync, sizeof(sync)))
-			break;
-		else
-		{
-			printf("\nTimeout during alignment- alignment failed!\n");
-			exit(0);
-		}
-	}
-	printf("Attempted time-aligned tracks on disk\n");
+	/* drive code version, timers can hang w/o interrupts too long */
+	send_mnib_cmd(fd, FL_ALIGNDISK, NULL, 0);
+	cbm_parallel_burst_write(fd, 0);
+	cbm_parallel_burst_read(fd);
+	printf("Attempted timer-aligned tracks\n");
 }

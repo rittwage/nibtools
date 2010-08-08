@@ -367,6 +367,8 @@ _dk_killer:
         LDY  #$80                 ; track only contains sync
         RTS                       ; -> $80 = killer track (too many syncs)
 
+
+.if DRIVE = 1541
 ;----------------------------------------
 ; write a track on destination
 _write_track:
@@ -376,7 +378,7 @@ _wtL1:
         BIT  $1c00                ; wait for end of Sync, if writing
 _wtB1:
         BMI  _wtL1                ;  halftracks, and 'adjust target'
-                                  ;  selected, else BMI $0503
+
         LDA  #$ce                 
         STA  $1c0c
         TYA
@@ -411,61 +413,69 @@ _wtL5:
         STX  $1800                ; send handshake
         LDY  #$00
         RTS
-        
+.endif
+  
+.if DRIVE = 1571
 ;----------------------------------------
-; write a track on destination after 1571 ihs
-_ihs_write_track:
+; write a track on destination for 1571, ihs or not
+_write_track:
         JSR  _read_byte           ; read byte from parallel data port
-        STA  _ihsw_wtB1+1         ; can change Sync Branch value
-_ihsw_wtL1:
-        BIT  $1c00                ; wait for end of Sync, if writing
-_ihsw_wtB1:
-        BMI  _ihsw_wtL1           ; halftracks, and 'adjust target'
-                                  ; selected, else BMI $0503
-
+        STA  _skipihs+1         ; can change IHS Branch value
+        JSR  _read_byte           ; read byte from parallel data port
+        STA  _waitsync+1         ; can change sync Branch value
+        
         LDA  #$10                 ; send L1 command to WD117x so we can fetch status
         STA  $2000                ; we do this here to satisfy 16 cycle wait
+
         LDA  $180f                ; time requirement between command and status access
         PHA
         ORA  #$20
         TAX
         STX  $180f                ; enable 2MHz mode for tighter loops
         LDX  #$ce                 ; do this here for fast enabling
-        
-        LDA  #$02                 ; index hole is bit 1 in WD177x status register
-_ihsw_wait_end:
-        BIT  $2000                ; in case index hole is currently visible,
-        BNE  _ihsw_wait_end       ; wait for its end
-_ihsw_wait_start:
-        BIT  $2000                ; wait for beginning of index hole
-        BEQ  _ihsw_wait_start
 
+_ihs_wait:        
+        LDA  #$02                 ; index hole is bit 1 in WD177x status register
+_skipihs:
+        BNE  _waitsync_start		; default is skip IHS	       
+_ihs_wait_end:
+        BIT  $2000                ; in case index hole is currently visible,
+        BNE  _ihs_wait_end       ; wait for its end
+_ihs_wait_start:
+        BIT  $2000                ; wait for beginning of index hole
+        BEQ  _ihs_wait_start
+
+_waitsync_start:
+        BIT  $1c00                ; wait for end of Sync, if writing
+_waitsync:
+        BMI  _waitsync_start    ;  modified by arg
+        
         TYA
         STA  $1800                ; send handshake
         DEC  $1c03                ; CA data direction head (0->$ff: write)
         STX  $1c0c                ; enable output
 
         LDX  #$00
-        BEQ _ihsw_shake
-_ihsw_write:
+        BEQ _shake
+_write:
         BIT  $180f                ; At 2MHz the V flag method is not reliable
-        BMI  _ihsw_write          ; wait for byte ready
+        BMI  _write          ; wait for byte ready
         STX  $1c01                ; write GCR byte to disk
-_ihsw_shake:
+_shake:
         ; (at 2MHz, we have ~64 cycles before next byte is ready - no sweat)
         EOR  #$ff                 ; toggle handshake value
         LDX  PP_BASE              ; get new parallel byte from host
         STA  $1800                ; send handshake
-        BEQ  _ihsw_wtL5           ; $00 byte = end of track
+        BEQ  _wtL5           ; $00 byte = end of track
         CPX  #$01                 ; did we get $01 byte?
-        BNE  _ihsw_write          ; no -> write normal byte
+        BNE  _write          ; no -> write normal byte
         LDX  #$00                 ; change to $00 byte, weak/bad GCR
-        BEQ  _ihsw_write          ; always branch back to write it
-_ihsw_wtL5:
+        BEQ  _write          ; always branch back to write it
+_wtL5:
         LDA  #$ee
-_ihsw_wtL6:
+_wtL6:
         BIT  $180f
-        BMI  _ihsw_wtL6
+        BMI  _wtL6
         STA  $1c0c                ; disable output as soon as possible
         STX  $1c03                ; CA data direction head ($ff->0: read)
         CLV
@@ -474,6 +484,7 @@ _ihsw_wtL6:
         STA  $180f                ; turn off 2MHz mode
         LDY  #$00
         RTS
+.endif
 
 ;----------------------------------------
 ; read $1c00 motor/head status
@@ -612,7 +623,7 @@ _mt_end:
         JMP  _send_byte           ; parallel-send data byte to C64
 
 ;----------------------------------------
-; align a short sync to all tracks on a disk
+; send a short sync to all tracks on a disk
 ; Pete Rittwage 3/7/2010
 _align_disk:
         JSR  _read_byte           ; read byte from parallel data port
@@ -627,7 +638,6 @@ _align_disk:
 
  _admain:
 	JSR _step_dest_internal
-	;DEC  $1c03                ; CA data direction head (0->$ff: write)
 	LDA  #$ff                 ;
         STA  $1c01                ; write $ff byte (Sync mark)
 _adL1:
@@ -635,25 +645,8 @@ _adL1:
         STA  $1c01                ; write $ff byte (Sync mark)
 _adL2:
         BVC  _adL2                ;
-        ;INC $1c03		 ; CA data direction head (ff>$0: read)
 
 _delay_loop:
-	LDY #$00
-_dly:
-	LDA #$00       ;SET TI ONE-SHOT MODE, WITH NO PB7
-       	STA $180b
-       	LDA #$e8       ;WRITE COUNT LSBY
-       	STA $1804
-       	LDA #$03       ;WRITE COUNT MSBY AND START TIMER
-       	STA $1805
-       	LDA #$40       ;SELECT T1 INTERRUPT MASK
-_chkt1:
-	BIT $180d      ; T1 COUNTED DOWN?
-       	BEQ _chkt1      ;NO. WAIT UNTIL IT HAS
-       	LDA $1804      ;YES. CLEAR T1 INTERRUPT FLAG
-	DEY
-	BNE _dly
-
      	DEC $cf
 	DEC $cf
 	LDA $cf
@@ -661,7 +654,7 @@ _chkt1:
 	
         LDA  #$ee
         STA  $1c0c
-        INC  $1c03                ; CA data direction head (0->$ff: write)
+        INC  $1c03                ; CA data direction head ($ff->$0: read)
         RTS
 
 ;----------------------------------------
@@ -705,7 +698,7 @@ _ftL1:
         STA  $1c0c
         INC $1C03
         RTS
-        
+       
 ;----------------------------------------
 ; Command Jump table, return value: Y
 _command_table:
@@ -721,12 +714,10 @@ _command_table:
 .byte <(_read_1c00-1),>(_read_1c00-1)             ; read $1c00 motor/head status
 .byte <(_send_count-1),>(_send_count-1)           ; send 0,1,2,...,$ff bytes to C64
 .byte <(_write_track-1),>(_write_track-1)         ; write a track on destination
-.byte <(_ihs_write_track-1),>(_ihs_write_track-1) ; write track after variable Sync length
 .byte <(_measure_trk_len-1),>(_measure_trk_len-1) ; measure destination track length
 .byte <(_align_disk-1),>(_align_disk-1)           ; align sync on all tracks
 .byte <(_verify_code-1),>(_verify_code-1)         ; send floppy side code back to PC
 .byte <(_fill_track-1),>(_fill_track-1)           ; zero out (unformat) a track
-
 
 _command_header:
 .byte $ff,$aa,$55,$00                             ; command header code (reverse order)

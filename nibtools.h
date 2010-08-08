@@ -17,12 +17,11 @@
 #define FL_SCANDENSITY 0x08
 #define FL_READMOTOR   0x09
 #define FL_TEST        0x0a
-#define FL_WRITENOSYNC   0x0b
-#define FL_WRITEIHS 0x0c
-#define FL_CAPACITY    0x0d
-#define FL_ALIGNDISK 0x0e
-#define FL_VERIFY_CODE 0x0f
-#define FL_FILLTRACK 0x10
+#define FL_WRITE   0x0b
+#define FL_CAPACITY    0x0c
+#define FL_ALIGNDISK 0x0d
+#define FL_VERIFY_CODE 0x0e
+#define FL_FILLTRACK 0xf
 
 #define DISK_NORMAL    0
 
