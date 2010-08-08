@@ -473,8 +473,8 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
 
-		printf("%d:%d) (pass %lu, %lu errors) %.1f%%", track_density[track]&3, track_length[track], best_pass, best_err,
-			((float)(track_length[track]) / (float)(capacity[track_density[track]&3]) * 100));
+		printf("%d:%d) (pass %d, %d errors) %.1f%%", track_density[track]&3, track_length[track], best_pass, best_err,
+			((float)track_length[track] / (float)capacity[track_density[track]&3]) * 100);
 
 	}
 	fclose(fpin);

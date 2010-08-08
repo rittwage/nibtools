@@ -763,9 +763,9 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	if(verbose)
 	{
 		if (track_len > cap_max)
-			printf("[LONG, max=%lu<%lu] ",cap_max, track_len);
+			printf("[LONG, max=%d<%d] ",cap_max, track_len);
 		if(track_len < cap_min)
-			printf("[SHORT, min=%lu>%lu] ", cap_min, track_len);
+			printf("[SHORT, min=%d>%d] ", cap_min, track_len);
 
 		printf("{cycle:");
 		for(i=0;i<gap_match_length;i++)
@@ -781,7 +781,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	if(verbose)
 	{
 		sector0_pos = find_sector0(work_buffer, track_len, &sector0_len);
-		printf("{sec0=%.4lu;len=%lu} ",(sector0_pos - work_buffer), sector0_len);
+		printf("{sec0=%.4d;len=%d} ",(sector0_pos - work_buffer), sector0_len);
 	}
 
 	/* forced track alignments */
@@ -1155,13 +1155,13 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 
 	if(byte_match)
 	{
-			sprintf(tmpstr, "(match:%lu)", byte_match);
+			sprintf(tmpstr, "(match:%d)", byte_match);
 			strcat(outputstring, tmpstr);
 	}
 
 	if(byte_diff)
 	{
-			sprintf(tmpstr, "(diff:%lu)", byte_diff);
+			sprintf(tmpstr, "(diff:%d)", byte_diff);
 			strcat(outputstring, tmpstr);
 	}
 	else
@@ -1169,31 +1169,31 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 
 	if (sync_diff)
 	{
-		sprintf(tmpstr, "(sync:%lu)", sync_diff);
+		sprintf(tmpstr, "(sync:%d)", sync_diff);
 		strcat(outputstring, tmpstr);
 	}
 
 	if (presync_diff)
 	{
-		sprintf(tmpstr, "(presync:%lu)", presync_diff);
+		sprintf(tmpstr, "(presync:%d)", presync_diff);
 		strcat(outputstring, tmpstr);
 	}
 
 	if (gap_diff)
 	{
-		sprintf(tmpstr, "(gap:%lu)", gap_diff);
+		sprintf(tmpstr, "(gap:%d)", gap_diff);
 		strcat(outputstring, tmpstr);
 	}
 
 	if (badgcr_diff)
 	{
-		sprintf(tmpstr, "(badgcr:%lu)", badgcr_diff);
+		sprintf(tmpstr, "(badgcr:%d)", badgcr_diff);
 		strcat(outputstring, tmpstr);
 	}
 
 	if (size_diff)
 	{
-		sprintf(tmpstr, "(size:%lu)", size_diff);
+		sprintf(tmpstr, "(size:%d)", size_diff);
 		strcat(outputstring, tmpstr);
 	}
 
