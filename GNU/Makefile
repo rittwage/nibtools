@@ -8,8 +8,7 @@
 DJGPP_PATH=	c:/djgpp
 
 # Recent Cygwin defaults to gcc-4, which has -mno-cygwin removed (among other things)
-#CC=gcc-4
-CC=gcc-3
+CC=gcc
 
 # If building for Linux or Windows, change this to the base path to your
 # opencbm includes and libraries
