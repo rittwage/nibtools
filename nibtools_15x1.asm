@@ -92,6 +92,31 @@ _main_loop:
         RTS                       ; -> to command function
 
 ;----------------------------------------
+; read out track after index hole
+_read_after_ihs:
+        JSR  _send_byte           ; parallel-send data byte to C64
+        LDA  #$10                 ; send L1 command to WD177x so we can query status
+        STA  $2000               
+        LDX #$20                  ; we do this here to satisfy 16/32 cycle wait
+_ihsr_busywait:
+        DEX
+        BNE _ihsr_busywait;
+
+        LDA #$02                  ; index hole is bit 1 in WD177x status register
+_ihsr_wait_1:
+        BIT  $2000                ; 
+        BNE  _ihsr_wait_1       ; 
+_ihsr_wait_2:
+        BIT  $2000                ; 
+        BEQ  _ihsr_wait_2     ;
+_ihsr_wait_3:			; wait for it to pass or start at beginning?  What did TRACE devices do?
+        BIT  $2000                ; 
+        BNE  _ihsr_wait_3       ; 
+        
+        ;BEQ _read_in_sync ;  
+	BEQ _read_start	;  WARNING:  reading without waiting for a sync can cause a bad sector since it can be out of framing	
+
+;----------------------------------------
 ; read out track w/out waiting for Sync
 _read_track:
         JSR  _send_byte           ; parallel-send data byte to C64
@@ -172,31 +197,6 @@ _read_track_end:
         STY  $1800
         RTS
 
-;----------------------------------------
-; read out track after index hole
-_read_after_ihs:
-        JSR  _send_byte           ; parallel-send data byte to C64
-        LDA  #$10                 ; send L1 command to WD177x so we can query status
-        STA  $2000               
-        LDX #$20                  ; we do this here to satisfy 16/32 cycle wait
-_ihsr_busywait:
-        DEX
-        BNE _ihsr_busywait;
-
-        LDA #$02                  ; index hole is bit 1 in WD177x status register
-_ihsr_wait_1:
-        BIT  $2000                ; 
-        BNE  _ihsr_wait_1       ; 
-_ihsr_wait_2:
-        BIT  $2000                ; 
-        BEQ  _ihsr_wait_2     ;
-_ihsr_wait_3:			; wait for it to pass or start at beginning?  What did TRACE devices do?
-        BIT  $2000                ; 
-        BNE  _ihsr_wait_3       ; 
-        
-        BEQ _read_in_sync ;  
-	;BEQ _read_start	;  WARNING:  reading without waiting for a sync can cause a bad sector since it can be out of framing	
-	
 ;----------------------------------------
 ; step motor to destination halftrack
 _step_dest:
