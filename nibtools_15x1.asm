@@ -195,7 +195,7 @@ _ihsr_wait_3:			; wait for it to pass or start at beginning?  What did TRACE dev
         BNE  _ihsr_wait_3       ; 
         
         BEQ _read_in_sync ;  
-	BEQ _read_start	;  WARNING:  reading without waiting for a sync can cause a bad sector since it can be out of framing	
+	;BEQ _read_start	;  WARNING:  reading without waiting for a sync can cause a bad sector since it can be out of framing	
 	
 ;----------------------------------------
 ; step motor to destination halftrack
