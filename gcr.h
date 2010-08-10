@@ -145,6 +145,7 @@ extern char alignments[][20];
 
 /* prototypes */
 int find_sync(BYTE ** gcr_pptr, BYTE * gcr_end);
+int find_header(BYTE ** gcr_pptr, BYTE * gcr_end);
 void convert_4bytes_to_GCR(BYTE * buffer, BYTE * ptr);
 int convert_4bytes_from_GCR(BYTE * gcr, BYTE * plain);
 int extract_id(BYTE * gcr_track, BYTE * id);

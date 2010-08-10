@@ -124,6 +124,32 @@ find_sync(BYTE ** gcr_pptr, BYTE * gcr_end)
 	return (*gcr_pptr < gcr_end);
 }
 
+int
+find_header(BYTE ** gcr_pptr, BYTE * gcr_end)
+{
+	while (1)
+	{
+		if ((*gcr_pptr) + 1 >= gcr_end)
+		{
+			*gcr_pptr = gcr_end;
+			return 0;	/* not found */
+		}
+
+		// sync flag goes up after the 10th bit
+		if ( (((*gcr_pptr)[0] & 0x03) == 0x03) && ((*gcr_pptr)[1] == 0xff) && ((*gcr_pptr)[2] == 0x52) )
+			break;
+
+		(*gcr_pptr)++;
+	}
+
+	(*gcr_pptr)++;
+
+	while (*gcr_pptr < gcr_end && **gcr_pptr == 0xff)
+		(*gcr_pptr)++;
+
+	return (*gcr_pptr < gcr_end);
+}
+
 void
 convert_4bytes_to_GCR(BYTE * buffer, BYTE * ptr)
 {
@@ -451,6 +477,7 @@ convert_sector_to_GCR(BYTE * buffer, BYTE * ptr, int track, int sector, BYTE * d
 	ptr += SECTOR_GAP_LENGTH;
 }
 
+
 size_t
 find_track_cycle(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, size_t cap_max)
 {
@@ -509,12 +536,12 @@ find_track_cycle_sectors(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min
 	cycle_pos = NULL;
 
 	/* try to find a normal track cycle  */
-	for (start_pos = nib_track;; find_sync(&start_pos, stop_pos))
+	for (start_pos = nib_track;; find_header(&start_pos, stop_pos))
 	{
 		if ((data_pos = start_pos + cap_min) >= stop_pos)
 			break;	/* no cycle found */
 
-		while (find_sync(&data_pos, stop_pos))
+		while (find_header(&data_pos, stop_pos))
 		{
 			p1 = start_pos;
 			cycle_pos = data_pos;
@@ -603,7 +630,8 @@ find_sector0(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 		if (pos[0] == 0x52 && (pos[1] & 0xc0) == 0x40 &&
 		  (pos[2] & 0x0f) == 0x05 && (pos[3] & 0xfc) == 0x28)
 		{
-			*p_sectorlen = pos - sync_last;
+			//*p_sectorlen = pos - sync_last; GCR_BLOCK_LEN;  /* this is inaccurate if sector 0 is the first thing found */
+			*p_sectorlen = GCR_BLOCK_LEN;
 			break;
 		}
 		sync_last = pos;
@@ -649,7 +677,7 @@ find_sector_gap(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 	/* try to find biggest (sector) gap */
 	while (pos < buffer_end)
 	{
-		if (!find_sync(&pos, buffer_end))
+		if (!find_header(&pos, buffer_end))
 			break;
 
 		gap = pos - sync_last;
@@ -665,7 +693,7 @@ find_sector_gap(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 	if (maxgap == 0)
 		return NULL;	/* no gap found */
 
-	/* find last GCR byte before sync */
+	/* find last GCR byte before header */
 	pos = sync_max;
 	do
 	{
@@ -931,7 +959,7 @@ aligned:
 	{
 		printf("{align:");
 		for(i=0;i<gap_match_length;i++)
-			printf("%.2x",cycle_start[i]);
+			printf("%.2x",destination[i]);
 		printf("}");
 	}
 	return track_len;
@@ -1495,7 +1523,10 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 					total++;
 
 					if(fix_gcr > 2)
+					{
 						sbadgcr = S_BADGCR_LOST;  /* most aggressive */
+						gcrdata[lastpos] = 0x00;
+					}
 					else
 						sbadgcr = S_BADGCR_ONCE_BAD;
 				}
