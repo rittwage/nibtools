@@ -793,7 +793,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 		if (track_len > cap_max)
 			printf("[LONG, max=%zu<%zu] ",cap_max, track_len);
 		if(track_len < cap_min)
-			printf("[SHORT, min=%\zud>%zu] ", cap_min, track_len);
+			printf("[SHORT, min=%zu>%zu] ", cap_min, track_len);
 
 		printf("{cycle:");
 		for(i=0;i<gap_match_length;i++)
