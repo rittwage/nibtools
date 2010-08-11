@@ -8,7 +8,7 @@
 DJGPP_PATH=	c:/djgpp
 
 # Recent Cygwin defaults to gcc-4, which has -mno-cygwin removed (among other things)
-CC=gcc
+CC=gcc 
 
 # If building for Linux or Windows, change this to the base path to your
 # opencbm includes and libraries
@@ -17,7 +17,7 @@ CBM_LNX_PATH=	/usr/local
 CBM_WIN_PATH=	../
 
 # Default compile flags.  Be careful with optimization (-O2)
-CFLAGS=		${WARNS} 
+CFLAGS= -std=c99 ${WARNS} 
 
 # cl65 defs, contributed by Ullrich von Bassewitz <uz(at)musoftware(dot)de>
 # (cc65 >= 2.6 required)
@@ -57,7 +57,7 @@ win32:
 		buildall
 
 # Warning level.  Don't reduce, fix your new code instead.
-WARNS=	-W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wpointer-arith 
+WARNS= -Werror -W -Wall -Wstrict-prototypes -Wpointer-arith 
 
 # Common objects
 OBJ=gcr.o prot.o fileio.o crc.o md5.o
