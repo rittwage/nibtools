@@ -70,9 +70,9 @@ size_t capacity_max[] = 		{ 6311, 6726, 7201, 7824 };
 */
 
 /* New calculated defaults */
-size_t capacity_min[] =			{ (int) (DENSITY0 / 305), (int) (DENSITY1 / 305), (int) (DENSITY2 / 305), (int) (DENSITY3 / 305) };
-size_t capacity[] = 				{ (int) (DENSITY0 / 300), (int) (DENSITY1 / 300), (int) (DENSITY2 / 300), (int) (DENSITY3 / 300) };
-size_t capacity_max[] =		{ (int) (DENSITY0 / 295), (int) (DENSITY1 / 295), (int) (DENSITY2 / 295), (int) (DENSITY3 / 295) };
+size_t capacity_min[] =	{ (int) (DENSITY0 / 305), (int) (DENSITY1 / 305), (int) (DENSITY2 / 305), (int) (DENSITY3 / 305) };
+size_t capacity[] = 			{ (int) (DENSITY0 / 300), (int) (DENSITY1 / 300), (int) (DENSITY2 / 300), (int) (DENSITY3 / 300) };
+size_t capacity_max[] =	{ (int) (DENSITY0 / 295), (int) (DENSITY1 / 295), (int) (DENSITY2 / 295), (int) (DENSITY3 / 295) };
 
 /* Nibble-to-GCR conversion table */
 static BYTE GCR_conv_data[16] = {
@@ -630,7 +630,8 @@ find_sector0(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 		if (pos[0] == 0x52 && (pos[1] & 0xc0) == 0x40 &&
 		  (pos[2] & 0x0f) == 0x05 && (pos[3] & 0xfc) == 0x28)
 		{
-			/* *p_sectorlen = pos - sync_last; GCR_BLOCK_LEN;  /* this is inaccurate if sector 0 is the first thing found */
+			/* this is inaccurate if sector 0 is the first thing found */
+			/* *p_sectorlen = pos - sync_last; GCR_BLOCK_LEN;  */
 			*p_sectorlen = GCR_BLOCK_LEN;
 			break;
 		}
