@@ -154,17 +154,19 @@ main(int argc, char *argv[])
 	{
 		case MODE_WRITE_DISK:
 		case MODE_WRITE_RAW:
-			//printf("Current disk WILL be OVERWRITTEN!\n"
-			//	"Press ENTER to continue or CTRL-C to quit.\n");
-			//getchar();
+			/*printf("Current disk WILL be OVERWRITTEN!\n"
+			   "Press ENTER to continue or CTRL-C to quit.\n");
+			   getchar();
+			*/
 			writeimage(fd);
 			break;
 
 		case MODE_UNFORMAT_DISK:
-			//printf("Ready to unformat disk.\n");
-			//printf("Current disk WILL be DESTROYED!\n"
-			//  "Press ENTER to continue or CTRL-C to quit.\n");
-			//getchar();
+			/*printf("Ready to unformat disk.\n");
+			   printf("Current disk WILL be DESTROYED!\n"
+			  "Press ENTER to continue or CTRL-C to quit.\n");
+			getchar();
+			*/
 			unformat_disk(fd);
 			break;
 	}
@@ -176,7 +178,7 @@ main(int argc, char *argv[])
 }
 
 int
-loadimage(char * filename)
+loadimage(char *filename)
 {
 	char command[256];
 	char pathname[256];
@@ -196,7 +198,7 @@ loadimage(char * filename)
 		pathpos = strrchr(pathname, '\\');
 		if (pathpos != NULL)
 			*pathpos = '\0';
-		else //*nix
+		else /* unix */
 		{
 			pathpos = strrchr(pathname, '/');
 			if (pathpos != NULL)
@@ -210,9 +212,13 @@ loadimage(char * filename)
 
 	/* read and remaster disk */
 	if (compare_extension(filename, "D64"))
+	{
 		retval = read_d64(filename, track_buffer, track_density, track_length);
+	}
 	else if (compare_extension(filename, "G64"))
+	{
 		retval = read_g64(filename, track_buffer, track_density, track_length);
+	}
 	else if (compare_extension(filename, "NIB"))
 	{
 		retval = read_nib(filename, track_buffer, track_density, track_length);

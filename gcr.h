@@ -51,9 +51,9 @@
     This is approx. 20.48 ms, which is approx 1/10th disk revolution
     8000 GCR bytes / 10 = 800 bytes
 */
-//#define MAX_SYNC_OFFSET 800
+/* #define MAX_SYNC_OFFSET 800 */
 /* this was too small for Lode Runner original (805), so increase to 820 */
-//#define MAX_SYNC_OFFSET 820
+/*#define MAX_SYNC_OFFSET 820*/
 #define MAX_SYNC_OFFSET 0x1500
 
 #define SIGNIFICANT_GAPLEN_DIFF 0x20
