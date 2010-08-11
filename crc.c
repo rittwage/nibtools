@@ -95,7 +95,7 @@ crc
 crcSlow(unsigned char const message[], int nBytes)
 {
     crc            remainder = INITIAL_REMAINDER;
-	unsigned char byte;
+	signed long int byte;
 	unsigned char  bit;
 
 
