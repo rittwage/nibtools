@@ -44,7 +44,7 @@ dos:
 		buildall
 
 linux:
-	${MAKE} CFLAGS="-I include/LINUX/ -I ${CBM_LNX_PATH}/include ${CFLAGS}  -std=c99" \
+	${MAKE} CFLAGS="-I include/LINUX/ -I ${CBM_LNX_PATH}/include ${CFLAGS}  -std=c99 -ansi" \
 		LDFLAGS="-L${CBM_LNX_PATH}/lib -lopencbm" \
 		-f GNU/Makefile \
 		buildall
