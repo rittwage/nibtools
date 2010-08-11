@@ -17,7 +17,7 @@ CBM_LNX_PATH=	/usr/local
 CBM_WIN_PATH=	../
 
 # Default compile flags.  Be careful with optimization (-O2)
-CFLAGS= -std=c99 ${WARNS} 
+CFLAGS=${WARNS} 
 
 # cl65 defs, contributed by Ullrich von Bassewitz <uz(at)musoftware(dot)de>
 # (cc65 >= 2.6 required)
@@ -44,13 +44,13 @@ dos:
 		buildall
 
 linux:
-	${MAKE} CFLAGS="-I include/LINUX/ -I ${CBM_LNX_PATH}/include ${CFLAGS}" \
+	${MAKE} CFLAGS="-I include/LINUX/ -I ${CBM_LNX_PATH}/include ${CFLAGS}  -std=c99" \
 		LDFLAGS="-L${CBM_LNX_PATH}/lib -lopencbm" \
 		-f GNU/Makefile \
 		buildall
 
 win32:
-	${MAKE} CFLAGS="-I include/WINDOWS/ -I ${CBM_WIN_PATH}/include -D WIN32 ${CFLAGS} -mno-cygwin" \
+	${MAKE} CFLAGS="-I include/WINDOWS/ -I ${CBM_WIN_PATH}/include -D WIN32 ${CFLAGS} -mno-cygwin -std=c99" \
 		LDFLAGS="-mno-cygwin -L${CBM_WIN_PATH}/bin/i386/ -lopencbm" \
 		EXE=".exe" \
 		-f GNU/Makefile \

@@ -341,11 +341,11 @@ compare_disks(void)
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		printf("%4.1f, Disk 1: (%d) %d\n",
-		 	(float) track / 2, (track_density[track] & 3), track_length[track]);
+		printf("%4.1f, Disk 1: (%d) %lu\n",
+		 	(float)track/2, track_density[track]&3, track_length[track]);
 
-		printf("%4.1f, Disk 2: (%d) %d\n",
-		 	(float) track / 2, (track_density2[track] & 3), track_length2[track]);
+		printf("%4.1f, Disk 2: (%d) %lu\n",
+		 	(float)track/2, track_density2[track]&3, track_length2[track]);
 
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
 		{
@@ -451,17 +451,17 @@ compare_disks(void)
 	}
 
 	printf("\n---------------------------------------------------------------------\n");
-	printf("%d/%d tracks had a perfect GCR match\n", gcr_total, numtracks);
+	printf("%zu/%zu tracks had a perfect GCR match\n", gcr_total, numtracks);
 	//printf("Matches (%s)\n", gcr_matches);
 	//printf("Mismatches (%s)\n", gcr_mismatches);
 	//printf("\n");
-	printf("%d/%d of likely formatted tracks matched all sector data\n", trk_total, numtracks);
+	printf("%zu/%zu of likely formatted tracks matched all sector data\n", trk_total, numtracks);
 	//printf("Matches (%s)\n", sec_matches);
 	//printf("Mismatches (%s)\n", sec_mismatches);
 	//printf("\n");
-	printf("%d/%d total sectors (or errors) matched (%d mismatched)\n", sec_total, numsecs, numsecs-sec_total);
-	printf("CBM DOS errors (d1/%d - d2/%d)\n",errors_d1, errors_d2);
-	printf("%d tracks had mismatched densities (%s)\n", dens_mismatch, dens_mismatches);
+	printf("%zu/%zu total sectors (or errors) matched (%zu mismatched)\n", sec_total, numsecs, numsecs-sec_total);
+	printf("CBM DOS errors (d1/%zu - d2/%zu)\n",errors_d1, errors_d2);
+	printf("%zu tracks had mismatched densities (%s)\n", dens_mismatch, dens_mismatches);
 
 	if(!(id[0]==id2[0] && id[1]==id2[1]))
 		printf("\nFormat ID's do not match!:\t(%s != %s)", id, id2);
@@ -523,7 +523,7 @@ scandisk(void)
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
 			printf("UNFORMATTED!");
 		else
-			printf("%d", track_length[track]);
+			printf("%zu", track_length[track]);
 
 		if (track_length[track] > 0)
 		{
@@ -557,7 +557,7 @@ scandisk(void)
 
 				if (badgcr_tracks[track])
 				{
-					printf("badgcr:%d ", badgcr_tracks[track]);
+					printf("badgcr:%zu ", badgcr_tracks[track]);
 					totalgcr += badgcr_tracks[track];
 				}
 			}
@@ -622,9 +622,9 @@ scandisk(void)
 		}
 	}
 	printf("\n---------------------------------------------------------------------\n");
-	printf("%d unrecognized sectors (CBM disk errors) detected\n", errors);
-	printf("%d known empty sectors detected\n", empty);
-	printf("%d bad GCR bytes detected\n", totalgcr);
+	printf("%zu unrecognized sectors (CBM disk errors) detected\n", errors);
+	printf("%zu known empty sectors detected\n", empty);
+	printf("%zu bad GCR bytes detected\n", totalgcr);
 	printf("%d fat tracks detected\n", totalfat);
 	printf("%d rapidlok tracks detected\n", totalrl);
 	printf("%d tracks with non-standard density\n", total_wrong_density);
@@ -667,9 +667,9 @@ raw_track_info(BYTE * gcrdata, size_t length)
 		}
 	}
 
-	printf("\nSYNCS:%d (", sync_cnt);
+	printf("\nSYNCS:%zu (", sync_cnt);
 	for (i = 1; i <= sync_cnt; i++)
-		printf("%d-", sync_len[i]);
+		printf("%zu-", sync_len[i]);
 	printf(")");
 
 	/* count gaps/lengths - this code is innacurate, since gaps are of course not always 0x55 - they rarely are */
@@ -715,9 +715,9 @@ raw_track_info(BYTE * gcrdata, size_t length)
 		}
 	}
 
-	printf("\nBADGCR:%d (", bad_cnt);
+	printf("\nBADGCR:%zu (", bad_cnt);
 	for (i = 1; i <= bad_cnt; i++)
-		printf("%d-", bad_len[i]);
+		printf("%zu-", bad_len[i]);
 	printf(")");
 
 	return 1;
@@ -791,7 +791,7 @@ size_t check_rapidlok(int track)
 	}
 
 	printf("RAPIDLOK! ");
-	printf("key:%d, sync:%d...", keylen, synclen);
+	printf("key:%zu, sync:%zu...", keylen, synclen);
 
 #if 0
 	// recreate key sector
