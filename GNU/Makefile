@@ -58,9 +58,6 @@ win32:
 
 # Warning level.  Don't reduce, fix your new code instead.
 WARNS= -Werror -W -Wall -Wstrict-prototypes -Wno-unused-parameters -Wpointer-arith 
-#ifdef DJGPP
-WARNS= -Werror -W -Wall -Wstrict-prototypes -Wpointer-arith
-#endif
 
 # Common objects
 OBJ=gcr.o prot.o fileio.o crc.o md5.o
