@@ -186,8 +186,8 @@ INCLUDE_DIR = ..\include\WINDOWS
 B2A_DIR = $(OUTDIR)
 
 # "opencbm.dll" directories
-OPENCBM_DLL_DIR_x86  = ..\..\opencbm-0.4.3rc2-i386
-OPENCBM_DLL_DIR_x64  = ..\..\opencbm-0.4.3rc2-amd64
+OPENCBM_DLL_DIR_x86  = ..\..\bin\i386
+OPENCBM_DLL_DIR_x64  = ..\..\bin\amd64
 
 # CC65 directory
 CC65_BIN_DIR = ..\..\cc65-win32-2.13.2-1\bin

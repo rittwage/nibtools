@@ -39,7 +39,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	/* apply skew, if specified */
 	if(skew)
 	{
-		skewbytes += skew * (capacity[track_density[track]&3] / 200);
+		skewbytes = skew * (capacity[track_density[track]&3] / 200);
 
 		if(skewbytes > NIB_TRACK_LENGTH)
 			skewbytes = skewbytes - NIB_TRACK_LENGTH;
@@ -94,7 +94,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 
 		cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
 
-		if (cbm_parallel_burst_write_track(fd, rawtrack, track_length + LEADER + skewbytes +1))
+		if (cbm_parallel_burst_write_track(fd, rawtrack, (int)(track_length + LEADER + skewbytes +1)))
 			break;
 		else
 		{

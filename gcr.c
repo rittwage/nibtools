@@ -714,9 +714,9 @@ find_sector_gap(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 }
 
 /* checks if there is any reasonable section of formatted (GCR) data */
-int check_formatted(BYTE *gcrdata, int length)
+int check_formatted(BYTE *gcrdata, size_t length)
 {
-	int i, run = 0;
+	size_t i, run = 0;
 
 	/* try to find longest good gcr run */
 	for (i = 0; i < length; i++)

@@ -874,7 +874,8 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
 	BYTE gcr_track[G64_TRACK_MAXLEN + 2];
 	size_t track_len;
-	int track, index, badgcr;
+	int track, index;
+	size_t badgcr;
 	FILE * fpout;
 	BYTE buffer[NIB_TRACK_LENGTH], tempfillbyte;
 
@@ -990,7 +991,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 			}
 			printf("(fill:$%.2x) ",tempfillbyte);
-			printf("{badgcr:%d}",badgcr);
+			printf("{badgcr:%zu}",badgcr);
 		}
 		else
 		{
