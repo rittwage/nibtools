@@ -809,7 +809,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	if(verbose)
 	{
 		sector0_pos = find_sector0(work_buffer, track_len, &sector0_len);
-		printf("{sec0=%.4d;len=%zu} ",(sector0_pos - work_buffer), sector0_len);
+		printf("{sec0=%.4lu;len=%zu} ",(sector0_pos - work_buffer), sector0_len);
 	}
 
 	/* forced track alignments */
