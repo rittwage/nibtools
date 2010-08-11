@@ -57,10 +57,9 @@ win32:
 		buildall
 
 # Warning level.  Don't reduce, fix your new code instead.
+WARNS= -Werror -W -Wall -Wstrict-prototypes -Wno-unused-parameters -Wpointer-arith 
 #ifdef DJGPP
 WARNS= -Werror -W -Wall -Wstrict-prototypes -Wpointer-arith
-#else
-WARNS= -Werror -W -Wall -Wstrict-prototypes -Wno-unused-parameters -Wpointer-arith 
 #endif
 
 # Common objects
