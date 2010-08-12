@@ -1102,7 +1102,6 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 	size_t match, j, k, sync_diff, presync_diff, gap_diff, badgcr_diff, size_diff, byte_match, byte_diff;
 	char tmpstr[256];
 
-	match = 0;
 	byte_match = 0;
 	byte_diff =0;
 	sync_diff = 0;
@@ -1170,7 +1169,9 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 			}
 
 			/* it just didn't work out. :) */
-			/*printf("(%.2x,%.2x)\n",track1[j],track2[k]); */
+			if(verbose>1)
+				printf("(%.2x!=%.2x)",track1[j],track2[k]);
+
 			byte_diff++;
 		}
 
@@ -1226,7 +1227,7 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 		strcat(outputstring, tmpstr);
 	}
 
-	return match;
+	return byte_match;
 }
 
 size_t

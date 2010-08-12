@@ -307,6 +307,7 @@ compare_disks(void)
 	size_t sec_total = 0;
 	size_t trk_total = 0;
 	size_t errors_d1 = 0, errors_d2 = 0;
+	size_t gcr_percentage;
 	char gcr_mismatches[256];
 	char sec_mismatches[256];
 	char gcr_matches[256];
@@ -382,17 +383,19 @@ compare_disks(void)
 
 			printf("%s", errorstring);
 
-			if (gcr_match)
+			gcr_percentage = (gcr_match*100)/track_length[track];
+
+			if (gcr_percentage >= 95)
 			{
 				gcr_total++;
-				printf("\n[*GCR MATCH*]\n");
+				printf("\n[*%zu%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
 				sprintf(tmpstr, "%d,", track / 2);
 				strcat(gcr_matches, tmpstr);
 			}
 			else
 			{
-				printf("\n[*NO GCR MATCH*]\n");
-				sprintf(tmpstr, "%d,", track / 2);
+				printf("\n[*%zu%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
+				sprintf(tmpstr, "%d,", track/2);
 				strcat(gcr_mismatches, tmpstr);
 			}
 
@@ -451,7 +454,7 @@ compare_disks(void)
 	}
 
 	printf("\n---------------------------------------------------------------------\n");
-	printf("%zu/%zu tracks had a perfect GCR match\n", gcr_total, numtracks);
+	printf("%zu/%zu tracks had at least 95%% GCR match\n", gcr_total, numtracks);
 	//printf("Matches (%s)\n", gcr_matches);
 	//printf("Mismatches (%s)\n", gcr_mismatches);
 	//printf("\n");
