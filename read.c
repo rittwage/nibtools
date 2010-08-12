@@ -123,7 +123,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	BYTE cbuffer2[NIB_TRACK_LENGTH];
 	BYTE *cbufn, *cbufo, *bufn, *bufo;
 	BYTE align;
-	size_t leno, lenn;
+	size_t leno, lenn, gcr_compare, gcr_percentage;
 	BYTE denso, densn;
 	size_t i, l, badgcr, retries, errors;
 	char errorstring[0x1000], diffstr[80];
@@ -253,14 +253,12 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			badgcr = check_bad_gcr(cbufn, lenn);
 
 			// compare raw gcr data, unreliable
-			if (compare_tracks(cbufo, cbufn, leno, lenn, 1, errorstring))
-			{
-				printf("[Raw GCR Match] ");
-				fprintf(fplog, "[Raw GCR Match] ");
+			gcr_compare = compare_tracks(cbufo, cbufn, leno, lenn, 1, errorstring);
+			gcr_percentage = (gcr_compare*100)/leno;
+			printf("[%zu%% GCR Match] ", gcr_percentage);
+			fprintf(fplog, "[%zu%% Raw GCR Match] ", gcr_percentage);
+			if(gcr_percentage >=95)
 				break;
-			}
-			else
-				fprintf(fplog, "%s", errorstring);
 
 			// compare sector data
 			if (compare_sectors(cbufo, cbufn, leno, lenn, diskid, diskid, halftrack, errorstring) ==
