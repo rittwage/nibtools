@@ -25,7 +25,7 @@
 
 #if defined(CRC_CCITT)
 
-typedef uint32_t  crc;
+typedef uint16_t  crc;
 
 #define CRC_NAME			"CRC-CCITT"
 #define POLYNOMIAL			0x1021
