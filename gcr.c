@@ -754,7 +754,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	size_t track_len;
 	size_t sector0_len;	/* length of gap before sector 0 */
 	size_t sectorgap_len;	/* length of longest gap */
-	int i;
+	int i ,j;
 
 	sector0_pos = NULL;
 	sectorgap_pos = NULL;
@@ -956,11 +956,19 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	goto aligned;
 
 aligned:
+	i=j=0;
 	if(verbose)
 	{
 		printf("{align:");
-		for(i=0;i<gap_match_length;i++)
-			printf("%.2x",destination[i]);
+		while(i<gap_match_length)
+		{
+			if(destination[j] != 0xff)
+			{
+				printf("%.2x",destination[j]);
+				j++; i++;
+			}
+			else j++;
+		}
 		printf("}");
 	}
 	return track_len;
@@ -1099,16 +1107,19 @@ check_sync_flags(BYTE *gcrdata, int density, size_t length)
 size_t
 compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int same_disk, char *outputstring)
 {
-	size_t match, j, k, sync_diff, presync_diff, gap_diff, badgcr_diff, size_diff, byte_match, byte_diff;
+	size_t match, byte_match, j, k;
+	size_t sync_diff, presync_diff, gap_diff, badgcr_diff, size_diff, byte_diff;
+	size_t offset;
 	char tmpstr[256];
 
 	byte_match = 0;
-	byte_diff =0;
+	byte_diff = 0;
 	sync_diff = 0;
 	presync_diff = 0;
 	gap_diff = 0;
 	badgcr_diff = 0;
 	size_diff= 0;
+	offset = 0;
 	outputstring[0] = '\0';
 
 	if (length1 > 0 && length2 > 0)
@@ -1128,7 +1139,7 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 
 			if (track2[k] == 0xff)
 			{
-				sync_diff++;
+				//sync_diff++;
 				j--;
 				continue;
 			}
@@ -1143,7 +1154,7 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 
 			if ( (track2[k] != 0xff)  && (track2[k+1] == 0xff) )
 			{
-				presync_diff++;
+				//presync_diff++;
 				j--;
 				continue;
 			}
@@ -1157,7 +1168,7 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 			}
 			if (is_bad_gcr(track2, length2, k))
 			{
-				badgcr_diff++;
+				//badgcr_diff++;
 				j--;
 				continue;
 			}
@@ -1227,7 +1238,7 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 		strcat(outputstring, tmpstr);
 	}
 
-	return byte_match;
+	return byte_match + sync_diff + presync_diff + gap_diff + badgcr_diff;
 }
 
 size_t
