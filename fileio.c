@@ -1258,7 +1258,7 @@ unsigned int crc_all_tracks(BYTE *track_buffer, size_t *track_length)
 	}
 
 	if(index != valid)
-		printf("[%d/%d sectors] ", valid, index);
+		if(verbose) printf("[%d/%d sectors] ", valid, index);
 
 	result = crcFast(data, sizeof(data));
 	return result;
@@ -1344,7 +1344,7 @@ unsigned int md5_all_tracks(BYTE *track_buffer, size_t *track_length, unsigned c
 	}
 
 	if(index != valid)
-		printf("[%d/%d sectors] ", valid, index);
+		if(verbose) printf("[%d/%d sectors] ", valid, index);
 
 	md5(data, sizeof(data), result);
 	return 1;

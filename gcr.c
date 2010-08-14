@@ -245,18 +245,18 @@ int
 extract_cosmetic_id(BYTE * gcr_track, BYTE * id)
 {
 	BYTE secbuf[260];
-	int error;
+	BYTE error;
 
 	/* get sector into buffer- we don't care about id mismatch here */
 	error = convert_GCR_sector(gcr_track, gcr_track + NIB_TRACK_LENGTH, secbuf, 18, 0, id);
 
 	/* no valid 18,0 sector */
-	if(error != SECTOR_OK && error != ID_MISMATCH)
-		return (0);
+	if((error != SECTOR_OK) && (error != ID_MISMATCH))
+		return 0;
 
 	id[0] = secbuf[0xa3];
 	id[1] = secbuf[0xa4];
-	return (1);
+	return 1;
 }
 
 BYTE
@@ -272,61 +272,72 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	BYTE header[10];	/* block header */
 	BYTE hdr_chksum;	/* header checksum */
 	BYTE blk_chksum;	/* block  checksum */
-	BYTE *gcr_buffer;
-	BYTE *gcr_ptr, *gcr_end, *gcr_last;
+	BYTE *gcr_ptr, *gcr_end;
 	BYTE *sectordata;
 	BYTE error_code;
-    int i, j;
     size_t track_len;
+    int i, j;
 
-	error_code = SECTOR_OK;
-	track_len = gcr_cycle - gcr_start;
-	gcr_buffer = gcr_start;
+	if (track > MAX_TRACK_D64)
+		return NO_TRACK_DATA;
 
-	if ((track > MAX_TRACK_D64) || (!track_len) || (gcr_cycle == NULL))
-		return SYNC_NOT_FOUND;
+	if ((gcr_cycle == NULL) || (gcr_cycle <= gcr_start))
+		return NO_TRACK_DATA;
 
 	/* initialize sector data with Original Format Pattern */
 	memset(d64_sector, 0x01, 260);
 	d64_sector[0] = 0x07;	/* Block header mark */
 	d64_sector[1] = 0x4b;	/* Use Original Format Pattern */
+
 	for (blk_chksum = 0, i = 1; i < 257; i++)
 		blk_chksum ^= d64_sector[i + 1];
 	d64_sector[257] = blk_chksum;
 
-	/* Check for missing SYNC */
-	gcr_end = gcr_buffer + track_len;
-	gcr_last = gcr_ptr = gcr_buffer;
-	while (gcr_ptr < gcr_end)
+	/* setup pointers */
+	track_len = gcr_cycle - gcr_start;
+	gcr_end = gcr_start + track_len;
+	error_code = SECTOR_OK;
+
+	/* Check for at least one Sync */
+	gcr_ptr = gcr_start;
+	if (!find_sync(&gcr_ptr, gcr_end))
+		return SYNC_NOT_FOUND;
+
+	/* Try to find a good block header for Track/Sector */
+	error_code = HEADER_NOT_FOUND;
+
+	for (gcr_ptr = gcr_start; gcr_ptr < gcr_end - 10; gcr_ptr++)
 	{
-		find_sync(&gcr_ptr, gcr_end);
-		if ((gcr_ptr - gcr_last) > MAX_SYNC_OFFSET)
+		if ((gcr_ptr[0] == 0xff) && (gcr_ptr[1] == 0x52))
 		{
-			/*printf("no sync for %d\n", gcr_ptr-gcr_last);*/
-			return (SYNC_NOT_FOUND);
+			gcr_ptr++;
+			memset(header, 0, 10);
+			convert_4bytes_from_GCR(gcr_ptr, header);
+			convert_4bytes_from_GCR(gcr_ptr+5, header+4);
+
+			if ( (header[0] == 0x08) &&
+				(header[2] == sector) &&
+				(header[3] == track) &&
+				(header[4] == id[1]) &&
+				(header[5] == id[0]) )
+			{
+				/* this is the header we are searching for */
+				error_code = SECTOR_OK;
+				break;
+			}
+			else if ( (header[0] != 0x07) &&
+						(header[2] == sector) &&
+						(header[3] == track) )
+			{
+				/* id mismatch, but still correct track and sector */
+				error_code = ID_MISMATCH;
+				break;
+			}
 		}
-		else
-			gcr_last = gcr_ptr;
 	}
 
-	/* Try to find next best match for header */
-	gcr_ptr = gcr_buffer;
-	gcr_end = gcr_buffer + track_len;
-	do
-	{
-		if (!find_sync(&gcr_ptr, gcr_end))
-			return (HEADER_NOT_FOUND);
-
-		if (gcr_ptr >= gcr_end - 10)
-			return (HEADER_NOT_FOUND);
-
-		convert_4bytes_from_GCR(gcr_ptr, header);
-		convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
-		gcr_ptr++;
-	} while (header[0] == 0x07 || header[2] != sector || header[3] != track);
-
-	if (header[0] != 0x08)
-		error_code = (error_code == SECTOR_OK) ? HEADER_NOT_FOUND : error_code;
+	if(error_code == HEADER_NOT_FOUND)
+		return error_code;
 
 	/* Header checksum */
 	hdr_chksum = 0;
@@ -580,16 +591,6 @@ check_valid_data(BYTE * data, int matchlen)
 {
 	/* makes a simple assumption whether this is good data to match track cycle overlap */
 	int i;
-	int redund = 0;
-
-	for (i = 0; i < matchlen; i++)
-	{
-		if (data[i] == data[i + 1] || data[i] == data[i + 2] ||
-		  data[i] == data[i + 3] || data[i] == data[i + 4])
-			redund++;
-	}
-	if (redund > 1)
-		return 0;
 
 	for (i = 0; i < matchlen; i++)
 	{
