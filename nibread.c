@@ -276,7 +276,7 @@ main(int argc, char *argv[])
 	disk2file(fd, filename);
 
 	motor_on(fd);
-	step_to_halftrack(fd, 18 * 2);
+	step_to_halftrack(fd, 18*2);
 
 	if(fplog) fclose(fplog);
 	exit(0);

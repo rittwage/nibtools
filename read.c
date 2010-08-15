@@ -519,7 +519,6 @@ scan_track(CBM_FILE fd, int track)
 }
 
 // Track Alignment Report, by Arnd
-// requires 1541/1571 SC+ compatible IHS
 int TrackAlignmentReport(CBM_FILE fd)
 {
 	int i, m, track, res, NumSync;
