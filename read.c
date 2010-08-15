@@ -527,9 +527,15 @@ int TrackAlignmentReport(CBM_FILE fd)
 	int dump_retry = 10;
 	BYTE buffer[NIB_TRACK_LENGTH];
 
-	motor_on(fd);
+	/* this check is temporary for now */
+	if(drivetype != 1571)
+	{
+		printf("Only 1571 index hole sensor supported.\n");  /* for now */
+		exit(0);
+	}
 
-	printf("\nStarting Track Alignment Analysis.\n\n");
+	printf("\nStarting Track Alignment Analysis.\n");
+	printf("Make sure a disk is in the drive turned to side 1 ONLY!\n\n");
 
 	if (track_inc == 1)
 	{
@@ -546,6 +552,8 @@ int TrackAlignmentReport(CBM_FILE fd)
 		printf("    | BR  lo hi lo hi A1 A2 A3 A4 A5\n");
 		printf("----+-------------------------------");
 	}
+
+	motor_on(fd);
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
