@@ -53,6 +53,7 @@ int rpm_real;
 int unformat_passes;
 int capacity_margin;
 int align_delay;
+int align_report;
 BYTE fillbyte = 0x55;
 
 BYTE density_map;
@@ -112,6 +113,7 @@ main(int argc, char *argv[])
 	ihs = 0;
 	mode = MODE_READ_DISK;
 	rpm_real = 0;
+	align_report = 0;
 
 	// cache our arguments for logfile generation
 	strcpy(argcache, "");
@@ -126,6 +128,12 @@ main(int argc, char *argv[])
 	{
 		switch ((*argv)[1])
 		{
+
+		case 'A':
+			align_report = 1;
+			printf("* Track Alignment Report\n");
+			break;
+
 		case 'h':
 			track_inc = 1;
 			end_track = 83;
@@ -241,6 +249,9 @@ main(int argc, char *argv[])
 
 	if(extended_parallel_test)
 		parallel_test(extended_parallel_test);
+
+	if(align_report)
+		TrackAlignmentReport(fd);
 
 	if(argc < 1) usage();
 	strcpy(filename, argv[0]);

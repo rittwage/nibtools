@@ -125,6 +125,7 @@ int read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 void write_nb2(CBM_FILE fd, char * filename);
 void get_disk_id(CBM_FILE fd);
 BYTE scan_density(CBM_FILE fd);
+int TrackAlignmentReport(CBM_FILE fd);
 
 /* write.c */
 void master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length);

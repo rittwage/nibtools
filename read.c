@@ -82,7 +82,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		return (density);
 	}
 
-	set_density(fd, density & 3);
+	set_density(fd, density&3);
 
 	for (i = 0; i < 10; i++)
 	{
@@ -516,4 +516,114 @@ scan_track(CBM_FILE fd, int track)
 	send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
 	killer_info = cbm_parallel_burst_read(fd);
 	return (density | killer_info);
+}
+
+// Track Alignment Report, by Arnd
+// requires 1541/1571 SC+ compatible IHS
+int TrackAlignmentReport(CBM_FILE fd)
+{
+	int i, m, track, res, NumSync;
+	BYTE density;
+	BOOL EvenTrack;
+	int dump_retry = 10;
+	BYTE buffer[NIB_TRACK_LENGTH];
+
+	motor_on(fd);
+
+	printf("\nStarting Track Alignment Analysis.\n\n");
+
+	if (track_inc == 1)
+	{
+		printf("    |           Full Track           |       Half Track (+0.5)       \n");
+		printf(" #T +--------------------------------+-------------------------------\n");
+		printf(" RA |      pre  #sync   data bytes   |      pre  #sync   data bytes  \n");
+		printf(" CK | BR  lo hi lo hi A1 A2 A3 A4 A5 | BR  lo hi lo hi A1 A2 A3 A4 A5\n");
+		printf("----+--------------------------------+-------------------------------");
+	}
+	else
+	{
+		printf("    |             Full Track        \n");
+		printf("    |      pre  #sync   data bytes  \n");
+		printf("    | BR  lo hi lo hi A1 A2 A3 A4 A5\n");
+		printf("----+-------------------------------");
+	}
+
+	for (track = start_track; track <= end_track; track += track_inc)
+	{
+		step_to_halftrack(fd, track);
+		density = scan_track(fd, track);
+		set_density(fd, density&3);
+
+		if ( (EvenTrack =(track == (track/2)*2)) )
+			printf("\n %2.2d ", track/2);
+		if (density & BM_FF_TRACK)
+		{
+			printf("| <*> KILLER                     ");
+			continue;
+		}
+		else if (density & BM_NO_SYNC)
+		{
+			printf("| <*> NOSYNC                     ");
+			continue;
+		}
+		else
+			printf("| <%d> ", density);
+
+		// Try to get track dump "dump_retry" times
+		for (i = 0; i < dump_retry; i++)
+		{
+			memset(buffer, 0x00, NIB_TRACK_LENGTH);
+			send_mnib_cmd(fd, FL_READIHS, NULL, 00);
+			cbm_parallel_burst_read(fd);
+
+			res = cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH);
+			if (!res)
+			{
+				printf("(timeout #%d: T%d D%d)", i+1, track, density); // &3
+				fflush(stdout);
+				cbm_parallel_burst_read(fd);
+				delay(500);
+				cbm_parallel_burst_read(fd);
+			}
+			else
+				break;
+		}
+		if (res)
+		{
+			// Evaluate track image
+			// Find first sync (we checked for NOSYNC)
+			for (i = 0; i < NIB_TRACK_LENGTH; i++)
+				if (buffer[i] == 0xFF) break;
+
+			// Print number of data bytes before first sync
+			printf("%2.2X %2.2X ", i%256, i/256); // lo/hi
+
+			// Find end of sync, count 0xFFs
+			NumSync = 0;
+			for (m = i; m < NIB_TRACK_LENGTH; m++)
+				if (buffer[m] == 0xFF) NumSync++;
+				else break;
+
+			// Print number of 0xFF sync bytes
+			printf("%2.2X %2.2X ", NumSync%256, NumSync/256); // lo/hi
+
+			// Dump first 5 data bytes after sync
+			for (i = 0; i < 5; i++)
+			{
+				if (m+i >= NIB_TRACK_LENGTH)
+					printf("   ");
+				else // (0xFF possible)
+					printf("%2.2X ", buffer[m+i]);
+			}
+		}
+		else
+		{
+			// Call to "cbm_parallel_burst_read_track" was 10x unsuccessful.
+			printf("\nToo many errors.");
+			exit(2);
+		}
+	}
+	printf("\n");
+
+	exit(1);
 }
