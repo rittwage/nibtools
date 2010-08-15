@@ -267,8 +267,6 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 			1) tri-bit error, in which 01110 is misinterpreted as 01000
 			2) low frequency error, in which 10010 is misinterpreted as 11000
 	*/
-
-
 	BYTE header[10];	/* block header */
 	BYTE hdr_chksum;	/* header checksum */
 	BYTE blk_chksum;	/* block  checksum */
@@ -1388,9 +1386,9 @@ char topetscii(char s)
 size_t
 check_errors(BYTE * gcrdata, size_t length, int track, BYTE * id, char * errorstring)
 {
-	int errors, sector, errorcode;
+	int errors, sector;
 	char tmpstr[16];
-	BYTE secbuf[260];
+	BYTE secbuf[260], errorcode;
 
 	errors = 0;
 	errorstring[0] = '\0';

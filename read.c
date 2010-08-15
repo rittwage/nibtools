@@ -175,20 +175,20 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		// try again, probably bad read or a bad GCR match
 		if (leno < capacity_min[denso & 3] - CAP_ALLOWANCE)
 		{
-			printf("Short Read! (%zu) ", leno);
+			printf("Short Read! ", leno);
 			fprintf(fplog, "[%zu<%lu!] ", leno, capacity_min[denso & 3] - CAP_ALLOWANCE);
-			if(l < (error_retries - 3)) l = error_retries - 3;
-			continue;
+			//if(l < (error_retries - 3)) l = error_retries - 3;
+			//continue;
 		}
 
 		// if we get more than capacity
 		// try again to make sure it's intentional
 		if (leno > capacity_max[denso & 3] + CAP_ALLOWANCE)
 		{
-			printf("Long Read! (%zu) ", leno);
+			printf("Long Read! ", leno);
 			fprintf(fplog, "[%zu>%lu!] ", leno, capacity_max[denso & 3] + CAP_ALLOWANCE);
-			if(l < (error_retries - 3)) l = error_retries - 3;
-			continue;
+			//if(l < (error_retries - 3)) l = error_retries - 3;
+			//continue;
 		}
 
 		printf("%zu ", leno);
@@ -204,8 +204,8 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		// if all bad sectors (protection) we only retry once
 		if (errors == sector_map[halftrack/2])
 		{
-			if(l < (error_retries - 3))
-				l = error_retries - 3;
+			if(l < (error_retries - 1))
+				l = error_retries - 1;
 		}
 		else // else we are probably looping for a read retry
 			printf("%s ", errorstring);
