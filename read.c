@@ -14,6 +14,7 @@
 #include "nibtools.h"
 
 static BYTE diskid[3];
+extern int drivetype;
 
 BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 {
