@@ -263,7 +263,7 @@ load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *trac
 				*pathpos = '\0';
 		}
 
-		sprintf(command, "unzip %s.zip -d %s", filename, pathname);
+		sprintf(command, "unzip '%s.zip' -d '%s'", filename, pathname);
 		system(command);
 		iszip++;
 	}

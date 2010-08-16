@@ -612,8 +612,8 @@ find_track_cycle_raw(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, si
 	for (p1 = start_pos; p1 < stop_pos; p1++)
 	{
 		/* now try to match it */
-		//for (p2 = p1 + cap_min; p2 < stop_pos; p2++)
-		for (p2 = p1 + cap_max; p2 > p1 + cap_min; p2--)
+		for (p2 = p1 + (cap_min + CAP_ALLOWANCE); p2 < stop_pos; p2++)
+		//for (p2 = p1 + cap_max; p2 > p1 + cap_min; p2--)
 		{
 			/* try to match data */
 			if (memcmp(p1, p2, gap_match_length) != 0)
@@ -641,12 +641,13 @@ int
 check_valid_data(BYTE * data, int matchlen)
 {
 	/* makes a simple assumption whether this is good data to match track cycle overlap */
-	int i;
+	int i, redund=0;
 
 	for (i = 0; i < matchlen; i++)
 	{
 		if(data[i] == 0xff) return 0; /* sync marks */
-		if ((data[i] == data[i+1]) && (data[i+1] == data[i+2])) return 0;  /* repeating bytes */
+		if((data[i] == data[i+1]) && (data[i+1] == data[i+2])) redund++;  /* repeating bytes */
+		if(redund>1) return 0;
 
 		/* check we aren't matching gap data (GCR is 555555 or AAAAAA) */
 		if((data[i] == 0x55) && (data[i+1] == 0xaa) && (data[i+2] == 0x55)) return 0;
