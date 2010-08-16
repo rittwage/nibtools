@@ -177,7 +177,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		if (leno < capacity_min[denso & 3] - CAP_ALLOWANCE)
 		{
 			printf("Short Read! ");
-			fprintf(fplog, "[%zu<%lu!] ", leno, capacity_min[denso & 3] - CAP_ALLOWANCE);
+			fprintf(fplog, "[%zu<%zu!] ", leno, capacity_min[denso & 3] - CAP_ALLOWANCE);
 			//if(l < (error_retries - 3)) l = error_retries - 3;
 			//continue;
 		}
@@ -187,7 +187,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		if (leno > capacity_max[denso & 3] + CAP_ALLOWANCE)
 		{
 			printf("Long Read! ");
-			fprintf(fplog, "[%zu>%lu!] ", leno, capacity_max[denso & 3] + CAP_ALLOWANCE);
+			fprintf(fplog, "[%zu>%zu!] ", leno, capacity_max[denso & 3] + CAP_ALLOWANCE);
 			//if(l < (error_retries - 3)) l = error_retries - 3;
 			//continue;
 		}
@@ -524,7 +524,7 @@ int TrackAlignmentReport(CBM_FILE fd)
 {
 	int i, m, track, res, NumSync;
 	BYTE density;
-	BOOL EvenTrack;
+	BYTE EvenTrack;
 	int dump_retry = 10;
 	BYTE buffer[NIB_TRACK_LENGTH];
 
