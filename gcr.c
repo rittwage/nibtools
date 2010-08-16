@@ -875,6 +875,63 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 		printf("{sec0=%.4d;len=%zu} ",(int)(sector0_pos - work_buffer), sector0_len);
 	}
 
+	/* tracks with no detected cycle */
+	if (track_len == NIB_TRACK_LENGTH)
+	{
+		/* if there is sync, align to the longest one */
+		marker_pos = find_long_sync(work_buffer, track_len);
+		if (marker_pos)
+		{
+			memcpy(destination, marker_pos, track_len);
+			*align = ALIGN_LONGSYNC;
+			goto aligned;
+		}
+
+		/* we aren't dealing with a normal track here, so autogap it */
+		marker_pos = auto_gap(work_buffer, track_len);
+		if (marker_pos)
+		{
+			memcpy(destination, marker_pos, track_len);
+			*align = ALIGN_AUTOGAP;
+			goto aligned;
+		}
+	}
+
+	/* try to guess original alignment on "normal" sized tracks */
+	sector0_pos = find_sector0(work_buffer, track_len, &sector0_len);
+	sectorgap_pos = find_sector_gap(work_buffer, track_len, &sectorgap_len);
+
+	if(verbose)
+		printf("{gap=%.4d;len=%d) ", (int)(sectorgap_pos-work_buffer), (int)sectorgap_len);
+
+	if((sectorgap_pos-work_buffer == sector0_pos-work_buffer) &&
+		(sectorgap_pos != NULL) &&	(sector0_pos != NULL) && verbose)
+		printf("(sec0=gap) ");
+
+	/* if (sectorgap_len >= sector0_len + 0x40) */ /* Burstnibbler's calc */
+	if (sectorgap_len > GCR_BLOCK_DATA_LEN + SIGNIFICANT_GAPLEN_DIFF)
+	{
+		*align = ALIGN_GAP;
+		memcpy(destination, sectorgap_pos, track_len);
+		goto aligned;
+	}
+
+	/* no large gap found, try sector 0 */
+	if (sector0_len != 0)
+	{
+		*align = ALIGN_SEC0;
+		memcpy(destination, sector0_pos, track_len);
+		goto aligned;
+	}
+
+	/* no sector 0 found, use gap anyway */
+	if (sectorgap_len)
+	{
+		memcpy(destination, sectorgap_pos, track_len);
+		*align = ALIGN_GAP;
+		goto aligned;
+	}
+
 	/* forced track alignments */
 	if (align_map[track] != ALIGN_NONE)
 	{
@@ -935,63 +992,6 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 			memcpy(destination, marker_pos, track_len);
 			goto aligned;
 		}
-	}
-
-	/* tracks with no detected cycle */
-	if (track_len == NIB_TRACK_LENGTH)
-	{
-		/* if there is sync, align to the longest one */
-		//marker_pos = find_long_sync(work_buffer, track_len);
-		//if (marker_pos)
-		//{
-		//	memcpy(destination, marker_pos, track_len);
-		//	*align = ALIGN_LONGSYNC;
-		//	goto aligned;
-		//}
-
-		/* we aren't dealing with a normal track here, so autogap it */
-		marker_pos = auto_gap(work_buffer, track_len);
-		if (marker_pos)
-		{
-			memcpy(destination, marker_pos, track_len);
-			*align = ALIGN_AUTOGAP;
-			goto aligned;
-		}
-	}
-
-	/* try to guess original alignment on "normal" sized tracks */
-	sector0_pos = find_sector0(work_buffer, track_len, &sector0_len);
-	sectorgap_pos = find_sector_gap(work_buffer, track_len, &sectorgap_len);
-
-	if(verbose)
-		printf("{gap=%.4d;len=%d) ", (int)(sectorgap_pos-work_buffer), (int)sectorgap_len);
-
-	if((sectorgap_pos-work_buffer == sector0_pos-work_buffer) &&
-		(sectorgap_pos != NULL) &&	(sector0_pos != NULL) && verbose)
-		printf("(sec0=gap) ");
-
-	/* if (sectorgap_len >= sector0_len + 0x40) */ /* Burstnibbler's calc */
-	if (sectorgap_len > GCR_BLOCK_DATA_LEN + SIGNIFICANT_GAPLEN_DIFF)
-	{
-		*align = ALIGN_GAP;
-		memcpy(destination, sectorgap_pos, track_len);
-		goto aligned;
-	}
-
-	/* no large gap found, try sector 0 */
-	if (sector0_len != 0)
-	{
-		*align = ALIGN_SEC0;
-		memcpy(destination, sector0_pos, track_len);
-		goto aligned;
-	}
-
-	/* no sector 0 found, use gap anyway */
-	if (sectorgap_len)
-	{
-		memcpy(destination, sectorgap_pos, track_len);
-		*align = ALIGN_GAP;
-		goto aligned;
 	}
 
 	/* if there is sync, align to the longest one */
