@@ -830,25 +830,26 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	memcpy(work_buffer, cycle_start, NIB_TRACK_LENGTH);
 
 	/* find cycle */
-	printf("H/");
+	printf("H");
 	find_track_cycle_headers(&cycle_start, &cycle_stop, cap_min, cap_max);
 	track_len = cycle_stop - cycle_start;
 
 	/* second pass to find a cycle in track w/non-standard headers */
-	if ((track_len > cap_max) || (track_len < cap_min))
-	{
-		printf("S/");
-		find_track_cycle_syncs(&cycle_start, &cycle_stop, cap_min, cap_max);
-		track_len = cycle_stop - cycle_start;
-	}
+	//if ((track_len > cap_max) || (track_len < cap_min))
+	//{
+	//	printf("/S");
+	//	find_track_cycle_syncs(&cycle_start, &cycle_stop, cap_min, cap_max);
+	//	track_len = cycle_stop - cycle_start;
+	//}
 
 	/* third pass to find a cycle in track w/non-standard headers */
 	if ((track_len > cap_max) || (track_len < cap_min))
 	{
-		printf("R/");
+		printf("/R");
 		find_track_cycle_raw(&cycle_start, &cycle_stop, cap_min, cap_max);
 		track_len = cycle_stop - cycle_start;
 	}
+	printf(" ");
 
 	if(verbose)
 	{
