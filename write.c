@@ -73,7 +73,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	/* handle short tracks */
 	if(track_length < capacity[track_density[track] & 3])
 	{
-			printf("[pad:%lu]", capacity[track_density[track] & 3] - track_length);
+			printf("[pad:%zu]", capacity[track_density[track] & 3] - track_length);
 			track_length = capacity[track_density[track] & 3];
 	}
 
@@ -198,7 +198,7 @@ master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 			/* truncate the end if needed (reduce tail) */
 			if ( (length > capacity[density & 3]) && (length != NIB_TRACK_LENGTH) )
 			{
-				printf(" (trunc:%lu) ",  length - capacity[density & 3]);
+				printf(" (trunc:%zu) ",  length - capacity[density & 3]);
 				length = capacity[density & 3];
 			}
 			master_track(fd, track_buffer, track_density, track, length);

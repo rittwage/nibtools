@@ -342,10 +342,10 @@ compare_disks(void)
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
-		printf("%4.1f, Disk 1: (%d) %lu\n",
+		printf("%4.1f, Disk 1: (%d) %zu\n",
 		 	(float)track/2, track_density[track]&3, track_length[track]);
 
-		printf("%4.1f, Disk 2: (%d) %lu\n",
+		printf("%4.1f, Disk 2: (%d) %zu\n",
 		 	(float)track/2, track_density2[track]&3, track_length2[track]);
 
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
