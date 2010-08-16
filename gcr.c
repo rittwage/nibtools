@@ -612,8 +612,8 @@ find_track_cycle_raw(BYTE ** cycle_start, BYTE ** cycle_stop, size_t cap_min, si
 	for (p1 = start_pos; p1 < stop_pos; p1++)
 	{
 		/* now try to match it */
-		for (p2 = p1 + (cap_min + CAP_ALLOWANCE); p2 < stop_pos; p2++)
-		//for (p2 = p1 + cap_max; p2 > p1 + cap_min; p2--)
+		//for (p2 = p1 + (cap_min + CAP_ALLOWANCE); p2 < stop_pos; p2++)
+		for (p2 = p1 + cap_max; p2 > p1 + cap_min; p2--)
 		{
 			/* try to match data */
 			if (memcmp(p1, p2, gap_match_length) != 0)
@@ -941,13 +941,13 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	if (track_len == NIB_TRACK_LENGTH)
 	{
 		/* if there is sync, align to the longest one */
-		marker_pos = find_long_sync(work_buffer, track_len);
-		if (marker_pos)
-		{
-			memcpy(destination, marker_pos, track_len);
-			*align = ALIGN_LONGSYNC;
-			goto aligned;
-		}
+		//marker_pos = find_long_sync(work_buffer, track_len);
+		//if (marker_pos)
+		//{
+		//	memcpy(destination, marker_pos, track_len);
+		//	*align = ALIGN_LONGSYNC;
+		//	goto aligned;
+		//}
 
 		/* we aren't dealing with a normal track here, so autogap it */
 		marker_pos = auto_gap(work_buffer, track_len);
@@ -995,13 +995,13 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	}
 
 	/* if there is sync, align to the longest one */
-	marker_pos = find_long_sync(work_buffer, track_len);
-	if (marker_pos)
-	{
-		memcpy(destination, marker_pos, track_len);
-		*align = ALIGN_LONGSYNC;
-		goto aligned;
-	}
+	//marker_pos = find_long_sync(work_buffer, track_len);
+	//if (marker_pos)
+	//{
+	//	memcpy(destination, marker_pos, track_len);
+	//	*align = ALIGN_LONGSYNC;
+	//	goto aligned;
+	//}
 
 	/* we aren't dealing with a normal track here, so autogap it */
 	marker_pos = auto_gap(work_buffer, track_len);
