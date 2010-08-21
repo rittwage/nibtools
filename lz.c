@@ -226,7 +226,7 @@ int LZ_Compress( unsigned char *in, unsigned char *out, unsigned int insize )
     {
         if( histogram[ i ] < histogram[ marker ] )
         {
-            marker = i;
+            marker = (unsigned char) i;
         }
     }
 
@@ -395,7 +395,7 @@ int LZ_CompressFast( unsigned char *in, unsigned char *out, unsigned int insize)
     {
         if( histogram[ i ] < histogram[ marker ] )
         {
-            marker = i;
+            marker = (unsigned char) i;
         }
     }
 
