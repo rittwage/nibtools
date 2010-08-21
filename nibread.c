@@ -283,6 +283,13 @@ main(int argc, char *argv[])
 
 	if(strrchr(filename, '.') == NULL)  strcat(filename, ".nib");
 
+	if((compare_extension(filename, "D64")) || (compare_extension(filename, "G64")))
+	{
+		printf("\nDisk imaging only directly supports NIB, NB2, and NBZ formats.\n");
+		printf("Use nibconv after imaging to convert to desired file type.\n");
+		exit(0);
+	}
+
 	if(!(disk2file(fd, filename)))
 		printf("Operation failed!\n");
 
@@ -318,12 +325,12 @@ int disk2file(CBM_FILE fd, char *filename)
 	/* read data from drive to file */
 	motor_on(fd);
 
-	if (compare_extension(filename, "NB2"))
+	if(compare_extension(filename, "NB2"))
 	{
 		track_inc = 1;
 		if(!(write_nb2(fd, filename))) return 0;
 	}
-	else if (compare_extension(filename, "NBZ"))
+	else if(compare_extension(filename, "NBZ"))
 	{
 		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
 		{
