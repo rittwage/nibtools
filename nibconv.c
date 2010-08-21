@@ -180,11 +180,17 @@ main(int argc, char **argv)
 	}
 	else if (compare_extension(outname, "NBZ"))
 	{
+		if( (compare_extension(inname, "D64")) || (compare_extension(inname, "G64")))
+		{
+					printf("Output format makes no sense from this input file.\n");
+					exit(0);
+		}
 		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
 		{
 			printf("could not allocate buffer memory\n");
 			exit(0);
 		}
+		if(skip_halftracks) track_inc = 2;
 		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) exit(0);
 		if(!(file_buffer_size = LZ_CompressFast(file_buffer, compressed_buffer, file_buffer_size))) exit(0);
 		if(!(save_file(outname, compressed_buffer, file_buffer_size))) exit(0);
@@ -192,6 +198,11 @@ main(int argc, char **argv)
 	}
 	else if (compare_extension(outname, "NIB"))
 	{
+		if( (compare_extension(inname, "D64")) || (compare_extension(inname, "G64")))
+		{
+			printf("Output format makes no sense from this input file.\n");
+			exit(0);
+		}
 		if(skip_halftracks) track_inc = 2;
 		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) exit(0);
 		if(!(save_file(outname, file_buffer, file_buffer_size))) exit(0);
