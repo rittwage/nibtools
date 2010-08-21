@@ -114,6 +114,10 @@ SOURCE=..\prot.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\lz.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\read.c
 # End Source File
 # End Group
@@ -131,6 +135,10 @@ SOURCE=..\gcr.h
 # Begin Source File
 
 SOURCE=..\md5.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\lz.h
 # End Source File
 # Begin Source File
 

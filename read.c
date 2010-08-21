@@ -305,8 +305,7 @@ read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 	return 1;
 }
 
-void
-write_nb2(CBM_FILE fd, char * filename)
+int write_nb2(CBM_FILE fd, char * filename)
 {
 	BYTE density;
 	FILE * fpout;
@@ -322,7 +321,7 @@ write_nb2(CBM_FILE fd, char * filename)
 	if ((fpout = fopen(filename, "wb")) == NULL)
 	{
 		fprintf(stderr, "Couldn't create output file %s!\n", filename);
-		exit(2);
+		return 0;
 	}
 
 	/* write initial NIB-header */
@@ -331,7 +330,7 @@ write_nb2(CBM_FILE fd, char * filename)
 
 	if (fwrite(header, sizeof(header), 1, fpout) != 1) {
 		printf("unable to write NB2 header\n");
-		exit(2);
+		return 0;
 	}
 
 	get_disk_id(fd);
@@ -385,7 +384,7 @@ write_nb2(CBM_FILE fd, char * filename)
 				{
 					printf("unable to rewrite NIB track data\n");
 					fclose(fpout);
-					exit(2);
+					return 0;
 				}
 				fflush(fpout);
 				printf("%d ", pass+1);
@@ -401,12 +400,12 @@ write_nb2(CBM_FILE fd, char * filename)
 	if (fwrite(header, sizeof(header), 1, fpout) != 1)
 	{
 		printf("unable to rewrite NB2 header\n");
-		exit(2);
+		return 0;
 	}
 
 	fclose(fpout);
-
 	step_to_halftrack(fd, 18 * 2);
+	return 1;
 }
 
 void get_disk_id(CBM_FILE fd)

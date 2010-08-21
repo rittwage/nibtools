@@ -14,6 +14,7 @@
 #include "mnibarch.h"
 #include "gcr.h"
 #include "nibtools.h"
+#include "lz.h"
 
 int _dowildcard = 1;
 
@@ -21,12 +22,15 @@ char bitrate_range[4] = { 43 * 2, 31 * 2, 25 * 2, 18 * 2 };
 char bitrate_value[4] = { 0x00, 0x20, 0x40, 0x60 };
 char density_branch[4] = { 0xb1, 0xb5, 0xb7, 0xb9 };
 
+BYTE *file_buffer;
+BYTE *compressed_buffer;
 BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 size_t track_length[MAX_HALFTRACKS_1541 + 1];
 
 size_t error_retries;
+int file_buffer_size;
 int reduce_sync, reduce_badgcr, reduce_gap;
 int fix_gcr;
 int start_track, end_track, track_inc;
@@ -77,8 +81,13 @@ main(int argc, char *argv[])
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
 
-	track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH);
-	if(!track_buffer)
+	if(!(file_buffer = calloc(MAX_HALFTRACKS_1541 + 2, NIB_TRACK_LENGTH)))
+	{
+		printf("could not allocate buffer memory\n");
+		exit(0);
+	}
+
+	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH)))
 	{
 		printf("could not allocate memory for buffers.\n");
 		exit(0);
@@ -273,12 +282,16 @@ main(int argc, char *argv[])
 	fprintf(fplog, "'%s'\n", argcache);
 
 	if(strrchr(filename, '.') == NULL)  strcat(filename, ".nib");
-	disk2file(fd, filename);
+
+	if(!(disk2file(fd, filename)))
+		printf("Operation failed!\n");
 
 	motor_on(fd);
 	step_to_halftrack(fd, 18*2);
 
 	if(fplog) fclose(fplog);
+	free(file_buffer);
+	free(track_buffer);
 	exit(0);
 }
 
@@ -302,45 +315,55 @@ void parallel_test(int iterations)
 
 int disk2file(CBM_FILE fd, char *filename)
 {
-	int count = 0;
-	char newfilename[256];
-	char filenum[4], *dotpos;
-
 	/* read data from drive to file */
 	motor_on(fd);
 
 	if (compare_extension(filename, "NB2"))
 	{
 		track_inc = 1;
-		write_nb2(fd, filename);
+		if(!(write_nb2(fd, filename))) return 0;
+	}
+	else if (compare_extension(filename, "NBZ"))
+	{
+		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
+		{
+			printf("could not allocate buffer memory\n");
+			exit(0);
+		}
+		if(!(read_floppy(fd, track_buffer, track_density, track_length))) return 0;
+		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) return 0;
+		if(!(file_buffer_size = LZ_CompressFast(file_buffer, compressed_buffer, file_buffer_size))) return 0;
+		if(!(save_file(filename, compressed_buffer, file_buffer_size))) return 0;
+		free(compressed_buffer);
 	}
 	else
 	{
-		read_floppy(fd, track_buffer, track_density, track_length);
-		write_nib(filename, track_buffer, track_density, track_length);
+		if(!(read_floppy(fd, track_buffer, track_density, track_length))) return 0;
+		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) return 0;
+		if(!(save_file(filename, file_buffer, file_buffer_size))) return 0;
 
-		if(interactive_mode)
-		{
-			for(;;)
-			{
-				printf("Swap disk and press a key for next image, or CTRL-C to quit.\n");
-				getchar();
-
-				/* create new filename */
-				sprintf(filenum, "%d", ++count);
-				strcpy(newfilename, filename);
-				dotpos = strrchr(newfilename, '.');
-				if (dotpos != NULL) *dotpos = '\0';
-				strcat(newfilename, filenum);
-				strcat(newfilename, ".nib");
-				read_floppy(fd, track_buffer, track_density, track_length);
-				write_nib(newfilename, track_buffer, track_density, track_length);
-			}
-		}
+//		if(interactive_mode)
+//		{
+//			for(;;)
+//			{
+//				printf("Swap disk and press a key for next image, or CTRL-C to quit.\n");
+//				getchar();
+//
+//				/* create new filename */
+//				sprintf(filenum, "%d", ++count);
+//				strcpy(newfilename, filename);
+//				dotpos = strrchr(newfilename, '.');
+//				if (dotpos != NULL) *dotpos = '\0';
+//				strcat(newfilename, filenum);
+//				strcat(newfilename, ".nib");
+//				read_floppy(fd, track_buffer, track_density, track_length);
+//				write_nib(newfilename, track_buffer, track_density, track_length);
+//			}
+//		}
 	}
 
 	cbm_parallel_burst_read(fd);
-	return (0);
+	return 1;
 }
 
 void

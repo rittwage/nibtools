@@ -22,17 +22,21 @@
 #include "mnibarch.h"
 #include "gcr.h"
 #include "nibtools.h"
+#include "lz.h"
 
 int _dowildcard = 1;
 
+BYTE *compressed_buffer;
+BYTE *file_buffer;
 BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 size_t track_length[MAX_HALFTRACKS_1541 + 1];
+int file_buffer_size;
 int start_track, end_track, track_inc;
 int reduce_sync, reduce_badgcr, reduce_gap;
 int fix_gcr, align, force_align;
-int gap_match_length;\
+int gap_match_length;
 int cap_min_ignore;
 int skip_halftracks;
 int verbose = 0;
@@ -52,13 +56,11 @@ BYTE fillbyte = 0x55;
 int repair(void);
 BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, BYTE *id);
 
-
 int ARCH_MAINDECL
 main(int argc, char **argv)
 {
-	char inname[256], outname[256], command[256], pathname[256];
-	char *dotpos, *pathpos;
-	int iszip = 0;
+	char inname[256], outname[256];
+	char *dotpos;
 
 	start_track = 1 * 2;
 	end_track = 42 * 2;
@@ -79,7 +81,15 @@ main(int argc, char **argv)
 	  "(C) 2004-2010 Peter Rittwage\nC64 Preservation Project\nhttp://c64preservation.com\n"
 	  "Version " VERSION "\n\n");
 
-	track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH);
+
+	file_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH);
+	if(!file_buffer)
+	{
+		printf("could not allocate buffer memory\n");
+		exit(0);
+	}
+
+	track_buffer = calloc(MAX_HALFTRACKS_1541+1, NIB_TRACK_LENGTH);
 	if(!track_buffer)
 	{
 		printf("could not allocate memory for buffers.\n");
@@ -87,7 +97,7 @@ main(int argc, char **argv)
 	}
 
 	/* default is to reduce sync */
-	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541 + 1);
+	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+1);
 
 	while (--argc && (*(++argv)[0] == '-'))
 		parseargs(argv);
@@ -102,48 +112,39 @@ main(int argc, char **argv)
 
 	printf("%s -> %s\n",inname, outname);
 
-	/* unzip image if possible */
-	if (compare_extension(inname, "ZIP"))
-	{
-		printf("Unzipping image...\n");
-		dotpos = strrchr(inname, '.');
-		if (dotpos != NULL) *dotpos = '\0';
-
-		/* try to detect pathname */
-		strcpy(pathname, inname);
-		pathpos = strrchr(pathname, '\\');
-		if (pathpos != NULL)
-			*pathpos = '\0';
-		else //*nix
-		{
-			pathpos = strrchr(pathname, '/');
-			if (pathpos != NULL)
-				*pathpos = '\0';
-		}
-
-		sprintf(command, "unzip %s.zip -d %s", inname, pathname);
-		system(command);
-		iszip++;
-	}
-
 	/* convert */
 	if (compare_extension(inname, "G64"))
 	{
-		if(!read_g64(inname, track_buffer, track_density, track_length)) exit(0);
+		if(!(read_g64(inname, track_buffer, track_density, track_length))) exit(0);
+	}
+	else if (compare_extension(inname, "NBZ"))
+	{
+		printf("Uncompressing NBZ...\n");
+		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
+		{
+			printf("could not allocate buffer memory\n");
+			exit(0);
+		}
+		if(!(file_buffer_size = load_file(inname, compressed_buffer))) exit(0);
+		if(!(file_buffer_size = LZ_Uncompress(compressed_buffer, file_buffer, file_buffer_size))) exit(0);
+		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) exit(0);
+		align_tracks(track_buffer, track_density, track_length, track_alignment);
+		free(compressed_buffer);
 	}
 	else if (compare_extension(inname, "NIB"))
 	{
-		if(!read_nib(inname, track_buffer, track_density, track_length)) exit(0);
+		if(!(file_buffer_size = load_file(inname, file_buffer))) exit(0);
+		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) exit(0);
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(inname, "NB2"))
 	{
-		if(!read_nb2(inname, track_buffer, track_density, track_length)) exit(0);
+		if(!(read_nb2(inname, track_buffer, track_density, track_length))) exit(0);
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(inname, "D64"))
 	{
-		if(!read_d64(inname, track_buffer, track_density, track_length)) exit(0);
+		if(!(read_d64(inname, track_buffer, track_density, track_length))) exit(0);
 	}
 	else
 	{
@@ -151,17 +152,11 @@ main(int argc, char **argv)
 		exit(0);
 	}
 
-	if(iszip)
-	{
-		remove(inname);
-		printf("Temporary file deleted.\n");
-	}
-
 	if(skip_halftracks) track_inc = 2;
 
 	repair();
-
 	write_g64(outname, track_buffer, track_density, track_length);
+
 	return 0;
 }
 

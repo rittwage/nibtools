@@ -102,6 +102,10 @@ SOURCE=..\md5.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\lz.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\nibrepair.c
 # End Source File
 # Begin Source File
@@ -123,6 +127,10 @@ SOURCE=..\gcr.h
 # Begin Source File
 
 SOURCE=..\md5.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\lz.h
 # End Source File
 # Begin Source File
 

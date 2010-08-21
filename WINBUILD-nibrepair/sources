@@ -11,6 +11,7 @@ SOURCES=../nibrepair.c \
 	../fileio.c \
 	../crc.c \
 	../md5.c \
+	../lz.c \
         nibrepair.rc
 
 UMTYPE=console

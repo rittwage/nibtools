@@ -11,6 +11,7 @@ SOURCES=../nibconv.c \
 	../fileio.c \
 	../crc.c \
 	../md5.c \
+	../lz.c \
         nibconv.rc
 
 UMTYPE=console

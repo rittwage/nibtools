@@ -18,6 +18,7 @@
 #include "crc.h"
 #include "md5.h"
 
+
 void parseargs(char *argv[])
 {
 	int count;
@@ -271,15 +272,12 @@ void parseargs(char *argv[])
 	}
 }
 
-
-int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
+int load_file(char *filename, BYTE *file_buffer)
 {
-	int track, nibsize, numtracks, temp_track_inc;
-	int header_entry = 0;
-	char header[0x100];
+	int size;
 	FILE *fpin;
 
-	printf("\nReading NIB file...");
+	printf("Loading \"%s\"...\n",filename);
 
 	if ((fpin = fopen(filename, "rb")) == NULL)
 	{
@@ -287,21 +285,36 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		return 0;
 	}
 
-	if (fread(header, sizeof(header), 1, fpin) != 1) {
-		printf("unable to read NIB header\n");
-		return 0;
+	fseek(fpin, 0, SEEK_END);
+	size = ftell(fpin);
+	rewind(fpin);
+
+	if (fread(file_buffer, size, 1, fpin) != 1) {
+			printf("unable to read file\n");
+			return 0;
 	}
 
-	if (memcmp(header, "MNIB-1541-RAW", 13) != 0)
+	printf("Successfully loaded %d bytes.", size);
+	return size;
+}
+
+int read_nib(BYTE *file_buffer, int file_buffer_size, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
+{
+	int track, numtracks, temp_track_inc;
+	int header_entry = 0, track_entry = 0;
+
+	printf("\nParsing NIB data...");
+
+	if (memcmp(file_buffer, "MNIB-1541-RAW", 13) != 0)
 	{
-		printf("input file %s isn't an NIB data file!\n", filename);
+		printf("Not valid NIB data!\n");
 		return 0;
 	}
+	else
+		printf("NIB file version %d", file_buffer[13]);
 
 	/* Determine number of tracks in image (estimated by filesize) */
-	fseek(fpin, 0, SEEK_END);
-	nibsize = ftell(fpin);
-	numtracks = (nibsize - NIB_HEADER_SIZE) / NIB_TRACK_LENGTH;
+	numtracks = (file_buffer_size - NIB_HEADER_SIZE) / NIB_TRACK_LENGTH;
 
 	if(numtracks <= 42)
 	{
@@ -320,26 +333,22 @@ int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		temp_track_inc = 1;
 	}
 
-	printf("\n%d track image (filesize = %d bytes)\n", numtracks, nibsize);
-
-	rewind(fpin);
-	if (fread(header, sizeof(header), 1, fpin) != 1) {
-		printf("unable to read NIB header\n");
-		return 0;
-	}
+	printf("\n%d track image (filesize = %d bytes)\n", numtracks, file_buffer_size);
 
 	for (track = 2; track <= end_track; track += temp_track_inc)
 	{
 		/* get density from header or use default */
-		track_density[track] = (BYTE)(header[0x10 + (header_entry * 2) + 1]);
-		track_density[track] %= BM_MATCH;  	 /* discard unused BM_MATCH mark */
+		track_density[track] = (BYTE)(file_buffer[0x10 + (header_entry * 2) + 1]);
+		//track_density[track] %= BM_MATCH;  	 /* discard unused BM_MATCH mark */
 		header_entry++;
 
 		/* get track from file */
-		fread(track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH, 1, fpin);
+		memcpy(track_buffer + (track * NIB_TRACK_LENGTH),
+			file_buffer + (track_entry * NIB_TRACK_LENGTH) + 0x100,
+			NIB_TRACK_LENGTH);
+		track_entry++;
 	}
-	fclose(fpin);
-	printf("Successfully loaded NIB file\n");
+	printf("Successfully parsed NIB data\n");
 	return 1;
 }
 
@@ -501,7 +510,8 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		return 0;
 	}
 
-	if (fread(header, sizeof(header), 1, fpin) != 1) {
+	if (fread(header, sizeof(header), 1, fpin) != 1)
+	{
 		printf("unable to read G64 header\n");
 		return 0;
 	}
@@ -524,7 +534,6 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 	{
 		if(numtracks * 2 < end_track)
 			end_track = (numtracks * 2);
-
 		temp_track_inc = 2;
 	}
 	else
@@ -538,7 +547,9 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 	}
 
 	rewind(fpin);
-	if (fread(header, sizeof(header), 1, fpin) != 1) {
+
+	if (fread(header, sizeof(header), 1, fpin) != 1)
+	{
 		printf("unable to read G64 header\n");
 		return 0;
 	}
@@ -553,7 +564,6 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 		/* get length */
 		fread(length_record, 2, 1, fpin);
-
 		track_length[track] = length_record[1] << 8 | length_record[0];
 
 		/* get track from file */
@@ -563,7 +573,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		if(verbose)
 		{
 			printf("%4.1f: (",(float) track / 2);
-			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+			 if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
 
 			printf("%d:%zu) %.1zu%%\n",
@@ -571,13 +581,14 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 				((track_length[track] / capacity[track_density[track]&3]) * 100));
 		}
 	}
+
 	fclose(fpin);
 	printf("\nSuccessfully loaded G64 file\n");
 	return 1;
 }
 
-int
-read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
+
+int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
 	int track, sector, sector_ref;
 	BYTE buffer[256];
@@ -685,28 +696,42 @@ read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_
 	return 1;
 }
 
-int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
+int save_file(char *filename, BYTE *file_buffer, int length)
+{
+		FILE *fpout;
+
+		/* create output file */
+		if ((fpout = fopen(filename, "wb")) == NULL)
+		{
+			printf("Couldn't create output file %s!\n", filename);
+			return 0;
+		}
+
+		if(!(fwrite(file_buffer, length, 1, fpout)))
+		{
+			printf("Couldn't write to output file %s!\n", filename);
+			return 0;
+		}
+
+		fclose(fpout);
+		printf("Successfully saved file %s\n", filename);
+		return 1;
+}
+
+int write_nib(BYTE*file_buffer, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
     /*	writes contents of buffers into NIB file, with header and density information
     	this is only called by nibread, so it does not extract/compress the track
     */
 
 	int track;
-	FILE * fpout;
 	char header[0x100];
 	int header_entry = 0;
 
-	printf("\nWriting NIB file...\n");
+	printf("\nConverting to NIB format...\n");
 
 	/* clear header */
 	memset(header, 0, sizeof(header));
-
-	/* create output file */
-	if ((fpout = fopen(filename, "wb")) == NULL)
-	{
-		fprintf(stderr, "Couldn't create output file %s!\n", filename);
-		return 0;
-	}
 
 	/* header now contains whether halftracks were read */
 	if(track_inc == 1)
@@ -714,25 +739,16 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	else
 		sprintf(header, "MNIB-1541-RAW%c%c%c", 3, 0, 0);
 
-	if (fwrite(header, sizeof(header), 1, fpout) != 1) {
-		printf("unable to write NIB header\n");
-		return 0;
-	}
-
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		header[0x10 + (header_entry * 2)] = (BYTE)track;
 		header[0x10 + (header_entry * 2) + 1] = track_density[track];
-		header_entry++;
 
 		/* process and save track to disk */
-		if (fwrite(track_buffer + (NIB_TRACK_LENGTH * track), NIB_TRACK_LENGTH , 1, fpout) != 1)
-		{
-			printf("unable to rewrite NIB track data\n");
-			fclose(fpout);
-			return 0;
-		}
-		fflush(fpout);
+		memcpy(file_buffer + sizeof(header) + (NIB_TRACK_LENGTH * header_entry),
+			track_buffer + (NIB_TRACK_LENGTH * track), NIB_TRACK_LENGTH);
+
+		header_entry++;
 
 		/* output some specs */
 		if(verbose)
@@ -743,23 +759,14 @@ int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 			printf("%d:%zu)\n", track_density[track]&3, track_length[track]  );
 		}
 	}
+	memcpy(file_buffer, header, sizeof(header));
+	printf("Successfully parsed data to NIB format\n");
 
-	/* fill NIB-header */
-	rewind(fpout);
-
-	if (fwrite(header, sizeof(header), 1, fpout) != 1) {
-		printf("unable to rewrite NIB header\n");
-		return 0;
-	}
-
-	fclose(fpout);
-	printf("Successfully saved NIB file\n");
-	return 1;
+	return (sizeof(header) + (header_entry * NIB_TRACK_LENGTH));
 }
 
 
-int
-write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
+int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
     /*	writes contents of buffers into D64 file, with errorblock information (if detected) */
 
@@ -787,7 +794,7 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	if ((fpout = fopen(filename, "wb")) == NULL)
 	{
 		fprintf(stderr, "Couldn't create output file %s!\n", filename);
-		exit(2);
+		return 0;
 	}
 
 	/* get disk id */
@@ -864,8 +871,7 @@ write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 }
 
 
-int
-write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
+int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
 	/* writes contents of buffers into G64 file, with header and density information */
 
@@ -1018,8 +1024,7 @@ write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track
 	return 1;
 }
 
-size_t
-compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_t length)
+size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_t length)
 {
 	size_t orglen;
 	BYTE gcrdata[NIB_TRACK_LENGTH];
@@ -1131,8 +1136,7 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 	return 1;
 }
 
-int
-compare_extension(char * filename, char * extension)
+int compare_extension(char * filename, char * extension)
 {
 	char *dot;
 
@@ -1150,8 +1154,7 @@ compare_extension(char * filename, char * extension)
 		return (0);
 }
 
-int
-write_dword(FILE *fd, DWORD * buf, int num)
+int write_dword(FILE *fd, DWORD * buf, int num)
 {
 	int i;
 	BYTE *tmpbuf;

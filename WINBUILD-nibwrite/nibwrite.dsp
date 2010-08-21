@@ -106,6 +106,10 @@ SOURCE=..\md5.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\lz.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\nibwrite.c
 # End Source File
 # Begin Source File
@@ -139,6 +143,10 @@ SOURCE=..\include\WINDOWS\mnibarch.h
 # Begin Source File
 
 SOURCE=..\nibtools.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\lz.h
 # End Source File
 # Begin Source File
 

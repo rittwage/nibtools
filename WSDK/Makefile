@@ -216,6 +216,7 @@ BASE_OBJS = $(OUTDIR)\gcr.obj    \
             $(OUTDIR)\prot.obj   \
             $(OUTDIR)\fileio.obj \
             $(OUTDIR)\crc.obj    \
+            $(OUTDIR)\lz.obj    \
             $(OUTDIR)\md5.obj
 
 NIBREAD_OBJS = $(BASE_OBJS)          \

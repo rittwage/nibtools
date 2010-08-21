@@ -13,12 +13,10 @@
 #include "gcr.h"
 #include "nibtools.h"
 #include "md5.h"
+#include "lz.h"
 
 int _dowildcard = 1;
 
-int start_track, end_track, track_inc;
-int imagetype, mode;
-int align, force_align;
 char bitrate_range[4] = { 43 * 2, 31 * 2, 25 * 2, 18 * 2 };
 
 int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
@@ -28,6 +26,8 @@ int raw_track_info(BYTE *gcrdata, size_t length);
 size_t check_fat(int track);
 size_t check_rapidlok(int track);
 
+BYTE *compressed_buffer;
+BYTE *file_buffer;
 BYTE *track_buffer;
 BYTE *track_buffer2;
 size_t track_length[MAX_HALFTRACKS_1541 + 1];
@@ -41,6 +41,10 @@ size_t fat_tracks[MAX_HALFTRACKS_1541 + 1];
 size_t rapidlok_tracks[MAX_HALFTRACKS_1541 + 1];
 size_t badgcr_tracks[MAX_HALFTRACKS_1541 + 1];
 
+int start_track, end_track, track_inc;
+int imagetype, mode;
+int align, force_align;
+int file_buffer_size;
 int fix_gcr;
 int reduce_sync;
 int reduce_badgcr;
@@ -93,14 +97,21 @@ main(int argc, char *argv[])
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
 
-	track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH);
+	file_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH);
+	if(!file_buffer)
+	{
+		printf("could not allocate buffer memory\n");
+		exit(0);
+	}
+
+	track_buffer = calloc(MAX_HALFTRACKS_1541+1, NIB_TRACK_LENGTH);
 	if(!track_buffer)
 	{
 		printf("could not allocate buffer memory\n");
 		exit(0);
 	}
 
-	track_buffer2 = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH);
+	track_buffer2 = calloc(MAX_HALFTRACKS_1541+1, NIB_TRACK_LENGTH);
 	if(!track_buffer2)
 	{
 		printf("could not allocate buffer memory\n");
@@ -109,7 +120,7 @@ main(int argc, char *argv[])
 	}
 
 	/* default is to reduce sync */
-	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541 + 1);
+	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+1);
 
 	while (--argc && (*(++argv)[0] == '-'))
 		parseargs(argv);
@@ -129,10 +140,8 @@ main(int argc, char *argv[])
 
 	if (mode == 1) 	// compare images
 	{
-		if(!load_image(file1, track_buffer, track_density, track_length))
-			exit(0);
-		if(!load_image(file2,  track_buffer2, track_density2, track_length2))
-			exit(0);
+		if(!(load_image(file1, track_buffer, track_density, track_length))) exit(0);
+		if(!(load_image(file2,  track_buffer2, track_density2, track_length2))) exit(0);
 
 		compare_disks();
 
@@ -229,69 +238,52 @@ main(int argc, char *argv[])
 		printf("\n");
 	}
 
+	free(file_buffer);
 	free(track_buffer);
 	free(track_buffer2);
 
 	exit(0);
 }
 
-int
-load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
+int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
-	char command[256];
-	char pathname[256];
-	char *dotpos, *pathpos;
-	int iszip = 0;
-	int retval = 0;
-
-	/* unzip image if possible */
-	if (compare_extension(filename, "ZIP"))
-	{
-		printf("Unzipping image...\n");
-		dotpos = strrchr(filename, '.');
-		if (dotpos != NULL) *dotpos = '\0';
-
-		/* try to detect pathname */
-		strcpy(pathname, filename);
-		pathpos = strrchr(pathname, '\\');
-		if (pathpos != NULL)
-			*pathpos = '\0';
-		else //*nix
-		{
-			pathpos = strrchr(pathname, '/');
-			if (pathpos != NULL)
-				*pathpos = '\0';
-		}
-
-		sprintf(command, "unzip %s.zip -d %s", filename, pathname);
-		system(command);
-		iszip++;
-	}
-
 	if (compare_extension(filename, "D64"))
-		retval = read_d64(filename, track_buffer, track_density, track_length);
+	{
+		if(!(read_d64(filename, track_buffer, track_density, track_length))) return 0;
+	}
 	else if (compare_extension(filename, "G64"))
-		retval = read_g64(filename, track_buffer, track_density, track_length);
+	{
+		if(!(read_g64(filename, track_buffer, track_density, track_length))) return 0;
+	}
+	else if (compare_extension(filename, "NBZ"))
+	{
+		printf("Uncompressing NBZ...\n");
+		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
+		{
+			printf("could not allocate buffer memory\n");
+			exit(0);
+		}
+		if(!(file_buffer_size = load_file(filename, compressed_buffer))) return 0;
+		if(!(file_buffer_size = LZ_Uncompress(compressed_buffer, file_buffer, file_buffer_size))) return 0;
+		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) return 0;
+		align_tracks(track_buffer, track_density, track_length, track_alignment);
+		free(compressed_buffer);
+	}
 	else if (compare_extension(filename, "NIB"))
 	{
-		retval = read_nib(filename, track_buffer, track_density, track_length);
-		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
+		if(!(file_buffer_size = load_file(filename, file_buffer))) return 0;
+		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) return 0;
+		align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
-		retval = read_nb2(filename, track_buffer, track_density, track_length);
-		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
+		if(!(read_nb2(filename, track_buffer, track_density, track_length))) return 0;
+		align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else
 		printf("Unknown image type = %s!\n", filename);
 
-	if(iszip)
-	{
-		remove(filename);
-		printf("Temporary file deleted (%s)\n", filename);
-	}
-
-	return retval;
+	return 1;
 }
 
 int

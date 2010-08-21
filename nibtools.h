@@ -103,11 +103,13 @@ int writeimage(CBM_FILE fd);
 
 /* fileio.c */
 void parseargs(char *argv[]);
-int read_nib(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
+int load_file(char *filename, BYTE *file_buffer);
+int save_file(char *filename, BYTE *file_buffer, int length);
+int read_nib(BYTE *file_buffer, int file_buffer_size, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
-int write_nib(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
+int write_nib(BYTE*file_buffer, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE track_density, size_t track_length);
@@ -122,7 +124,7 @@ unsigned int md5_all_tracks(BYTE *track_buffer, size_t *track_length, unsigned c
 BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer);
 BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer);
 int read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
-void write_nb2(CBM_FILE fd, char * filename);
+int write_nb2(CBM_FILE fd, char * filename);
 void get_disk_id(CBM_FILE fd);
 BYTE scan_density(CBM_FILE fd);
 int TrackAlignmentReport(CBM_FILE fd);

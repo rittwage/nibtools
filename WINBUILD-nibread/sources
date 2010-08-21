@@ -16,6 +16,7 @@ SOURCES=../nibread.c \
 	../fileio.c \
 	../crc.c \
 	../md5.c \
+	../lz.c \
         nibread.rc
 
 UMTYPE=console

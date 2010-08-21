@@ -13,14 +13,18 @@
 #include "mnibarch.h"
 #include "gcr.h"
 #include "nibtools.h"
+#include "lz.h"
 
 
 int _dowildcard = 1;
 
+BYTE *compressed_buffer;
+BYTE *file_buffer;
 BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 size_t track_length[MAX_HALFTRACKS_1541 + 1];
+int file_buffer_size;
 int start_track, end_track, track_inc;
 int reduce_sync, reduce_badgcr, reduce_gap;
 int fix_gcr, align, force_align;
@@ -43,10 +47,8 @@ BYTE fillbyte = 0x55;
 int ARCH_MAINDECL
 main(int argc, char **argv)
 {
-	char inname[256], outname[256], command[256], pathname[256];
-	char *dotpos, *pathpos;
-	int iszip = 0;
-	int retval = 1;
+	char inname[256], outname[256];
+	char *dotpos;
 
 	start_track = 1 * 2;
 	end_track = 42 * 2;
@@ -70,15 +72,21 @@ main(int argc, char **argv)
 	  "(C) 2004-2010 Peter Rittwage\nC64 Preservation Project\nhttp://c64preservation.com\n"
 	  "Version " VERSION "\n\n");
 
-	track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH);
-	if(!track_buffer)
+
+	if(!(file_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
+	{
+		printf("could not allocate buffer memory\n");
+		exit(0);
+	}
+
+	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541+1, NIB_TRACK_LENGTH)))
 	{
 		printf("could not allocate memory for buffers.\n");
 		exit(0);
 	}
 
 	/* default is to reduce sync */
-	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541 + 1);
+	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+1);
 
 	while (--argc && (*(++argv)[0] == '-'))
 		parseargs(argv);
@@ -86,30 +94,6 @@ main(int argc, char **argv)
 	if(argc < 1)	usage();
 
 	strcpy(inname, argv[0]);
-
-	/* unzip image if possible */
-	if (compare_extension(inname, "ZIP"))
-	{
-		printf("Unzipping image...\n");
-		dotpos = strrchr(inname, '.');
-		if (dotpos != NULL) *dotpos = '\0';
-		strcpy(pathname, inname);
-
-		/* try to detect pathname */
-		pathpos = strrchr(pathname, '\\');
-		if (pathpos != NULL)
-			*pathpos = '\0';
-		else //*nix
-		{
-			pathpos = strrchr(pathname, '/');
-			if (pathpos != NULL)
-				*pathpos = '\0';
-		}
-
-		sprintf(command, "unzip %s.zip -d %s", inname, pathname);
-		system(command);
-		iszip++;
-	}
 
 	if(argc < 2)
 	{
@@ -125,40 +109,58 @@ main(int argc, char **argv)
 	else
 		strcpy(outname, argv[1]);
 
-	printf("%s -> %s\n",inname, outname);
+	printf("Converting %s -> %s\n\n",inname, outname);
 
 	/* convert */
 	if (compare_extension(inname, "D64"))
-		retval = read_d64(inname, track_buffer, track_density, track_length);
+	{
+		if(!(read_d64(inname, track_buffer, track_density, track_length))) exit(0);
+	}
 	else if (compare_extension(inname, "G64"))
-		retval = read_g64(inname, track_buffer, track_density, track_length);
+	{
+		if(!(read_g64(inname, track_buffer, track_density, track_length))) exit(0);
+	}
+	else if (compare_extension(inname, "NBZ"))
+	{
+		printf("Uncompressing NBZ...\n");
+		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
+		{
+			printf("could not allocate buffer memory\n");
+			exit(0);
+		}
+		if(!(file_buffer_size = load_file(inname, compressed_buffer))) exit(0);
+		if(!(file_buffer_size = LZ_Uncompress(compressed_buffer, file_buffer, file_buffer_size))) exit(0);
+		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) exit(0);
+
+		if( (compare_extension(outname, "G64")) || (compare_extension(outname, "D64")) )
+			align_tracks(track_buffer, track_density, track_length, track_alignment);
+
+		free(compressed_buffer);
+	}
 	else if (compare_extension(inname, "NIB"))
 	{
-		retval = read_nib(inname, track_buffer, track_density, track_length);
-		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
+		if(!(file_buffer_size = load_file(inname, file_buffer))) exit(0);
+		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) exit(0);
+
+		if( (compare_extension(outname, "G64")) || (compare_extension(outname, "D64")) )
+			align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(inname, "NB2"))
 	{
-		retval = read_nb2(inname, track_buffer, track_density, track_length);
-		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
+		if(!(read_nb2(inname, track_buffer, track_density, track_length))) exit(0);
+
+		if( (compare_extension(outname, "G64")) || (compare_extension(outname, "D64")) )
+			align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else
 	{
 		printf("Unknown input file type\n");
-		retval = 0;
+		exit(0);
 	}
-
-	if(iszip)
-	{
-			remove(inname);
-			printf("Temporary file deleted.\n");
-	}
-
-	if(!retval) exit(0);
 
 	if (compare_extension(outname, "D64"))
 	{
-		write_d64(outname, track_buffer, track_density, track_length);
+		if(!(write_d64(outname, track_buffer, track_density, track_length))) exit(0);
 		printf("\nWARNING!\nConverting to D64 is a lossy conversion.\n");
 		printf("All individual sector header and gap information is lost.\n");
 		printf("It is suggested you use the G64 format for most disks.\n");
@@ -166,7 +168,7 @@ main(int argc, char **argv)
 	else if (compare_extension(outname, "G64"))
 	{
 		if(skip_halftracks) track_inc = 2;
-		write_g64(outname, track_buffer, track_density, track_length);
+		if(!(write_g64(outname, track_buffer, track_density, track_length))) exit(0);
 
 		if (compare_extension(inname, "D64"))
 		{
@@ -176,17 +178,23 @@ main(int argc, char **argv)
 			printf("trying to use needs this information (such as for protection),\nit may still fail.\n");
 		}
 	}
+	else if (compare_extension(outname, "NBZ"))
+	{
+		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
+		{
+			printf("could not allocate buffer memory\n");
+			exit(0);
+		}
+		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) exit(0);
+		if(!(file_buffer_size = LZ_CompressFast(file_buffer, compressed_buffer, file_buffer_size))) exit(0);
+		if(!(save_file(outname, compressed_buffer, file_buffer_size))) exit(0);
+		free(compressed_buffer);
+	}
 	else if (compare_extension(outname, "NIB"))
 	{
 		if(skip_halftracks) track_inc = 2;
-
-		if ( !(compare_extension(inname, "NB2")) )
-		{
-			printf("Output to NIB format makes no sense from this input file.\n");
-			exit(0);
-		}
-		write_nib(outname, track_buffer, track_density, track_length);
-		exit(0);
+		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) exit(0);
+		if(!(save_file(outname, file_buffer, file_buffer_size))) exit(0);
 	}
 	else if (compare_extension(outname, "NB2"))
 	{
@@ -198,6 +206,7 @@ main(int argc, char **argv)
 		printf("Unknown output file type\n");
 		exit(0);
 	}
+
 	return 0;
 }
 

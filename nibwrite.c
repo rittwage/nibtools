@@ -14,6 +14,7 @@
 #include "mnibarch.h"
 #include "gcr.h"
 #include "nibtools.h"
+#include "lz.h"
 
 int _dowildcard = 1;
 
@@ -21,11 +22,14 @@ char bitrate_range[4] = { 43 * 2, 31 * 2, 25 * 2, 18 * 2 };
 char bitrate_value[4] = { 0x00, 0x20, 0x40, 0x60 };
 char density_branch[4] = { 0xb1, 0xb5, 0xb7, 0xb9 };
 
+BYTE *compressed_buffer;
+BYTE *file_buffer;
 BYTE *track_buffer;
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 size_t track_length[MAX_HALFTRACKS_1541 + 1];
 
+int file_buffer_size;
 int start_track, end_track, track_inc;
 int reduce_sync;
 int fix_gcr, aggressive_gcr;
@@ -69,6 +73,13 @@ main(int argc, char *argv[])
 	/* we can do nothing with no switches */
 	if (argc < 2)
 		usage();
+
+	file_buffer = calloc(MAX_HALFTRACKS_1541 + 2, NIB_TRACK_LENGTH);
+	if(!file_buffer)
+	{
+		printf("could not allocate buffer memory\n");
+		exit(0);
+	}
 
 	track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH);
 	if(!track_buffer)
@@ -137,14 +148,14 @@ main(int argc, char *argv[])
 
 	if(mode == MODE_WRITE_DISK)
 	{
-		if(!loadimage(filename))
+		if(!(loadimage(filename)))
 		{
 			printf("\nImage loading failed\n");
 			exit(0);
 		}
 	}
 
-	if(!init_floppy(fd, drive, bump))
+	if(!(init_floppy(fd, drive, bump)))
 	{
 		printf("\nFloppy drive initialization failed\n");
 		exit(0);
@@ -177,68 +188,49 @@ main(int argc, char *argv[])
 	exit(0);
 }
 
-int
-loadimage(char *filename)
+int loadimage(char *filename)
 {
-	char command[256];
-	char pathname[256];
-	char *dotpos, *pathpos;
-	int iszip = 0;
-	int retval = 0;
-
-	/* unzip image if possible */
-	if (compare_extension(filename, "ZIP"))
-	{
-		printf("Unzipping image...\n");
-		dotpos = strrchr(filename, '.');
-		if (dotpos != NULL) *dotpos = '\0';
-
-		/* try to detect pathname */
-		strcpy(pathname, filename);
-		pathpos = strrchr(pathname, '\\');
-		if (pathpos != NULL)
-			*pathpos = '\0';
-		else /* unix */
-		{
-			pathpos = strrchr(pathname, '/');
-			if (pathpos != NULL)
-				*pathpos = '\0';
-		}
-
-		sprintf(command, "unzip %s.zip -d %s", filename, pathname);
-		system(command);
-		iszip++;
-	}
-
 	/* read and remaster disk */
 	if (compare_extension(filename, "D64"))
 	{
-		retval = read_d64(filename, track_buffer, track_density, track_length);
+		if(!(read_d64(filename, track_buffer, track_density, track_length))) return 0;
 	}
 	else if (compare_extension(filename, "G64"))
 	{
-		retval = read_g64(filename, track_buffer, track_density, track_length);
+		if(!(read_g64(filename, track_buffer, track_density, track_length))) return 0;
+	}
+	else if (compare_extension(filename, "NBZ"))
+	{
+		printf("Uncompressing NBZ...\n");
+		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
+		{
+			printf("could not allocate buffer memory\n");
+			exit(0);
+		}
+		if(!(file_buffer_size = load_file(filename, compressed_buffer))) return 0;
+		if(!(file_buffer_size = LZ_Uncompress(compressed_buffer, file_buffer, file_buffer_size))) return 0;
+		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) return 0;
+		align_tracks(track_buffer, track_density, track_length, track_alignment);
+		free(compressed_buffer);
 	}
 	else if (compare_extension(filename, "NIB"))
 	{
-		retval = read_nib(filename, track_buffer, track_density, track_length);
-		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
+		if(!(file_buffer_size = load_file(filename, file_buffer))) return 0;
+		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) return 0;
+		align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
-		retval = read_nb2(filename, track_buffer, track_density, track_length);
-		if(retval) align_tracks(track_buffer, track_density, track_length, track_alignment);
+		if(!(read_nb2(filename, track_buffer, track_density, track_length))) return 0;
+		align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else
-		printf("\nUnknown image type");
-
-	if(iszip)
 	{
-		remove(filename);
-		printf("Temporary file deleted.\n");
+		printf("\nUnknown image type");
+		return 0;
 	}
 
-	return retval;
+	return 1;
 }
 
 int writeimage(CBM_FILE fd)

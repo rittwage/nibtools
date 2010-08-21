@@ -11,6 +11,7 @@ SOURCES=../nibscan.c \
 	../fileio.c \
 	../crc.c \
 	../md5.c \
+	../lz.c \
         nibscan.rc
 
 UMTYPE=console
