@@ -180,10 +180,12 @@ main(int argc, char **argv)
 	}
 	else if (compare_extension(outname, "NBZ"))
 	{
-		if( (compare_extension(inname, "D64")) || (compare_extension(inname, "G64")))
+		if( (compare_extension(inname, "D64")) ||
+			(compare_extension(inname, "G64")) ||
+			(compare_extension(inname, "NBZ")))
 		{
-					printf("Output format makes no sense from this input file.\n");
-					exit(0);
+			printf("Output format makes no sense from this input file.\n");
+			exit(0);
 		}
 		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
 		{
@@ -198,7 +200,9 @@ main(int argc, char **argv)
 	}
 	else if (compare_extension(outname, "NIB"))
 	{
-		if( (compare_extension(inname, "D64")) || (compare_extension(inname, "G64")))
+		if( (compare_extension(inname, "D64")) ||
+			(compare_extension(inname, "G64")) ||
+			(compare_extension(inname, "NIB")))
 		{
 			printf("Output format makes no sense from this input file.\n");
 			exit(0);
