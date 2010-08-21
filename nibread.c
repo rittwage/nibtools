@@ -218,7 +218,7 @@ main(int argc, char *argv[])
 		case 'e':	// change read retries
 			if (!(*argv)[2]) usage();
 			error_retries = atoi(&(*argv)[2]);
-			printf("* Read retries set to %zu\n", error_retries);
+			printf("* Read retries set to %lu\n", error_retries);
 			break;
 
 		case 'm':

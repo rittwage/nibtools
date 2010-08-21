@@ -44,7 +44,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		if(skewbytes > NIB_TRACK_LENGTH)
 			skewbytes = skewbytes - NIB_TRACK_LENGTH;
 
-		printf(" {skew=%zu} ", skewbytes);
+		printf(" {skew=%lu} ", skewbytes);
 	}
 
 	/* check that our first sync is long enough (if the track has sync)
@@ -73,7 +73,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	/* handle short tracks */
 	if(track_length < capacity[track_density[track] & 3])
 	{
-			printf("[pad:%zu]", capacity[track_density[track] & 3] - track_length);
+			printf("[pad:%lu]", capacity[track_density[track] & 3] - track_length);
 			track_length = capacity[track_density[track] & 3];
 	}
 
@@ -138,7 +138,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 
 		badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
 		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
-		printf("[badgcr:%zu] ", badgcr);
+		printf("[badgcr:%lu] ", badgcr);
 
 		master_track(fd, track_buffer, track_density, track, length);
 	}
@@ -193,12 +193,12 @@ master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 			else if (track_density[track] & BM_FF_TRACK)
 				printf(":KILLER");
 
-			printf(") (%zu) ", length);
+			printf(") (%lu) ", length);
 
 			/* truncate the end if needed (reduce tail) */
 			if ( (length > capacity[density & 3]) && (length != NIB_TRACK_LENGTH) )
 			{
-				printf(" (trunc:%zu) ",  length - capacity[density & 3]);
+				printf(" (trunc:%lu) ",  length - capacity[density & 3]);
 				length = capacity[density & 3];
 			}
 			master_track(fd, track_buffer, track_density, track, length);
