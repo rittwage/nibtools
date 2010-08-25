@@ -281,7 +281,7 @@ main(int argc, char *argv[])
 	fprintf(fplog, "%s\n", VERSION);
 	fprintf(fplog, "'%s'\n", argcache);
 
-	if(strrchr(filename, '.') == NULL)  strcat(filename, ".nib");
+	if(strrchr(filename, '.') == NULL)  strcat(filename, ".nbz");
 
 	if((compare_extension(filename, "D64")) || (compare_extension(filename, "G64")))
 	{
@@ -322,6 +322,10 @@ void parallel_test(int iterations)
 
 int disk2file(CBM_FILE fd, char *filename)
 {
+	int count = 0;
+	char newfilename[256];
+	char filenum[4], *dotpos;
+
 	/* read data from drive to file */
 	motor_on(fd);
 
@@ -330,45 +334,69 @@ int disk2file(CBM_FILE fd, char *filename)
 		track_inc = 1;
 		if(!(write_nb2(fd, filename))) return 0;
 	}
-	else if(compare_extension(filename, "NBZ"))
+	else if(compare_extension(filename, "NIB"))
+	{
+		if(!(read_floppy(fd, track_buffer, track_density, track_length))) return 0;
+		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) return 0;
+		if(!(save_file(filename, file_buffer, file_buffer_size))) return 0;
+
+		if(interactive_mode)
+		{
+			for(;;)
+			{
+				printf("Swap disk and press a key for next image, or CTRL-C to quit.\n");
+				getchar();
+
+				/* create new filename */
+				sprintf(filenum, "%d", ++count);
+				strcpy(newfilename, filename);
+				dotpos = strrchr(newfilename, '.');
+				if (dotpos != NULL) *dotpos = '\0';
+				strcat(newfilename, filenum);
+				strcat(newfilename, ".nib");
+
+				if(!(read_floppy(fd, track_buffer, track_density, track_length))) return 0;
+				if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) return 0;
+				if(!(save_file(newfilename, file_buffer, file_buffer_size))) return 0;
+			}
+		}
+	}
+	else
 	{
 		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
 		{
 			printf("could not allocate buffer memory\n");
 			exit(0);
 		}
+
 		if(!(read_floppy(fd, track_buffer, track_density, track_length))) return 0;
 		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) return 0;
 		if(!(file_buffer_size = LZ_CompressFast(file_buffer, compressed_buffer, file_buffer_size))) return 0;
 		if(!(save_file(filename, compressed_buffer, file_buffer_size))) return 0;
-		free(compressed_buffer);
-	}
-	else
-	{
-		if(!(read_floppy(fd, track_buffer, track_density, track_length))) return 0;
-		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) return 0;
-		if(!(save_file(filename, file_buffer, file_buffer_size))) return 0;
 
-//		if(interactive_mode)
-//		{
-//			for(;;)
-//			{
-//				printf("Swap disk and press a key for next image, or CTRL-C to quit.\n");
-//				getchar();
-//
-//				/* create new filename */
-//				sprintf(filenum, "%d", ++count);
-//				strcpy(newfilename, filename);
-//				dotpos = strrchr(newfilename, '.');
-//				if (dotpos != NULL) *dotpos = '\0';
-//				strcat(newfilename, filenum);
-//				strcat(newfilename, ".nib");
-//				read_floppy(fd, track_buffer, track_density, track_length);
-//				write_nib(newfilename, track_buffer, track_density, track_length);
-//			}
-//		}
-	}
+		if(interactive_mode)
+		{
+			for(;;)
+			{
+				printf("Swap disk and press a key for next image, or CTRL-C to quit.\n");
+				getchar();
 
+				/* create new filename */
+				sprintf(filenum, "%d", ++count);
+				strcpy(newfilename, filename);
+				dotpos = strrchr(newfilename, '.');
+				if (dotpos != NULL) *dotpos = '\0';
+				strcat(newfilename, filenum);
+				strcat(newfilename, ".nbz");
+
+				if(!(read_floppy(fd, track_buffer, track_density, track_length))) return 0;
+				if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) return 0;
+				if(!(file_buffer_size = LZ_CompressFast(file_buffer, compressed_buffer, file_buffer_size))) return 0;
+				if(!(save_file(newfilename, compressed_buffer, file_buffer_size))) return 0;
+			}
+		}
+			free(compressed_buffer);
+	}
 	cbm_parallel_burst_read(fd);
 	return 1;
 }
