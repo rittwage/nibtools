@@ -339,7 +339,7 @@ int read_nib(BYTE *file_buffer, int file_buffer_size, BYTE *track_buffer, BYTE *
 	{
 		/* get density from header or use default */
 		track_density[track] = (BYTE)(file_buffer[0x10 + (header_entry * 2) + 1]);
-		//track_density[track] %= BM_MATCH;  	 /* discard unused BM_MATCH mark */
+		track_density[track] %= BM_MATCH;  	 /* discard unused BM_MATCH mark */
 		header_entry++;
 
 		/* get track from file */
