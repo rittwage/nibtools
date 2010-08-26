@@ -281,8 +281,10 @@ int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else
+	{
 		printf("Unknown image type = %s!\n", filename);
-
+		return 0;
+	}
 	return 1;
 }
 
