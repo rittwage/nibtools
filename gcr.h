@@ -101,7 +101,7 @@ speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 #define BAD_HEADER_CHECKSUM 0x09
 #define ID_MISMATCH         0x0b
 #define DISK_NOT_INSERTED   0x0f
-#define NO_TRACK_DATA 0xff  /*not a CBM error code */
+#define NO_TRACK_DATA 0x00  /*not a CBM error code */
 
 #define BM_MATCH       0x10
 #define BM_NO_CYCLE	   0x20

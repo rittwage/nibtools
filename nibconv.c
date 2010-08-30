@@ -49,6 +49,7 @@ main(int argc, char **argv)
 {
 	char inname[256], outname[256];
 	char *dotpos;
+	FILE *fp;
 
 	start_track = 1 * 2;
 	end_track = 42 * 2;
@@ -110,6 +111,13 @@ main(int argc, char **argv)
 		strcpy(outname, argv[1]);
 
 	printf("Converting %s -> %s\n\n",inname, outname);
+
+	if( (fp=fopen(outname,"r")) )
+	{
+		fclose(fp);
+		printf("File exists - Overwrite? (y/N)");
+		if(getchar() != 'y') exit(0);
+	}
 
 	/* convert */
 	if (compare_extension(inname, "D64"))

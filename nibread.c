@@ -73,6 +73,7 @@ main(int argc, char *argv[])
 	int bump, reset, i;
 	char filename[256], logfilename[256], *dotpos;
 	char argcache[256];
+	FILE *fp;
 
 	fprintf(stdout,
 	  "\nnibread - Commodore 1541/1571 disk image nibbler\n"
@@ -289,6 +290,14 @@ main(int argc, char *argv[])
 		printf("Use nibconv after imaging to convert to desired file type.\n");
 		exit(0);
 	}
+
+	if( (fp=fopen(filename,"r")) )
+	{
+		fclose(fp);
+		printf("File exists - Overwrite? (y/N)");
+		if(getchar() != 'y') exit(0);
+	}
+
 
 	if(!(disk2file(fd, filename)))
 		printf("Operation failed!\n");
