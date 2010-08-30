@@ -259,9 +259,28 @@ zero_track(CBM_FILE fd, int track)
 	cbm_parallel_burst_read(fd);
 }
 
+void speed_adjust(CBM_FILE fd)
+{
+	int i, cap;
+	BYTE track_dens[4] = { 35*2, 30*2, 24*2, 17*2 };
+
+	printf("\nTesting drive motor speed for 100 loops.\n");
+	printf("--------------------------------------------------\n");
+
+	motor_on(fd);
+	step_to_halftrack(fd, start_track);
+	set_bitrate(fd, 2);
+
+	for (i=0; i<100; i++)
+	{
+		cap = track_capacity(fd);
+		printf("Speed = %.2frpm\n", DENSITY2 / cap);
+	}
+
+}
+
 /* This routine measures track capacity at all densities */
-void
-adjust_target(CBM_FILE fd)
+void adjust_target(CBM_FILE fd)
 {
 	int i, j;
 	int cap[DENSITY_SAMPLES];

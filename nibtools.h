@@ -52,6 +52,7 @@
 #define MODE_UNFORMAT_DISK 	2
 #define MODE_WRITE_RAW	   	3
 #define MODE_TEST_ALIGNMENT 4
+#define MODE_SPEED_ADJUST 5
 
 
 #ifndef DJGPP
@@ -139,6 +140,7 @@ void zero_track(CBM_FILE fd, int track);
 unsigned int track_capacity(CBM_FILE fd);
 void init_aligned_disk(CBM_FILE fd);
 void adjust_target(CBM_FILE fd);
+void speed_adjust(CBM_FILE fd);
 void kill_track(CBM_FILE fd, int track);
 
 /* drive.c  */

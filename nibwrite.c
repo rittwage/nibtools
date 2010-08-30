@@ -180,6 +180,10 @@ main(int argc, char *argv[])
 			*/
 			unformat_disk(fd);
 			break;
+
+		case MODE_SPEED_ADJUST:
+			speed_adjust(fd);
+			break;
 	}
 
 	motor_on(fd);

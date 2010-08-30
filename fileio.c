@@ -56,6 +56,11 @@ void parseargs(char *argv[])
 			mode = MODE_WRITE_RAW;
 			break;
 
+		case 'A':
+			printf("* Speed Adjustment mode\n");
+			mode = MODE_SPEED_ADJUST;
+			break;
+
 		case 'p':
 			// custom protection handling
 			printf("* Custom copy protection handler: ");
