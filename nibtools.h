@@ -28,7 +28,7 @@
 #define IMAGE_NIB      0	/* destination image format */
 #define IMAGE_D64      1
 #define IMAGE_G64      2
-#define IMAGE_NB2	3
+#define IMAGE_NB2		3
 
 #define BM_MATCH       0x10 /* not used but exists in very old images */
 #define BM_NO_CYCLE 0x20
@@ -45,7 +45,7 @@
  direct-drive models are really close and don't need this, but old
  belt-driven drives do
 */
-#define EXTRA_CAPACITY_MARGIN 10
+#define EXTRA_CAPACITY_MARGIN 5
 
 #define MODE_READ_DISK     	0
 #define MODE_WRITE_DISK    	1
@@ -133,7 +133,7 @@ int TrackAlignmentReport(CBM_FILE fd);
 /* write.c */
 void master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 void master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
-void master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t track_length);
+void master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t tracklen);
 void write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 void unformat_disk(CBM_FILE fd);
 void zero_track(CBM_FILE fd, int track);
