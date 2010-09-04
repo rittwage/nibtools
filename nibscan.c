@@ -63,6 +63,7 @@ int unformat_passes;
 int capacity_margin;
 int align_delay;
 int cap_min_ignore;
+int increase_sync = 0;
 BYTE fillbyte = 0x55;
 
 unsigned char md5_hash_result[16];
@@ -83,7 +84,7 @@ main(int argc, char *argv[])
 	track_inc = 2;
 	align = ALIGN_NONE;
 	force_align = ALIGN_NONE;
-	fix_gcr = 1;
+	fix_gcr = 0;
 	gap_match_length = 7;
 	cap_relax = 0;
 	mode = 0;
@@ -211,8 +212,7 @@ main(int argc, char *argv[])
 	}
 	else 	// just scan for errors, etc.
 	{
-		if(!load_image(file1, track_buffer, track_density, track_length))
-			exit(0);
+		if(!load_image(file1, track_buffer, track_density, track_length)) exit(0);
 
 		scandisk();
 
@@ -482,6 +482,7 @@ scandisk(void)
 	int track = 0;
 	int totalfat = 0;
 	int totalrl = 0;
+	int added_sync;
 	size_t totalgcr = 0;
 	int total_wrong_density = 0;
 	size_t empty = 0, temp_empty = 0;
@@ -545,6 +546,15 @@ scandisk(void)
 			}
 			else
 				printf(") ");
+
+			if(increase_sync)
+			{
+				added_sync = lengthen_sync(track_buffer + (NIB_TRACK_LENGTH * track),
+					track_length[track], NIB_TRACK_LENGTH);
+
+				printf("[sync:%d] ", added_sync);
+				track_length[track] += added_sync;
+			}
 
 			// detect bad GCR '000' bits
 			if (fix_gcr)

@@ -50,6 +50,7 @@ int mode;
 int unformat_passes;
 int capacity_margin;
 int align_delay;
+int increase_sync = 0;
 BYTE fillbyte = 0x55;
 
 /* local prototypes */

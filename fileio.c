@@ -31,6 +31,11 @@ void parseargs(char *argv[])
 			printf("* Using halftracks\n");
 			break;
 
+		case 'F':
+			increase_sync = 1;
+			printf("* Fix/increase short syncs\n");
+			break;
+
 		case 'S':
 			if (!(*argv)[2]) usage();
 			start_track = (BYTE) (2 * (atoi(&(*argv)[2])));
@@ -192,15 +197,10 @@ void parseargs(char *argv[])
 
 		case 'f':
 			if (!(*argv)[2])
-			{
-				fix_gcr = 0;
-				printf("* Disabled bad GCR bit reproduction\n");
-			}
+				fix_gcr = 1;
 			else
-			{
 				fix_gcr = atoi(&(*argv)[2]);
-				printf("* Enabled level %d bad GCR reproduction.\n", fix_gcr);
-			}
+			printf("* Enabled level %d bad GCR reproduction.\n", fix_gcr);
 			break;
 
 		case 'v':
@@ -885,7 +885,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
 	BYTE gcr_track[G64_TRACK_MAXLEN + 2];
 	size_t track_len;
-	int track, index;
+	int track, index, added_sync;
 	size_t badgcr;
 	FILE * fpout;
 	BYTE buffer[NIB_TRACK_LENGTH], tempfillbyte;
@@ -993,6 +993,15 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 
 				if(capacity[speed_map[track/2]] > G64_TRACK_MAXLEN)
 					capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
+
+				if(increase_sync)
+				{
+					added_sync = lengthen_sync(track_buffer + (NIB_TRACK_LENGTH * track),
+						track_length[track], NIB_TRACK_LENGTH);
+
+					printf("[sync:%d] ", added_sync);
+					track_length[track] += added_sync;
+				}
 
 				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 			}

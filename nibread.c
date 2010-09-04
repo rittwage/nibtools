@@ -58,6 +58,7 @@ int unformat_passes;
 int capacity_margin;
 int align_delay;
 int align_report;
+int increase_sync = 0;
 BYTE fillbyte = 0x55;
 
 BYTE density_map;
@@ -108,7 +109,7 @@ main(int argc, char *argv[])
 	reduce_sync = 1;
 	reduce_badgcr = 0;
 	reduce_gap = 0;
-	fix_gcr = 1;
+	fix_gcr = 0;
 	read_killer = 1;
 	error_retries = 10;
 	force_density = 0;

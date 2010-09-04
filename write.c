@@ -96,13 +96,14 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 void
 master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
-	int track;
+	int track, added_sync = 0;
 	size_t badgcr, length;
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		/* double-check our sync-flag assumptions and process track for remaster */
-		track_density[track] = check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+		track_density[track] =
+			check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
 
 		/* engineer killer track */
 		if(track_density[track] & BM_FF_TRACK)
@@ -121,7 +122,19 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		}
 
 		badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
-		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
+
+		if(increase_sync)
+		{
+			added_sync = lengthen_sync(track_buffer + (track * NIB_TRACK_LENGTH),
+				track_length[track], NIB_TRACK_LENGTH);
+
+			track_length[track] += added_sync;
+		}
+
+		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH),
+			track_density[track], track_length[track]);
+
+		printf("[sync:%d] ", added_sync);
 		printf("[badgcr:%lu] ", badgcr);
 
 		master_track(fd, track_buffer, track_density, track, length);

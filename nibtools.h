@@ -81,7 +81,7 @@ extern int cap_min_ignore;
 extern int verbose;
 extern int ihs;
 extern int start_track, end_track, track_inc;
-extern int fix_gcr, reduce_sync;
+extern int fix_gcr, reduce_sync, increase_sync;
 extern int imagetype, auto_capacity_adjust;
 extern int extended_parallel_test;
 extern int force_nosync;

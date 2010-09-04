@@ -109,8 +109,10 @@ find_sync(BYTE ** gcr_pptr, BYTE * gcr_end)
 			return 0;	/* not found */
 		}
 
-		/* sync flag goes up after the 10th bit */
-		if ( ((*gcr_pptr)[0] & 0x03) == 0x03 && (*gcr_pptr)[1] == 0xff)
+		/* sync flag goes up after the 10th bit, but sometimes they are short */
+		//if ( ((*gcr_pptr)[0] & 0x03) == 0x03 && (*gcr_pptr)[1] == 0xff)
+		if ( ((*gcr_pptr)[0] & 0x01) == 0x01 && (*gcr_pptr)[1] == 0xff)
+		//if ( ((*gcr_pptr)[0] == 0xff) )
 			break;
 
 		(*gcr_pptr)++;
@@ -135,8 +137,10 @@ find_header(BYTE ** gcr_pptr, BYTE * gcr_end)
 			return 0;	/* not found */
 		}
 
-		/* sync flag goes up after the 10th bit */
-		if ( (((*gcr_pptr)[0] & 0x03) == 0x03) && ((*gcr_pptr)[1] == 0xff) && ((*gcr_pptr)[2] == 0x52) )
+		/* sync flag goes up after the 10th bit, but sometimes they are short */
+		//if ( (((*gcr_pptr)[0] & 0x03) == 0x03) && ((*gcr_pptr)[1] == 0xff) && ((*gcr_pptr)[2] == 0x52) )
+		if ( (((*gcr_pptr)[0] & 0x01) == 0x01) && ((*gcr_pptr)[1] == 0xff) && ((*gcr_pptr)[2] == 0x52) )
+		//if ( ((*gcr_pptr)[0] == 0xff) && ((*gcr_pptr)[1] == 0x52) )
 			break;
 
 		(*gcr_pptr)++;
@@ -1042,6 +1046,45 @@ aligned:
 	return track_len;
 }
 
+size_t
+lengthen_sync(BYTE * buffer, size_t length, size_t length_max)
+{
+	size_t added;
+	BYTE *source, *newp, *end;
+	BYTE newbuf[NIB_TRACK_LENGTH];
+
+	added = 0;
+	end = buffer + length;
+	source = buffer;
+	newp = newbuf;
+
+	if (length >= length_max)
+		return 0;
+
+	/* wrap alignment */
+	if( ((*(end-1) & 0x01) == 0x01) && (*source == 0xff) && (*(source+1) != 0xff) )
+	{
+		*(newp++) = 0xff;
+		added++;
+	}
+	*(newp++) = *(source++);
+
+	do
+	{
+		if ( ((*(source-1) & 0x01) == 0x01) && (*source == 0xff) && (*(source+1) != 0xff) &&
+			(length+added <= length_max) )
+		{
+			*(newp++) = 0xff;
+			added++;
+		}
+		*(newp++) = *(source++);
+
+	} while (source <= (end-1));
+
+	memcpy(buffer, newbuf, length+added);
+	return added;
+}
+
 /*
 	This strips exactly one byte at minrun from each
 	eligible run when called.  It can be called repeatedly
@@ -1584,7 +1627,7 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 
 	/* if empty we are all "bad" GCR */
 	if(!length)
-		return (NIB_TRACK_LENGTH);
+		return NIB_TRACK_LENGTH;
 
 	i = 0;
 	total = 0;
