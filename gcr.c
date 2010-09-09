@@ -859,6 +859,13 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 		find_track_cycle_raw(&cycle_start, &cycle_stop, cap_min, cap_max);
 		track_len = cycle_stop - cycle_start;
 	}
+
+	if (track_len <= cap_min)
+	{
+		track_len += (cap_max-cap_min)/2;
+		printf("/+");
+	}
+
 	printf(" ");
 
 	if(verbose)

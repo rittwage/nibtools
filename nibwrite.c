@@ -143,10 +143,6 @@ main(int argc, char *argv[])
 	}
 #endif
 
-	/* Once the drive is accessed, we need to close out state when exiting */
-	atexit(handle_exit);
-	signal(SIGINT, handle_signals);
-
 	if(mode == MODE_WRITE_DISK)
 	{
 		if(!(loadimage(filename)))
@@ -155,6 +151,10 @@ main(int argc, char *argv[])
 			exit(0);
 		}
 	}
+
+	/* Once the drive is accessed, we need to close out state when exiting */
+	atexit(handle_exit);
+	signal(SIGINT, handle_signals);
 
 	if(!(init_floppy(fd, drive, bump)))
 	{

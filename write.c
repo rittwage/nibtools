@@ -134,8 +134,8 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH),
 			track_density[track], track_length[track]);
 
-		printf("[sync:%d] ", added_sync);
-		printf("[badgcr:%lu] ", badgcr);
+		if(increase_sync) printf("[sync:%d] ", added_sync);
+		if(badgcr) printf("[badgcr:%lu] ", badgcr);
 
 		master_track(fd, track_buffer, track_density, track, length);
 	}
