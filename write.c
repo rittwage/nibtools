@@ -175,21 +175,22 @@ master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 			rewind(trkin);
 			fread(trackbuf, length, 1, trkin); // @@@SRT: check success
 			fclose(trkin);
-			if(length == 0) length = NIB_TRACK_LENGTH;
+
+			if(length == 0)
+				length = NIB_TRACK_LENGTH;
 
 			/* process track */
 			memcpy(track_buffer + (track * NIB_TRACK_LENGTH), trackbuf, NIB_TRACK_LENGTH);
 			track_density[track] = check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH), density, length);
-			printf(" (%d", track_density[track] & 3);
+			//length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], length);
 
+			printf(" (%d", track_density[track] & 3);
 			if ( (track_density[track]&3) != speed_map[track/2])
 				printf("!=%d", speed_map[track/2]);
-
 			if (track_density[track] & BM_NO_SYNC)
 					printf(":NOSYNC");
 			else if (track_density[track] & BM_FF_TRACK)
 				printf(":KILLER");
-
 			printf(") (%lu) ", length);
 
 			/* truncate the end if needed (reduce tail) */
