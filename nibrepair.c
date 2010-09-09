@@ -80,7 +80,7 @@ main(int argc, char **argv)
 	fprintf(stdout,
 	  "\nnibrepair - converts a damaged NIB/NB2/G64 to a new 'repaired' G64 file.\n"
 	  "(C) 2004-2010 Peter Rittwage\nC64 Preservation Project\nhttp://c64preservation.com\n"
-	  "Version " VERSION "\n\n");
+	  "Revision %d - " VERSION "\n\n", SVNVER);
 
 
 	file_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH);

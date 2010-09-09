@@ -96,7 +96,8 @@ main(int argc, char *argv[])
 	cap_min_ignore = 0;
 
 	printf("\nnibscan - Commodore disk image scanner / comparator\n"
-	  "(C) 2004-2010 Peter Rittwage\nC64 Preservation Project\nhttp://c64preservation.com\n" "Version " VERSION "\n\n");
+	  "(C) 2004-2010 Peter Rittwage\nC64 Preservation Project\nhttp://c64preservation.com\n"
+	  "Revision %d - " VERSION "\n\n", SVNVER);
 
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();

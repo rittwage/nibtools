@@ -17,8 +17,8 @@ CBM_LNX_PATH=	/usr/local
 CBM_WIN_PATH=	../
 
 # Default compile flags.  Be careful with optimization (-O2)
-CFLAGS=${WARNS} 
-CFLAGS+=-DSVNVERSION="`svnversion -m`"
+CFLAGS=${WARNS}
+CFLAGS+=-DSVNVER=$(shell svn info | grep Revision | sed 's/Revision: //') 
 
 # cl65 defs, contributed by Ullrich von Bassewitz <uz(at)musoftware(dot)de>
 # (cc65 >= 2.6 required)
@@ -94,7 +94,7 @@ nibscan:	${OBJ} nibscan.o
 	${CC} -o nibscan$(EXE) nibscan.o ${OBJ} $(LDFLAGS)
 
 clean:
-	${RM} *.o ${MNIB_BIN} *.bin *.inc
+	${RM} *.o ${MNIB_BIN} *.bin *.inc nib*.exe
 
 distclean: clean
 	${RM} ${PROG} *.exe
