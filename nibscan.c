@@ -95,6 +95,9 @@ main(int argc, char *argv[])
 	verbose = 0;
 	cap_min_ignore = 0;
 
+	printf("\nnibscan - Commodore disk image scanner / comparator\n"
+	  "(C) 2004-2010 Peter Rittwage\nC64 Preservation Project\nhttp://c64preservation.com\n" "Version " VERSION "\n\n");
+
 	/* we can do nothing with no switches */
 	if (argc < 2)	usage();
 
@@ -125,9 +128,6 @@ main(int argc, char *argv[])
 
 	while (--argc && (*(++argv)[0] == '-'))
 		parseargs(argv);
-
-	printf("\nnibscan - Commodore disk image scanner / comparator\n"
-	  "(C) 2004-2010 Peter Rittwage\nC64 Preservation Project\nhttp://c64preservation.com\n" "Version " VERSION "\n\n");
 
 	if (argc < 0)	usage();
 	strcpy(file1, argv[0]);
