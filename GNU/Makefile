@@ -18,7 +18,8 @@ CBM_WIN_PATH=	../
 
 # Default compile flags.  Be careful with optimization (-O2)
 CFLAGS=${WARNS}
-CFLAGS+=-DSVNVER=$(shell svn info | grep Revision | sed 's/Revision: //') 
+CFLAGS+=-DSVN=$(shell svn info | grep Revision | sed 's/Revision: //') 
+#CFLAGS+=-DSVN=$(shell svnversion | sed -e 's/.*://' -e 's/[A-Z]*$//')
 
 # cl65 defs, contributed by Ullrich von Bassewitz <uz(at)musoftware(dot)de>
 # (cc65 >= 2.6 required)

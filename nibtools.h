@@ -6,6 +6,10 @@
 
 #define VERSION "Stable (Built "__DATE__" "__TIME__")"
 
+#ifndef SVN
+#define SVN 9999
+#endif
+
 #define FL_STEPTO      0x00
 #define FL_MOTOR       0x01
 #define FL_RESET       0x02
