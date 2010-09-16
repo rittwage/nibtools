@@ -122,16 +122,18 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	BYTE buffer2[NIB_TRACK_LENGTH];
 	BYTE cbuffer1[NIB_TRACK_LENGTH];
 	BYTE cbuffer2[NIB_TRACK_LENGTH];
+	BYTE bbuffer[NIB_TRACK_LENGTH];
 	BYTE *cbufn, *cbufo, *bufn, *bufo;
 	BYTE align;
 	size_t leno, lenn, gcr_compare, gcr_percentage;
 	BYTE denso, densn;
-	size_t i, l, badgcr, retries, errors;
+	size_t i, l, badgcr, retries, errors, best;
 	char errorstring[0x1000], diffstr[80];
 
 	badgcr = 0;
 	errors = 0;
 	retries = 1;
+	best = NIB_TRACK_LENGTH;
 	denso = 0;
 	densn = 0;
 	leno = 0;
@@ -175,6 +177,16 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			return (denso);
 		}
 
+		/* keep best track cycle in case we don't get another good one
+			1) disk is destroyed during reading)
+			2) subsequest reads show no valid cycle
+		*/
+		if(leno < best)
+		{
+			best = leno;
+			memcpy(bbuffer, bufo, NIB_TRACK_LENGTH);
+		}
+
 		// if we get less than what a track holds,
 		// try again, probably bad read or a bad GCR match
 		if (leno < capacity_min[denso & 3] - CAP_ALLOWANCE)
@@ -216,6 +228,13 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		}
 
 		if(l < error_retries - 1) printf("(retry) ");
+	}
+
+	/* keep best cycle if ended with none */
+	if((leno == NIB_TRACK_LENGTH) && (best < leno))
+	{
+		printf("(reverted)");
+		memcpy(bufo, bbuffer, NIB_TRACK_LENGTH);
 	}
 
 	// If there are a lot of errors, the track probably doesn't contain
