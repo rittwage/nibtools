@@ -150,10 +150,6 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		memset(bufo, 0, NIB_TRACK_LENGTH);
 		denso = read_halftrack(fd, halftrack, bufo);
 
-		// Find track cycle and length
-		memset(cbufo, 0, NIB_TRACK_LENGTH);
-		leno = extract_GCR_track(cbufo, bufo, &align, halftrack/2, capacity_min[denso & 3], capacity_max[denso & 3]);
-
 		// if we have a killer track, exit processing
 		if(denso & BM_FF_TRACK)
 		{
@@ -162,6 +158,13 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			memcpy(buffer, bufo, NIB_TRACK_LENGTH);
 			return (denso);
 		}
+
+		// Find track cycle and length
+		memset(cbufo, 0, NIB_TRACK_LENGTH);
+		leno = extract_GCR_track(cbufo, bufo, &align, halftrack/2, capacity_min[denso & 3], capacity_max[denso & 3]);
+
+		printf("%lu ", leno);
+		fprintf(fplog, "%lu ", leno);
 
 		// If we get nothing we are on an empty track (unformatted)
 		if (!leno)
@@ -192,9 +195,6 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			//continue;
 		}
 
-		printf("%lu ", leno);
-		fprintf(fplog, "%lu ", leno);
-
 		// check for CBM DOS errors
 		errors = check_errors(cbufo, leno, halftrack, diskid, errorstring);
 		fprintf(fplog, "%s", errorstring);
@@ -202,14 +202,18 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		// if we got all good sectors we dont retry
 		if (errors == 0) break;
 
-		// if all bad sectors (protection) we only retry once
-		if (errors == sector_map[halftrack/2])
+		// all bad sectors (protection) and we have a valid cycle
+		if ((errors == sector_map[halftrack/2]) &&
+			(leno < NIB_TRACK_LENGTH) &&
+			(l > 0) )
+		break;
+
+		// all bad sectors (protection) and no cycle we limit retries
+		if ((errors == sector_map[halftrack/2]) && (leno == NIB_TRACK_LENGTH))
 		{
 			if(l < (error_retries - 1))
 				l = error_retries - 1;
 		}
-		else // else we are probably looping for a read retry
-			printf("%s ", errorstring);
 
 		if(l < error_retries - 1) printf("(retry) ");
 	}

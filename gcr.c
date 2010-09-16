@@ -845,12 +845,12 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	track_len = cycle_stop - cycle_start;
 
 	/* second pass to find a cycle in track w/non-standard headers */
-	//if ((track_len > cap_max) || (track_len < cap_min))
-	//{
-	//	printf("/S");
-	//	find_track_cycle_syncs(&cycle_start, &cycle_stop, cap_min, cap_max);
-	//	track_len = cycle_stop - cycle_start;
-	//}
+	if ((track_len > cap_max) || (track_len < cap_min))
+	{
+		printf("/S");
+		find_track_cycle_syncs(&cycle_start, &cycle_stop, cap_min, cap_max);
+		track_len = cycle_stop - cycle_start;
+	}
 
 	/* third pass to find a cycle in track w/non-standard headers */
 	if ((track_len > cap_max) || (track_len < cap_min))
@@ -955,8 +955,8 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	}
 
 	/* tracks with no detected cycle */
-	if (track_len == NIB_TRACK_LENGTH)
-	{
+	//if (track_len == NIB_TRACK_LENGTH)
+	//{
 		/* if there is sync, align to the longest one */
 		//marker_pos = find_long_sync(work_buffer, track_len);
 		//if (marker_pos)
@@ -967,14 +967,14 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 		//}
 
 		/* we aren't dealing with a normal track here, so autogap it */
-		marker_pos = auto_gap(work_buffer, track_len);
-		if (marker_pos)
-		{
-			memcpy(destination, marker_pos, track_len);
-			*align = ALIGN_AUTOGAP;
-			goto aligned;
-		}
-	}
+		//marker_pos = auto_gap(work_buffer, track_len);
+		//if (marker_pos)
+		//{
+		//	memcpy(destination, marker_pos, track_len);
+		//	*align = ALIGN_AUTOGAP;
+		//	goto aligned;
+		//}
+	//}
 
 	/* try to guess original alignment on "normal" sized tracks */
 	sector0_pos = find_sector0(work_buffer, track_len, &sector0_len);
