@@ -942,8 +942,14 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 
 		if (align_map[track] == ALIGN_SEC0)
 		{
-			*align = ALIGN_SEC0;;
+			*align = ALIGN_SEC0;
 			marker_pos = find_sector0(work_buffer, track_len, &sector0_len);
+		}
+
+		if (align_map[track] == ALIGN_RAW)
+		{
+			*align = ALIGN_RAW;
+			marker_pos = work_buffer;
 		}
 
 		/* we found a protection track */

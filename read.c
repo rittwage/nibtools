@@ -209,6 +209,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 		// check for CBM DOS errors
 		errors = check_errors(cbufo, leno, halftrack, diskid, errorstring);
+		printf("%s", errorstring);
 		fprintf(fplog, "%s", errorstring);
 
 		// if we got all good sectors we dont retry
