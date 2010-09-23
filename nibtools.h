@@ -49,7 +49,7 @@
  direct-drive models are really close and don't need this, but old
  belt-driven drives do
 */
-#define EXTRA_CAPACITY_MARGIN 5
+#define EXTRA_CAPACITY_MARGIN 10
 
 #define MODE_READ_DISK     	0
 #define MODE_WRITE_DISK    	1
