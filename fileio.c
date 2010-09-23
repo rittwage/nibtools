@@ -197,7 +197,7 @@ void parseargs(char *argv[])
 
 		case 'f':
 			if (!(*argv)[2])
-				fix_gcr = 1;
+				fix_gcr = 0;
 			else
 				fix_gcr = atoi(&(*argv)[2]);
 			printf("* Enabled level %d bad GCR reproduction.\n", fix_gcr);

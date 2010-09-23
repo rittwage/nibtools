@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 	track_inc = 2;
 
 	reduce_sync = 3;
-	fix_gcr = 0;
+	fix_gcr = 1;
 	align_disk = 0;
 	auto_capacity_adjust = 1;
 	verbose = 0;

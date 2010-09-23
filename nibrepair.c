@@ -66,7 +66,7 @@ main(int argc, char **argv)
 	start_track = 1 * 2;
 	end_track = 42 * 2;
 	track_inc = 2;
-	fix_gcr = 0;
+	fix_gcr = 1;
 	reduce_sync = 3;
 	reduce_badgcr = 0;
 	reduce_gap = 0;
