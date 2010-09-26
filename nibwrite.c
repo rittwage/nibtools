@@ -244,9 +244,8 @@ int writeimage(CBM_FILE fd)
 	/* turn on motor and measure speed */
 	motor_on(fd);
 
-	/* prepare fisk for writing */
-	if(auto_capacity_adjust) adjust_target(fd);
-	if(align_disk) init_aligned_disk(fd);
+	if(auto_capacity_adjust)
+		adjust_target(fd);
 
 	if(mode == MODE_WRITE_RAW)
 		master_disk_raw(fd, track_buffer, track_density, track_length);

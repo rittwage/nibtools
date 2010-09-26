@@ -18,7 +18,7 @@ extern int drivetype;
 void
 master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t tracklen)
 {
-	#define LEADER  0x100
+	#define LEADER  0x20
 	int i;
 	static size_t skewbytes = 0;
 	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
@@ -68,6 +68,15 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	step_to_halftrack(fd, track);
 	set_density(fd, track_density[track]&3);
 
+	// try to do track alignment through simple timers
+	if((align_disk) && (auto_capacity_adjust))
+	{
+		/* subtract overhead from one revolution;
+		    adjust for motor speed and density;	*/
+		align_delay = (int) ((175500) + ((300 - motor_speed) * 600));
+		msleep(align_delay);
+	}
+
 	/* burst send track */
 	for (i = 0; i < 10; i ++)
 	{
@@ -76,7 +85,8 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		if(drivetype == 1571) /* this will lock forever if IHS is set and it sees no index hole, i.e. side 2 of flippy disk */
 			cbm_parallel_burst_write(fd, (__u_char)((ihs) ? 0x00 : 0x0a));
 
-		cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
+		//cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
+		cbm_parallel_burst_write(fd, 0x00);
 
 		if (cbm_parallel_burst_write_track(fd, rawtrack, (int)(tracklen + LEADER + skewbytes + 1)))
 			break;

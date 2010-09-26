@@ -137,7 +137,7 @@ int TrackAlignmentReport(CBM_FILE fd);
 /* write.c */
 void master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 void master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
-void master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t tracklen);
+void prep_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t tracklen);
 void write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 void unformat_disk(CBM_FILE fd);
 void zero_track(CBM_FILE fd, int track);
