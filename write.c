@@ -48,6 +48,15 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		printf(" {skew=%lu} ", skewbytes);
 	}
 
+	/* check for and correct initial too short sync mark */
+	if( (!(track_density[track] & BM_NO_SYNC)) &&
+		 (track_buffer[track * NIB_TRACK_LENGTH] == 0xff) &&
+		 (track_buffer[(track * NIB_TRACK_LENGTH) + 1] != 0xff) )
+	{
+		printf("{shortsync} ");
+		memset(rawtrack + LEADER + skewbytes - 1, 0xff, 1);
+	}
+
 	/* merge track data */
 	memcpy(rawtrack + LEADER + skewbytes,  track_buffer + (track * NIB_TRACK_LENGTH), tracklen);
 

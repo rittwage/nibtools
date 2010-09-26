@@ -231,8 +231,6 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			printf("[NDOS] ");
 		else
 			printf("%s", errorstring);
-
-		printf("[retry] ");
 	}
 
 	/* keep best cycle if ended with none */
