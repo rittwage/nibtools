@@ -209,7 +209,6 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 		// check for CBM DOS errors
 		errors = check_errors(cbufo, leno, halftrack, diskid, errorstring);
-		printf("%s", errorstring);
 		fprintf(fplog, "%s", errorstring);
 
 		// if we got all good sectors we dont retry
@@ -217,18 +216,23 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 		// all bad sectors (protection) and we have a valid cycle
 		if ((errors == sector_map[halftrack/2]) &&
-			(leno < NIB_TRACK_LENGTH) &&
-			(l > 0) )
-		break;
+			(leno < NIB_TRACK_LENGTH) && (l > 0) )
+			break;
 
-		// all bad sectors (protection) and no cycle we limit retries
+		// all bad sectors (protection) and no cycle, we limit retries
 		if ((errors == sector_map[halftrack/2]) && (leno == NIB_TRACK_LENGTH))
 		{
-			if(l < (error_retries - 1))
-				l = error_retries - 1;
+			if(l < (error_retries - 1))	l = error_retries - 1;
 		}
 
-		if(l < error_retries - 1) printf("(retry) ");
+		// If there are a lot of errors, the track probably doesn't contain
+		// any CBM sectors (protection)
+		if ((errors == sector_map[halftrack/2]) || (halftrack > 70))
+			printf("[NDOS] ");
+		else
+			printf("%s", errorstring);
+
+		printf("[retry] ");
 	}
 
 	/* keep best cycle if ended with none */
@@ -236,19 +240,6 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	{
 		printf("(reverted)");
 		memcpy(bufo, bbuffer, NIB_TRACK_LENGTH);
-	}
-
-	// If there are a lot of errors, the track probably doesn't contain
-	// any CBM sectors (protection)
-	if ((errors == sector_map[halftrack/2]) || (halftrack > 70))
-	{
-		printf("[NDOS] ");
-		fprintf(fplog, "%s ", errorstring);
-	}
-	else
-	{
-		printf("[%lu Errors] ", errors);
-		fprintf(fplog, "[%lu Errors] ", errors);
 	}
 
 	// Fix bad GCR in track for compare
@@ -488,7 +479,7 @@ scan_track(CBM_FILE fd, int track)
 			return (density | killer_info);
 
 	/* Floppy sends statistic data in reverse bit-rate order */
-	for(i=0; i<5; i++)
+	for(i=0; i<10; i++)
 	{
 		memset(density_major, 0, sizeof(density_major));
 		memset(density_stats, 0, sizeof(density_stats));
