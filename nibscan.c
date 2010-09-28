@@ -349,7 +349,7 @@ compare_disks(void)
 			printf("1 - UNFORMATTED!\n");
 		}
 
-		if(!check_formatted(track_buffer2 + (track * NIB_TRACK_LENGTH), track_length[track]))
+		if(!check_formatted(track_buffer2 + (track * NIB_TRACK_LENGTH), track_length2[track]))
 		{
 			track_length2[track] = 0;
 			printf("2 - UNFORMATTED!\n");

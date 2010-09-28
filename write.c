@@ -128,7 +128,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		if(track_density[track] & BM_FF_TRACK)
 		{
 				kill_track(fd, track);
-				printf("\n%4.1f: KILLER",  (float) track / 2);
+				printf("\n%4.1f: KILLED!",  (float) track / 2);
 				continue;
 		}
 
@@ -136,7 +136,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
 		{
 				zero_track(fd, track);
-				printf("\n%4.1f: UNFORMATTED",  (float) track / 2);
+				printf("\n%4.1f: UNFORMATTED!",  (float) track / 2);
 				continue;
 		}
 

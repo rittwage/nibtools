@@ -63,13 +63,13 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	if(density & BM_FF_TRACK)
 	{
 		printf(" KILLER");
-		fprintf(fplog, " KILLER");
+		fprintf(fplog, " KILLER!");
 	}
 
 	if(density & BM_NO_SYNC)
 	{
-		printf(" NOSYNC");
-		fprintf(fplog," NOSYNC");
+		printf(" NOSYNC!");
+		fprintf(fplog," NOSYNC!");
 	}
 
 	printf(") ");

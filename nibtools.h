@@ -4,7 +4,7 @@
  * based on MNIB by Markus Brenner <markus(at)brenner(dot)de>
  */
 
-#define VERSION "Stable (Built "__DATE__" "__TIME__")"
+#define VERSION "(Built "__DATE__" "__TIME__")"
 
 #ifndef SVN
 #define SVN 9999

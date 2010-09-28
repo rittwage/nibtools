@@ -70,7 +70,7 @@ size_t capacity_max[] = 		{ 6311, 6726, 7201, 7824 };
 */
 
 /* New calculated defaults */
-size_t capacity_min[] =	{ (int) (DENSITY0 / 305), (int) (DENSITY1 / 305), (int) (DENSITY2 / 305), (int) (DENSITY3 / 305) };
+size_t capacity_min[] =		{ (int) (DENSITY0 / 305), (int) (DENSITY1 / 305), (int) (DENSITY2 / 305), (int) (DENSITY3 / 305) };
 size_t capacity[] = 			{ (int) (DENSITY0 / 300), (int) (DENSITY1 / 300), (int) (DENSITY2 / 300), (int) (DENSITY3 / 300) };
 size_t capacity_max[] =	{ (int) (DENSITY0 / 295), (int) (DENSITY1 / 295), (int) (DENSITY2 / 295), (int) (DENSITY3 / 295) };
 
@@ -816,6 +816,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	size_t track_len;
 	size_t sector0_len;	/* length of gap before sector 0 */
 	size_t sectorgap_len;	/* length of longest gap */
+	BYTE fake_density = 0;
 	int i ,j;
 
 	sector0_pos = NULL;
@@ -834,6 +835,14 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	/* if this track doesn't have enough formatted data, return blank */
 	if (!check_formatted(source, NIB_TRACK_LENGTH))
 		return 0;
+
+	/* if this track is all sync, return */
+	if(check_sync_flags(source, fake_density, NIB_TRACK_LENGTH) & BM_FF_TRACK)
+	{
+		printf("KILLER! ");
+		memcpy(destination, source, NIB_TRACK_LENGTH);
+		return NIB_TRACK_LENGTH;
+	}
 
 	cycle_start = source;
 	memset(work_buffer, 0, sizeof(work_buffer));
@@ -1045,7 +1054,7 @@ aligned:
 	if(verbose)
 	{
 		printf("{align:");
-		while(i<gap_match_length)
+		while((i<gap_match_length) && (i<(int)track_len))
 		{
 			if(destination[j] != 0xff)
 			{
@@ -1384,17 +1393,12 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 
 	crcInit();
 
-	/* ignore dead tracks
-	if ( (length1 == 0) ||
-		 (length2 == 0) ||
-		 (length1 == NIB_TRACK_LENGTH) ||
-		 (length2 == NIB_TRACK_LENGTH)
-		)
+	if ( (length1 == 0) || (length2 == 0) ||
+		 (length1 == NIB_TRACK_LENGTH) || (length2 == NIB_TRACK_LENGTH))
 		return 0;
-	*/
 
 	/* check for sector matches */
-	for (sector = 0; sector < sector_map[track / 2]; sector++)
+	for (sector = 0; sector < sector_map[track/2]; sector++)
 	{
 		numsecs++;
 
@@ -1402,8 +1406,8 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 		memset(secbuf2, 0, sizeof(secbuf2));
 		tmpstr[0] = '\0';
 
-		error1 = convert_GCR_sector(track1, track1 + length1, secbuf1, track/2, sector, id1);
-		error2 = convert_GCR_sector(track2, track2 + length2, secbuf2, track/2, sector, id2);
+		error1 = convert_GCR_sector(track1, track1+length1, secbuf1, track/2, sector, id1);
+		error2 = convert_GCR_sector(track2, track2+length2, secbuf2, track/2, sector, id2);
 
 		/* compare data returned */
 		checksum1 = 0;
