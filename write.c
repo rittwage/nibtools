@@ -213,7 +213,7 @@ master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 			printf(") (%lu) ", length);
 
 			/* truncate the end if needed (reduce tail) */
-			if ( (length > capacity[density & 3]) && (length != NIB_TRACK_LENGTH) )
+			if (length > capacity[density & 3])
 			{
 				printf(" (trunc:%lu) ",  length - capacity[density & 3]);
 				length = capacity[density & 3];

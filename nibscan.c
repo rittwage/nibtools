@@ -378,20 +378,23 @@ compare_disks(void)
 
 			printf("%s", errorstring);
 
-			gcr_percentage = (gcr_match*100)/track_length[track];
+			if(gcr_match)
+			{
+				gcr_percentage = (gcr_match*100)/track_length[track];
 
-			if (gcr_percentage >= 95)
-			{
-				gcr_total++;
-				printf("\n[*%lu%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
-				sprintf(tmpstr, "%d,", track / 2);
-				strcat(gcr_matches, tmpstr);
-			}
-			else
-			{
-				printf("\n[*%lu%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
-				sprintf(tmpstr, "%d,", track/2);
-				strcat(gcr_mismatches, tmpstr);
+				if (gcr_percentage >= 95)
+				{
+					gcr_total++;
+						printf("\n[*%lu%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
+					sprintf(tmpstr, "%d,", track / 2);
+					strcat(gcr_matches, tmpstr);
+				}
+				else
+				{
+					printf("\n[*%lu%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
+					sprintf(tmpstr, "%d,", track/2);
+					strcat(gcr_mismatches, tmpstr);
+				}
 			}
 
 			if(track/2 <= 35)
