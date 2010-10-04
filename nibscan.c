@@ -64,6 +64,7 @@ int capacity_margin;
 int align_delay;
 int cap_min_ignore;
 int increase_sync = 0;
+int presync = 0;
 BYTE fillbyte = 0x55;
 
 unsigned char md5_hash_result[16];

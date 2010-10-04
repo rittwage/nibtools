@@ -59,6 +59,7 @@ int capacity_margin;
 int align_delay;
 int align_report;
 int increase_sync = 0;
+int presync = 0;
 BYTE fillbyte = 0x55;
 
 BYTE density_map;

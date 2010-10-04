@@ -94,6 +94,7 @@ extern int rpm_real;
 extern int drive;
 extern int unformat_passes;
 extern int align_delay;
+extern int presync;
 
 /* common */
 void usage(void);

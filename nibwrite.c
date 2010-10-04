@@ -54,6 +54,7 @@ int rpm_real;
 int unformat_passes;
 int align_delay;
 int increase_sync = 0;
+int presync = 0;
 BYTE fillbyte = 0x55;
 
 CBM_FILE fd;

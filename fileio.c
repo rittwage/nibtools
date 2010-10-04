@@ -18,7 +18,6 @@
 #include "crc.h"
 #include "md5.h"
 
-
 void parseargs(char *argv[])
 {
 	int count;
@@ -75,14 +74,14 @@ void parseargs(char *argv[])
 					printf("V-MAX!\n");
 					memset(align_map, ALIGN_VMAX, MAX_TRACKS_1541+1);
 					fix_gcr = 0;
-					fillbyte = 0xff;
+					presync = 1;
 					break;
 
 				case 'c':
 					printf("V-MAX! (CINEMAWARE)\n");
 					memset(align_map, ALIGN_VMAX_CW, MAX_TRACKS_1541+1);
 					fix_gcr = 0;
-					fillbyte = 0xff;
+					presync = 1;
 					break;
 
 				case 'g':
@@ -107,7 +106,6 @@ void parseargs(char *argv[])
 					for(count = 1; count <= MAX_TRACKS_1541; count ++)
 						reduce_map[count] = REDUCE_BAD | REDUCE_GAP;
 					memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541+1);
-					fillbyte = 0xff;
 					break;
 
 				case'p':
@@ -247,6 +245,11 @@ void parseargs(char *argv[])
 		case 'C':
 			rpm_real = atoi(&(*argv)[2]);
 			printf("* Simulate track capacity: %dRPM\n",rpm_real);
+			break;
+
+		case 'P':
+			presync = 1;
+			printf("* Add short sync bytes to start of each track");
 			break;
 
 		case 'b':
