@@ -42,7 +42,6 @@ int skip_halftracks;
 int verbose = 0;
 int rpm_real;
 int ihs;
-int drive;
 int auto_capacity_adjust;
 int align_disk;
 int skew;
@@ -53,6 +52,7 @@ int align_delay;
 int increase_sync = 0;
 int presync = 0;
 BYTE fillbyte = 0x55;
+BYTE drive = 8;
 
 /* local prototypes */
 int repair(void);

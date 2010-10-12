@@ -33,7 +33,6 @@ int cap_min_ignore;
 int skip_halftracks;
 int verbose;
 int rpm_real;
-int drive;
 int auto_capacity_adjust;
 int skew;
 int align_disk;
@@ -45,6 +44,7 @@ int align_delay;
 int increase_sync = 0;
 int presync = 0;
 BYTE fillbyte = 0x55;
+BYTE drive = 8;
 
 int ARCH_MAINDECL
 main(int argc, char **argv)

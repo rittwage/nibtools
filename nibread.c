@@ -48,7 +48,6 @@ int verbose;
 int extended_parallel_test;
 int force_nosync;
 int ihs;
-int drive;
 int auto_capacity_adjust;
 int align_disk;
 int skew;
@@ -61,6 +60,7 @@ int align_report;
 int increase_sync = 0;
 int presync = 0;
 BYTE fillbyte = 0x55;
+BYTE drive = 8;
 
 BYTE density_map;
 float motor_speed;
@@ -71,7 +71,6 @@ FILE *fplog;
 int ARCH_MAINDECL
 main(int argc, char *argv[])
 {
-	BYTE drive = 8;
 	int bump, reset, i;
 	char filename[256], logfilename[256], *dotpos;
 	char argcache[256];

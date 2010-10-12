@@ -54,7 +54,6 @@ int gap_match_length;
 int cap_relax;
 int verbose;
 int rpm_real = 0;
-int drive;
 int auto_capacity_adjust;
 int skew;
 int align_disk;
@@ -66,6 +65,7 @@ int cap_min_ignore;
 int increase_sync = 0;
 int presync = 0;
 BYTE fillbyte = 0x55;
+BYTE drive = 8;
 
 unsigned char md5_hash_result[16];
 unsigned char md5_dir_hash_result[16];

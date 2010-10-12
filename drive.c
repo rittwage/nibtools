@@ -224,6 +224,13 @@ init_floppy(CBM_FILE fd, BYTE drive, int bump)
 	printf("Drive Version: %s\n", error);
 	if(fplog) fprintf(fplog,"Drive Version: %s\n", error);
 
+	/* OpenCBM returns 99, DRIVER ERROR on problems */
+	if(error[0] == '9')
+	{
+		printf("Driver error.  Non-existent device or other problem...");
+		return 0;
+	}
+
 	if (error[18] == '7')
 		drivetype = 1571;
 	else

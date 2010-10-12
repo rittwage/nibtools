@@ -49,13 +49,13 @@ int verbose = 0;
 float motor_speed;
 int skew = 0;
 int ihs = 0;
-int drive;
 int rpm_real;
 int unformat_passes;
 int align_delay;
 int increase_sync = 0;
 int presync = 0;
 BYTE fillbyte = 0x55;
+BYTE drive = 8;
 
 CBM_FILE fd;
 FILE *fplog;
@@ -63,7 +63,6 @@ FILE *fplog;
 int ARCH_MAINDECL
 main(int argc, char *argv[])
 {
-	BYTE drive = 8;
 	int bump, reset, i;
 	char filename[256];
 	char argcache[256];
@@ -154,15 +153,16 @@ main(int argc, char *argv[])
 		}
 	}
 
-	/* Once the drive is accessed, we need to close out state when exiting */
-	atexit(handle_exit);
-	signal(SIGINT, handle_signals);
-
+	printf("Using device #%d\n",drive);
 	if(!(init_floppy(fd, drive, bump)))
 	{
 		printf("\nFloppy drive initialization failed\n");
 		exit(0);
 	}
+
+	/* Once the drive is accessed, we need to close out state when exiting */
+	atexit(handle_exit);
+	signal(SIGINT, handle_signals);
 
 	switch (mode)
 	{
