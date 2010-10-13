@@ -486,7 +486,9 @@ int LZ_CompressFast( unsigned char *in, unsigned char *out, unsigned int insize)
         ++ inpos;
     }
 
-    return outpos;
+	free(work);
+
+	return outpos;
 }
 
 
