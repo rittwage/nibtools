@@ -302,8 +302,7 @@ main(int argc, char *argv[])
 	step_to_halftrack(fd, 18*2);
 
 	if(fplog) fclose(fplog);
-	free(file_buffer);
-	free(track_buffer);
+
 	exit(0);
 }
 

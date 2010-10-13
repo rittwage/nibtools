@@ -225,10 +225,6 @@ main(int argc, char *argv[])
 		printf("\n");
 	}
 
-	free(file_buffer);
-	free(track_buffer);
-	free(track_buffer2);
-
 	exit(0);
 }
 
