@@ -26,9 +26,9 @@
 
 int _dowildcard = 1;
 
-BYTE *compressed_buffer;
-BYTE *file_buffer;
-BYTE *track_buffer;
+BYTE compressed_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
+BYTE file_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
+BYTE track_buffer[(MAX_HALFTRACKS_1541+1) * NIB_TRACK_LENGTH];
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 size_t track_length[MAX_HALFTRACKS_1541 + 1];
@@ -83,20 +83,10 @@ main(int argc, char **argv)
 	  "(C) 2004-2010 Peter Rittwage\nC64 Preservation Project\nhttp://c64preservation.com\n"
 	  "Revision %d - " VERSION "\n\n", SVN);
 
-
-	file_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH);
-	if(!file_buffer)
-	{
-		printf("could not allocate buffer memory\n");
-		exit(0);
-	}
-
-	track_buffer = calloc(MAX_HALFTRACKS_1541+1, NIB_TRACK_LENGTH);
-	if(!track_buffer)
-	{
-		printf("could not allocate memory for buffers.\n");
-		exit(0);
-	}
+	/* clear heap buffers */
+	memset(compressed_buffer, 0x00, sizeof(compressed_buffer));
+	memset(file_buffer, 0x00, sizeof(file_buffer));
+	memset(track_buffer, 0x00, sizeof(track_buffer));
 
 	/* default is to reduce sync */
 	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+1);
@@ -122,16 +112,10 @@ main(int argc, char **argv)
 	else if (compare_extension(inname, "NBZ"))
 	{
 		printf("Uncompressing NBZ...\n");
-		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
-		{
-			printf("could not allocate buffer memory\n");
-			exit(0);
-		}
 		if(!(file_buffer_size = load_file(inname, compressed_buffer))) exit(0);
 		if(!(file_buffer_size = LZ_Uncompress(compressed_buffer, file_buffer, file_buffer_size))) exit(0);
 		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) exit(0);
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
-		free(compressed_buffer);
 	}
 	else if (compare_extension(inname, "NIB"))
 	{
@@ -379,9 +363,9 @@ usage(void)
 	"\noptions:\n"
 	" -a[x]: Force alternative track alignments (advanced users only)\n"
 	" -p[x]: Custom protection handlers (advanced users only)\n"
-     " -g: Enable gap reduction\n"
-     " -0: Enable bad GCR run reduction\n"
-     " -r: Enable automatic sync reduction\n"
-     " -G: Manual gap match length\n");
+	" -G[n]: Manual gap match length\n"
+	" -g: Enable gap reduction\n"
+	" -0: Enable bad GCR run reduction\n"
+	" -r: Enable automatic sync reduction\n");
 	exit(1);
 }

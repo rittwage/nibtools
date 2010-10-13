@@ -26,10 +26,10 @@ int raw_track_info(BYTE *gcrdata, size_t length);
 size_t check_fat(int track);
 size_t check_rapidlok(int track);
 
-BYTE *compressed_buffer;
-BYTE *file_buffer;
-BYTE *track_buffer;
-BYTE *track_buffer2;
+BYTE compressed_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
+BYTE file_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
+BYTE track_buffer[(MAX_HALFTRACKS_1541+1) * NIB_TRACK_LENGTH];
+BYTE track_buffer2[(MAX_HALFTRACKS_1541+1) * NIB_TRACK_LENGTH];
 size_t track_length[MAX_HALFTRACKS_1541 + 1];
 size_t track_length2[MAX_HALFTRACKS_1541 + 1];
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
@@ -101,29 +101,14 @@ main(int argc, char *argv[])
 	  "Revision %d - " VERSION "\n\n", SVN);
 
 	/* we can do nothing with no switches */
-	if (argc < 2)	usage();
+	if (argc < 2)
+		usage();
 
-	file_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH);
-	if(!file_buffer)
-	{
-		printf("could not allocate buffer memory\n");
-		exit(0);
-	}
-
-	track_buffer = calloc(MAX_HALFTRACKS_1541+1, NIB_TRACK_LENGTH);
-	if(!track_buffer)
-	{
-		printf("could not allocate buffer memory\n");
-		exit(0);
-	}
-
-	track_buffer2 = calloc(MAX_HALFTRACKS_1541+1, NIB_TRACK_LENGTH);
-	if(!track_buffer2)
-	{
-		printf("could not allocate buffer memory\n");
-		free(track_buffer);
-		exit(0);
-	}
+	/* clear heap buffers */
+	memset(compressed_buffer, 0x00, sizeof(compressed_buffer));
+	memset(file_buffer, 0x00, sizeof(file_buffer));
+	memset(track_buffer, 0x00, sizeof(track_buffer));
+	memset(track_buffer2, 0x00, sizeof(track_buffer2));
 
 	/* default is to reduce sync */
 	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+1);
@@ -260,16 +245,10 @@ int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *
 	else if (compare_extension(filename, "NBZ"))
 	{
 		printf("Uncompressing NBZ...\n");
-		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
-		{
-			printf("could not allocate buffer memory\n");
-			exit(0);
-		}
 		if(!(file_buffer_size = load_file(filename, compressed_buffer))) return 0;
 		if(!(file_buffer_size = LZ_Uncompress(compressed_buffer, file_buffer, file_buffer_size))) return 0;
 		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) return 0;
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
-		free(compressed_buffer);
 	}
 	else if (compare_extension(filename, "NIB"))
 	{
@@ -838,12 +817,13 @@ usage(void)
 		"\noptions:\n"
 		" -a[x]: Force alternative track alignments (advanced users only)\n"
 		" -p[x]: Custom protection handlers (advanced users only)\n"
+		" -G[n]: Alternate gap match length\n"
+		" -C[n]: Simulate smaller or larger track capacity\n"
 		" -g: Enable gap reduction\n"
 		" -f: Disable automatic bad GCR detection\n"
 		" -0: Enable bad GCR run reduction\n"
 		" -g: Enable gap reduction\n"
 		" -r: Disable automatic sync reduction\n"
-		" -G: Manual gap match length\n"
 		" -v: Verbose (output more detailed track data)\n");
 	exit(1);
 }

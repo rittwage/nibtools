@@ -22,9 +22,9 @@ char bitrate_range[4] = { 43 * 2, 31 * 2, 25 * 2, 18 * 2 };
 char bitrate_value[4] = { 0x00, 0x20, 0x40, 0x60 };
 char density_branch[4] = { 0xb1, 0xb5, 0xb7, 0xb9 };
 
-BYTE *file_buffer;
-BYTE *compressed_buffer;
-BYTE *track_buffer;
+BYTE compressed_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
+BYTE file_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
+BYTE track_buffer[(MAX_HALFTRACKS_1541+1) * NIB_TRACK_LENGTH];
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 size_t track_length[MAX_HALFTRACKS_1541 + 1];
@@ -82,19 +82,13 @@ main(int argc, char *argv[])
 	  "Revision %d - " VERSION "\n\n", SVN);
 
 	/* we can do nothing with no switches */
-	if (argc < 2)	usage();
+	if (argc < 2)
+		usage();
 
-	if(!(file_buffer = calloc(MAX_HALFTRACKS_1541 + 2, NIB_TRACK_LENGTH)))
-	{
-		printf("could not allocate buffer memory\n");
-		exit(0);
-	}
-
-	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH)))
-	{
-		printf("could not allocate memory for buffers.\n");
-		exit(0);
-	}
+	/* clear heap buffers */
+	memset(compressed_buffer, 0x00, sizeof(compressed_buffer));
+	memset(file_buffer, 0x00, sizeof(file_buffer));
+	memset(track_buffer, 0x00, sizeof(track_buffer));
 
 #ifdef DJGPP
 	fd = 1;
@@ -374,12 +368,6 @@ int disk2file(CBM_FILE fd, char *filename)
 	}
 	else
 	{
-		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
-		{
-			printf("could not allocate buffer memory\n");
-			exit(0);
-		}
-
 		if(!(read_floppy(fd, track_buffer, track_density, track_length))) return 0;
 		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) return 0;
 		if(!(file_buffer_size = LZ_CompressFast(file_buffer, compressed_buffer, file_buffer_size))) return 0;
@@ -406,7 +394,6 @@ int disk2file(CBM_FILE fd, char *filename)
 				if(!(save_file(newfilename, compressed_buffer, file_buffer_size))) return 0;
 			}
 		}
-			free(compressed_buffer);
 	}
 	cbm_parallel_burst_read(fd);
 	return 1;

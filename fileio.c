@@ -306,6 +306,7 @@ int load_file(char *filename, BYTE *file_buffer)
 	}
 
 	printf("Successfully loaded %d bytes.", size);
+	fclose(fpin);
 	return size;
 }
 

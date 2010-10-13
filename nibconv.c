@@ -15,12 +15,11 @@
 #include "nibtools.h"
 #include "lz.h"
 
-
 int _dowildcard = 1;
 
-BYTE *compressed_buffer;
-BYTE *file_buffer;
-BYTE *track_buffer;
+BYTE compressed_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
+BYTE file_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
+BYTE track_buffer[(MAX_HALFTRACKS_1541+1) * NIB_TRACK_LENGTH];
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 size_t track_length[MAX_HALFTRACKS_1541 + 1];
@@ -75,18 +74,10 @@ main(int argc, char **argv)
 	  "(C) 2004-2010 Peter Rittwage\nC64 Preservation Project\nhttp://c64preservation.com\n"
 	  "Revision %d - " VERSION "\n\n", SVN);
 
-
-	if(!(file_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
-	{
-		printf("could not allocate buffer memory\n");
-		exit(0);
-	}
-
-	if(!(track_buffer = calloc(MAX_HALFTRACKS_1541+1, NIB_TRACK_LENGTH)))
-	{
-		printf("could not allocate memory for buffers.\n");
-		exit(0);
-	}
+	/* clear heap buffers */
+	memset(compressed_buffer, 0x00, sizeof(compressed_buffer));
+	memset(file_buffer, 0x00, sizeof(file_buffer));
+	memset(track_buffer, 0x00, sizeof(track_buffer));
 
 	/* default is to reduce sync */
 	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+1);
@@ -133,19 +124,12 @@ main(int argc, char **argv)
 	else if (compare_extension(inname, "NBZ"))
 	{
 		printf("Uncompressing NBZ...\n");
-		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
-		{
-			printf("could not allocate buffer memory\n");
-			exit(0);
-		}
 		if(!(file_buffer_size = load_file(inname, compressed_buffer))) exit(0);
 		if(!(file_buffer_size = LZ_Uncompress(compressed_buffer, file_buffer, file_buffer_size))) exit(0);
 		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) exit(0);
 
 		if( (compare_extension(outname, "G64")) || (compare_extension(outname, "D64")) )
 			align_tracks(track_buffer, track_density, track_length, track_alignment);
-
-		free(compressed_buffer);
 	}
 	else if (compare_extension(inname, "NIB"))
 	{
@@ -197,16 +181,10 @@ main(int argc, char **argv)
 			printf("Output format makes no sense from this input file.\n");
 			exit(0);
 		}
-		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
-		{
-			printf("could not allocate buffer memory\n");
-			exit(0);
-		}
 		if(skip_halftracks) track_inc = 2;
 		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) exit(0);
 		if(!(file_buffer_size = LZ_CompressFast(file_buffer, compressed_buffer, file_buffer_size))) exit(0);
 		if(!(save_file(outname, compressed_buffer, file_buffer_size))) exit(0);
-		free(compressed_buffer);
 	}
 	else if (compare_extension(outname, "NIB"))
 	{
@@ -247,12 +225,12 @@ usage(void)
 	"\noptions:\n"
 	" -a[x]: Force alternative track alignments (advanced users only)\n"
 	" -p[x]: Custom protection handlers (advanced users only)\n"
-     " -g: Enable gap reduction\n"
-     " -0: Enable bad GCR run reduction\n"
-     " -r: Disable automatic sync reduction\n"
-	 " -f: Disable automatic bad GCR simulation\n"
-	 " -f[x]: Enable more aggressive bad GCR simulation\n"
-	 " -3: Compress track data to real 300rpm capacity\n"
-     " -G: Manual gap match length\n");
+ 	" -f[n]: Enable level 'n' aggressive bad GCR simulation\n"
+	" -G[n]: Alternate gap match length\n"
+	" -C[n]: Simulate 'n' RPM track capacity\n"
+ 	" -g: Enable gap reduction\n"
+ 	" -0: Enable bad GCR run reduction\n"
+ 	" -r: Disable automatic sync reduction\n"
+	" -f: Disable automatic bad GCR simulation\n");
 	exit(1);
 }

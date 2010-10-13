@@ -22,9 +22,9 @@ char bitrate_range[4] = { 43 * 2, 31 * 2, 25 * 2, 18 * 2 };
 char bitrate_value[4] = { 0x00, 0x20, 0x40, 0x60 };
 char density_branch[4] = { 0xb1, 0xb5, 0xb7, 0xb9 };
 
-BYTE *compressed_buffer;
-BYTE *file_buffer;
-BYTE *track_buffer;
+BYTE compressed_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
+BYTE file_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
+BYTE track_buffer[(MAX_HALFTRACKS_1541+1) * NIB_TRACK_LENGTH];
 BYTE track_density[MAX_HALFTRACKS_1541 + 1];
 BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
 size_t track_length[MAX_HALFTRACKS_1541 + 1];
@@ -76,20 +76,6 @@ main(int argc, char *argv[])
 	if (argc < 2)
 		usage();
 
-	file_buffer = calloc(MAX_HALFTRACKS_1541 + 2, NIB_TRACK_LENGTH);
-	if(!file_buffer)
-	{
-		printf("could not allocate buffer memory\n");
-		exit(0);
-	}
-
-	track_buffer = calloc(MAX_HALFTRACKS_1541 + 1, NIB_TRACK_LENGTH);
-	if(!track_buffer)
-	{
-		printf("could not allocate memory for buffers.\n");
-		exit(0);
-	}
-
 #ifdef DJGPP
 	fd = 1;
 #endif
@@ -114,6 +100,11 @@ main(int argc, char *argv[])
 
 	mode = MODE_WRITE_DISK;
 	align = ALIGN_NONE;
+
+	/* clear heap buffers */
+	memset(compressed_buffer, 0x00, sizeof(compressed_buffer));
+	memset(file_buffer, 0x00, sizeof(file_buffer));
+	memset(track_buffer, 0x00, sizeof(track_buffer));
 
 	/* default is to reduce sync */
 	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+1);
@@ -209,16 +200,10 @@ int loadimage(char *filename)
 	else if (compare_extension(filename, "NBZ"))
 	{
 		printf("Uncompressing NBZ...\n");
-		if(!(compressed_buffer = calloc(MAX_HALFTRACKS_1541+2, NIB_TRACK_LENGTH)))
-		{
-			printf("could not allocate buffer memory\n");
-			exit(0);
-		}
 		if(!(file_buffer_size = load_file(filename, compressed_buffer))) return 0;
 		if(!(file_buffer_size = LZ_Uncompress(compressed_buffer, file_buffer, file_buffer_size))) return 0;
 		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) return 0;
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
-		free(compressed_buffer);
 	}
 	else if (compare_extension(filename, "NIB"))
 	{
@@ -269,6 +254,8 @@ usage(void)
 	     " -E[n]: Override ending track\n"
 	     " -a[x]: Force alternative track alignments (advanced users only)\n"
 	     " -p[x]: Custom protection handlers (advanced users only)\n"
+ 		 " -f[n]: Enable level 'n' aggressive bad GCR simulation\n"
+		 " -G[n]: Change gap match length\n"
 	     " -s[n]: Manual track skew (in ms)\n"
 	     " -t: Enable timer-based track alignment\n"
 	     " -g: Enable gap reduction\n"
@@ -276,11 +263,9 @@ usage(void)
 	     " -r: Disable automatic sync reduction\n"
 	     " -c: Disable automatic capacity adjustment\n"
 	     " -f: Disable automatic bad GCR simulation\n"
-	     " -ff: Enable more aggressive bad GCR simulation\n"
 	     " -u: Unformat disk. (writes all 0 bits to surface)\n"
-	     " -v: Verbose (output more detailed track data)\n"
-	     " -G: Manual gap match length\n"
-	     );
+	     " -v: Verbose (output more detailed track data)\n");
+
 	exit(1);
 }
 
