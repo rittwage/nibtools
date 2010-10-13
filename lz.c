@@ -348,7 +348,7 @@ int LZ_CompressFast( unsigned char *in, unsigned char *out, unsigned int insize)
         return 0;
     }
 
-	if(!(work = calloc(insize+65535, sizeof(unsigned int))))
+	if(!(work = calloc(insize+65536, sizeof(unsigned int))))
 	{
 		printf("Could not allocate compression buffer\n");
 		exit(0);
