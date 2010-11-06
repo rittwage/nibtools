@@ -807,20 +807,8 @@ size_t check_rapidlok(int track)
 void
 usage(void)
 {
-	printf("usage: nibscan [options] <filename1> [filename2]\n"
-		"\nsupported file extensions:\n"
-		"NIB, NB2, D64, G64\n"
-		"\noptions:\n"
-		" -a[x]: Force alternative track alignments (advanced users only)\n"
-		" -p[x]: Custom protection handlers (advanced users only)\n"
-		" -G[n]: Alternate gap match length\n"
-		" -C[n]: Simulate smaller or larger track capacity\n"
-		" -g: Enable gap reduction\n"
-		" -f: Disable automatic bad GCR detection\n"
-		" -0: Enable bad GCR run reduction\n"
-		" -g: Enable gap reduction\n"
-		" -r: Disable automatic sync reduction\n"
-		" -v: Verbose (output more detailed track data)\n");
+	fprintf(stderr, "usage: nibscan [options] <filename1> [filename2]\n\n");
+	switchusage();
 	exit(1);
 }
 

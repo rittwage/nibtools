@@ -356,16 +356,7 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
 void
 usage(void)
 {
-	fprintf(stderr,
-	"usage: nibrepair [options] <infile>\n"
-	"\nsupported file types for repair:\n"
-	"NIB, NB2, G64\n"
-	"\noptions:\n"
-	" -a[x]: Force alternative track alignments (advanced users only)\n"
-	" -p[x]: Custom protection handlers (advanced users only)\n"
-	" -G[n]: Manual gap match length\n"
-	" -g: Enable gap reduction\n"
-	" -0: Enable bad GCR run reduction\n"
-	" -r: Enable automatic sync reduction\n");
+	fprintf(stderr, "usage: nibrepair [options] <filename>\n\n");
+	switchusage();
 	exit(1);
 }

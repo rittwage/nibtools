@@ -109,6 +109,7 @@ int writeimage(CBM_FILE fd);
 
 /* fileio.c */
 void parseargs(char *argv[]);
+void switchusage(void);
 int load_file(char *filename, BYTE *file_buffer);
 int save_file(char *filename, BYTE *file_buffer, int length);
 int read_nib(BYTE *file_buffer, int file_buffer_size, BYTE *track_buffer, BYTE *track_density, size_t *track_length);

@@ -283,6 +283,21 @@ void parseargs(char *argv[])
 	}
 }
 
+void switchusage(void)
+{
+	fprintf(stderr,
+	" -a[x]: Force alternative track alignments (advanced users only)\n"
+	" -p[x]: Custom protection handlers (advanced users only)\n"
+ 	" -f[n]: Enable level 'n' aggressive bad GCR simulation\n"
+	" -G[n]: Alternate gap match length\n"
+	" -C[n]: Simulate 'n' RPM track capacity\n"
+ 	" -g: Enable gap reduction\n"
+ 	" -0: Enable bad GCR run reduction\n"
+ 	" -r: Disable automatic sync reduction\n"
+	" -f: Disable automatic bad GCR simulation\n"
+	" -v: Verbose (output more detailed info)\n");
+}
+
 int load_file(char *filename, BYTE *file_buffer)
 {
 	int size;

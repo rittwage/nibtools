@@ -252,20 +252,13 @@ usage(void)
 	     " -D[n[: Use drive #[n]\n"
 	     " -S[n]: Override starting track\n"
 	     " -E[n]: Override ending track\n"
-	     " -a[x]: Force alternative track alignments (advanced users only)\n"
-	     " -p[x]: Custom protection handlers (advanced users only)\n"
- 		 " -f[n]: Enable level 'n' aggressive bad GCR simulation\n"
-		 " -G[n]: Change gap match length\n"
 	     " -s[n]: Manual track skew (in ms)\n"
 	     " -t: Enable timer-based track alignment\n"
-	     " -g: Enable gap reduction\n"
-	     " -0: Enable bad GCR run reduction\n"
-	     " -r: Disable automatic sync reduction\n"
 	     " -c: Disable automatic capacity adjustment\n"
-	     " -f: Disable automatic bad GCR simulation\n"
 	     " -u: Unformat disk. (writes all 0 bits to surface)\n"
-	     " -v: Verbose (output more detailed track data)\n");
+	     );
 
+	switchusage();
 	exit(1);
 }
 

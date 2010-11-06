@@ -110,6 +110,13 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 			test_par_port(fd);
 		}
 	}
+
+	if(i == 10)
+	{
+		printf("\n\nNo good write of track due to timeouts.  Aborting!\n");
+		exit(1);
+	}
+
 }
 
 void
@@ -371,6 +378,15 @@ void adjust_target(CBM_FILE fd)
 	{
 		printf("\n\nERROR!\nDrive speed out of range.\nCheck motor, write-protect, or bad media.\n");
 		exit(0);
+	}
+
+	if(rpm_real)
+	{
+		printf("\nRPM override to %dRPM specified\n", rpm_real);
+		capacity[0] = (int) (DENSITY0 / rpm_real) + EXTRA_CAPACITY_MARGIN;
+		capacity[1] = (int) (DENSITY1 / rpm_real) + EXTRA_CAPACITY_MARGIN;
+		capacity[2] = (int) (DENSITY2 / rpm_real) + EXTRA_CAPACITY_MARGIN;
+		capacity[3] = (int) (DENSITY3 / rpm_real) + EXTRA_CAPACITY_MARGIN;
 	}
 }
 

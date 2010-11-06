@@ -113,6 +113,13 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			cbm_parallel_burst_read(fd);
 		}
 	}
+
+	if(i == 10)
+	{
+		printf("\n\nNo good read of track due to timeouts.  Aborting!\n");
+		exit(1);
+	}
+
 	return (density);
 }
 
@@ -484,7 +491,7 @@ scan_track(CBM_FILE fd, int track)
 
 		/* Use medium bitrate for scan */
 		//set_bitrate(fd, 2);
-		set_bitrate(fd, (track/2 < 24) ? 2 : 1);
+		set_bitrate(fd, (track/2 < 25) ? 2 : 1);
 		send_mnib_cmd(fd, FL_SCANDENSITY, NULL, 0);
 
 		for (bin=3; bin>=0; bin--)

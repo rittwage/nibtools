@@ -230,6 +230,15 @@ main(int argc, char *argv[])
 	}
 	printf("\n");
 
+	if(argc < 1) usage();
+	strcpy(filename, argv[0]);
+
+	if( (fp=fopen(filename,"r")) )
+	{
+		fclose(fp);
+		printf("File exists - Overwrite? (y/N)");
+		if(getchar() != 'y') exit(0);
+	}
 
 #ifdef DJGPP
 	calibrate();
@@ -259,9 +268,6 @@ main(int argc, char *argv[])
 	if(align_report)
 		TrackAlignmentReport(fd);
 
-	if(argc < 1) usage();
-	strcpy(filename, argv[0]);
-
 	/* create log file */
 	strcpy(logfilename, filename);
 	dotpos = strrchr(logfilename, '.');
@@ -286,14 +292,6 @@ main(int argc, char *argv[])
 		printf("Use nibconv after imaging to convert to desired file type.\n");
 		exit(0);
 	}
-
-	if( (fp=fopen(filename,"r")) )
-	{
-		fclose(fp);
-		printf("File exists - Overwrite? (y/N)");
-		if(getchar() != 'y') exit(0);
-	}
-
 
 	if(!(disk2file(fd, filename)))
 		printf("Operation failed!\n");
