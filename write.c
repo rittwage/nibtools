@@ -87,7 +87,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	}
 
 	/* burst send track */
-	for (i = 0; i < 10; i ++)
+	for (i = 0; i < 3; i ++)
 	{
 		send_mnib_cmd(fd, FL_WRITE, NULL, 0);
 
@@ -111,7 +111,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		}
 	}
 
-	if(i == 10)
+	if(i == 3)
 	{
 		printf("\n\nNo good write of track due to timeouts.  Aborting!\n");
 		exit(1);

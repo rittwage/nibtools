@@ -85,7 +85,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 	set_density(fd, density&3);
 
-	for (i = 0; i < 10; i++)
+	for (i = 0; i < 3; i++)
 	{
 		// read track
 		if((ihs) && (!(density & BM_NO_SYNC)))
@@ -114,7 +114,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		}
 	}
 
-	if(i == 10)
+	if(i == 3)
 	{
 		printf("\n\nNo good read of track due to timeouts.  Aborting!\n");
 		exit(1);
