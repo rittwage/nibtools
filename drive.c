@@ -50,6 +50,7 @@ handle_signals(int sig)
 	/* Ignore multiple presses of ^C */
 	//signal(SIGINT, SIG_IGN);
 	//printf("\nExit requested by user. ");
+	//exit(1);
 }
 
 void ARCH_SIGNALDECL
@@ -64,7 +65,6 @@ handle_exit(void)
 	cbm_driver_close(fd);
 #endif
 	printf("Bailing out...\n");
-	exit(1);
 }
 
 int
