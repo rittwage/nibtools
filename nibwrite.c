@@ -144,16 +144,16 @@ main(int argc, char *argv[])
 	}
 #endif
 
+	/* Once the drive is accessed, we need to close out state when exiting */
+	atexit(handle_exit);
+	signal(SIGINT, handle_signals);
+
 	printf("Using device #%d\n",drive);
 	if(!(init_floppy(fd, drive, bump)))
 	{
 		printf("\nFloppy drive initialization failed\n");
 		exit(0);
 	}
-
-	/* Once the drive is accessed, we need to close out state when exiting */
-	atexit(handle_exit);
-	signal(SIGINT, handle_signals);
 
 	switch (mode)
 	{
