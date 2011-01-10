@@ -123,6 +123,15 @@ main(int argc, char *argv[])
 	printf("\n");
 	if (argc > 0)	strcpy(filename, argv[0]);
 
+	if(mode == MODE_WRITE_DISK)
+	{
+		if(!(loadimage(filename)))
+		{
+			printf("\nImage loading failed\n");
+			exit(0);
+		}
+	}
+
 #ifdef DJGPP
 	calibrate();
 	if (!detect_ports(reset))
@@ -134,15 +143,6 @@ main(int argc, char *argv[])
 		exit(0);
 	}
 #endif
-
-	if(mode == MODE_WRITE_DISK)
-	{
-		if(!(loadimage(filename)))
-		{
-			printf("\nImage loading failed\n");
-			exit(0);
-		}
-	}
 
 	printf("Using device #%d\n",drive);
 	if(!(init_floppy(fd, drive, bump)))
