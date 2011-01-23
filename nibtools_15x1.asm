@@ -501,6 +501,7 @@ _wtL5:
         STX  $1c03                ; CA data direction head ($ff->0: read)
         STX  $1800                ; send handshake
         LDY  #$00
+        JSR _sc_ihs_cleanup
         RTS
 .endif
   
