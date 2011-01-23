@@ -7,7 +7,7 @@
 #define VERSION "(Built "__DATE__" "__TIME__")"
 
 #ifndef SVN
-#define SVN 9999
+#define SVN "WDDK/WSDK"
 #endif
 
 #define FL_STEPTO      0x00

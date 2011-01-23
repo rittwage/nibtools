@@ -237,7 +237,7 @@ void parseargs(char *argv[])
 			break;
 
 		case 'i':
-			printf("* 1571 index hole sensor (use only for side 1)\n");
+			printf("* 1571 or SuperCard-compatible index hole sensor (use only for side 1)\n");
 			align_disk = 0;
 			ihs = 1;
 			break;

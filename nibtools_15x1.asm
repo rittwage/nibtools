@@ -91,6 +91,7 @@ _main_loop:
         PHA
         RTS                       ; -> to command function
 
+.if DRIVE = 1571
 ;----------------------------------------
 ; read out track after index hole
 _read_after_ihs:
@@ -101,20 +102,33 @@ _read_after_ihs:
 _ihsr_busywait:
         DEX
         BNE _ihsr_busywait;
-
         LDA #$02                  ; index hole is bit 1 in WD177x status register
-_ihsr_wait_1:
-        BIT  $2000                ; 
-        BNE  _ihsr_wait_1       ; 
-_ihsr_wait_2:
-        BIT  $2000                ; 
-        BEQ  _ihsr_wait_2     ;
-_ihsr_wait_3:			; wait for it to pass or start at beginning?  What did TRACE devices do?
-        BIT  $2000                ; 
-        BNE  _ihsr_wait_3       ; 
+
+;--------------------------------------------------------------
+;wait for it to pass or start at beginning?  What did TRACE devices do? 
+;--------------------------------------------------------------
+_ihsr_wait1:
+        BIT  $2000               ; 
+        BNE  _ihsr_wait1       ; 
+_ihsr_wait2:
+        BIT  $2000               ; 
+        BEQ  _ihsr_wait2       ; 
+_ihsr_wait3:
+        BIT  $2000               ; 
+        BNE  _ihsr_wait3       ; 
         
         ;BEQ _read_in_sync ;  
 	BEQ _read_start	;  WARNING:  reading without waiting for a sync can cause a bad sector since it can be out of framing	
+;----------------------------------------
+.elseif DRIVE = 1541
+;----------------------------------------
+_read_after_ihs:
+        JSR  _send_byte           ; parallel-send data byte to C64
+	JSR  _sc_ihs_wait_hole
+
+	;BEQ _read_in_sync ;  
+	BEQ _read_start	;  WARNING:  reading without waiting for a sync can cause a bad sector since it can be out of framing	
+.endif
 
 ;----------------------------------------
 ; read out track w/out waiting for Sync
@@ -195,6 +209,7 @@ _rtp1:
         BNE  _read_gcr_loop
 _read_track_end:              
         STY  $1800
+        JSR _sc_ihs_cleanup;  doesn't hurt anything if there isn't an SC IHS
         RTS
 
 ;----------------------------------------
@@ -437,7 +452,17 @@ _ftL1:
 ; write a track on destination
 _write_track:
         JSR  _read_byte           ; read byte from parallel data port
+        STA  _skipihs+1          ; can change IHS Branch value
+        JSR  _read_byte           ; read byte from parallel data port
         STA  _wtB1+1              ; can change Sync Branch value
+
+	LDA #$01
+_skipihs:
+        BNE  _wtL1			; default skip IHS	   
+
+_waitihs:
+        JSR _sc_ihs_wait_hole;     ; wait for end of index hole
+        
 _wtL1:
         BIT  $1c00                ; wait for end of Sync, if writing
 _wtB1:
@@ -500,15 +525,20 @@ _write_track:
 
 _ihs_wait:        
         LDA  #$02                 ; index hole is bit 1 in WD177x status register
+
 _skipihs:
         BNE  _waitsync_start		; default is skip IHS	       
+
+;--------------------------------------------------------------
+;wait for it to pass or start at beginning?  What did TRACE devices do? 
+;--------------------------------------------------------------
 _ihsw_wait_1:
         BIT  $2000                ; 
         BNE  _ihsw_wait_1       ; 
 _ihsw_wait_2:
         BIT  $2000                ; 
         BEQ  _ihsw_wait_2     ;
-_ihsw_wait_3:			; wait for it to pass or start at beginning?  What did TRACE devices do?
+_ihsw_wait_3:			; 
         BIT  $2000                ; 
         BNE  _ihsw_wait_3       ; 
 
@@ -706,6 +736,26 @@ _mtL3:
 _mt_end:
         TXA                       ; (0) : Track 'too long'
         JMP  _send_byte           ; parallel-send data byte to C64
+        
+;----------------------------------------
+; setup index hole sensor and wait for the hole to appear
+_sc_ihs_wait_hole:
+        PHA
+        LDA  $1c02                ; prep for IHS reading
+        AND  #$f7
+        STA  $1c02                ; set PB3 (ACT) to be an input (0)
+_sc_ihs_in_dark:
+        LDA  $1c00                ; read from PB3 (IHS)
+        AND  #$08                 ;
+        BNE  _sc_ihs_in_dark             ; wait until we hit the index hole
+        PLA
+        RTS
+_sc_ihs_cleanup:
+        LDA  $1c02                ; clean up from IHS reading
+        ORA  #$08
+        STA  $1c02                ; set PB3 (ACT) to be an output again
+        RTS
+
 
 ;----------------------------------------
 ; Command Jump table, return value: Y
