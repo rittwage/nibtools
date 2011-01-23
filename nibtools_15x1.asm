@@ -745,10 +745,21 @@ _sc_ihs_wait_hole:
         LDA  $1c02                ; prep for IHS reading
         AND  #$f7
         STA  $1c02                ; set PB3 (ACT) to be an input (0)
-_sc_ihs_in_dark:
+;--------------------------------------------------------------
+;wait for it to pass or start at beginning?  What did TRACE devices do? 
+;--------------------------------------------------------------
+_sc_ihs_in_dark_1:
         LDA  $1c00                ; read from PB3 (IHS)
         AND  #$08                 ;
-        BNE  _sc_ihs_in_dark             ; wait until we hit the index hole
+        BNE  _sc_ihs_in_dark_1             ; wait until we hit the index hole
+_sc_ihs_in_dark_2:
+        LDA  $1c00                ; read from PB3 (IHS)
+        AND  #$08                 ;
+        BEQ  _sc_ihs_in_dark_2             ; wait until we hit the index hole
+ _sc_ihs_in_dark_3:
+	LDA  $1c00                ; read from PB3 (IHS)
+	AND  #$08                 ;
+        BNE  _sc_ihs_in_dark_3             ; wait until we hit the index hole
         PLA
         RTS
 _sc_ihs_cleanup:
