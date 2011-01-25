@@ -233,8 +233,8 @@ int writeimage(CBM_FILE fd)
 	if(auto_capacity_adjust)
 		adjust_target(fd);
 
-	if(align_disk)
-		init_aligned_disk(fd);
+	//if(align_disk)
+	//	init_aligned_disk(fd);
 
 	if(mode == MODE_WRITE_RAW)
 		master_disk_raw(fd, track_buffer, track_density, track_length);

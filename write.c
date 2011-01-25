@@ -79,13 +79,13 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 
 	/* this doesn't work over USB since we aren't in control of timing, I don't think */
 	// try to do track alignment through simple timers
-	//if((align_disk) && (auto_capacity_adjust))
-	//{
-	//	/* subtract overhead from one revolution;
-	//	    adjust for motor speed and density;	*/
-	//	align_delay = (int) ((175500) + ((300 - motor_speed) * 600));
-	//	msleep(align_delay);
-	//}
+	if((align_disk) && (auto_capacity_adjust))
+	{
+		/* subtract overhead from one revolution;
+		    adjust for motor speed and density;	*/
+		align_delay = (int) ((175500) + ((300 - motor_speed) * 600));
+		msleep(align_delay);
+	}
 
 	/* burst send track */
 	for (i = 0; i < 3; i ++)
@@ -100,8 +100,8 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 			cbm_parallel_burst_write(fd, (__u_char)((ihs) ? 0x00 : 0x03));
 
 		/* align disk waits until end of sync before writing */
-		cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
-		//cbm_parallel_burst_write(fd, 0x00);
+		//cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
+		cbm_parallel_burst_write(fd, 0x00);
 
 		if (cbm_parallel_burst_write_track(fd, rawtrack, (int)(tracklen + LEADER + skewbytes + 1)))
 			break;
@@ -402,7 +402,7 @@ init_aligned_disk(CBM_FILE fd)
 	int track;
 
 	/* write all 0x55 */
-	printf("\nPreparing tracks...\n");
+	printf("\nErasing tracks...\n");
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		// step head
@@ -415,8 +415,9 @@ init_aligned_disk(CBM_FILE fd)
 	}
 
 	/* drive code version, timers can hang w/o interrupts too long */
+	printf("Sync sweep...\n");
 	send_mnib_cmd(fd, FL_ALIGNDISK, NULL, 0);
 	cbm_parallel_burst_write(fd, 0);
 	cbm_parallel_burst_read(fd);
-	printf("Attempted timer-aligned tracks\n");
+	printf("Attempted sweep-aligned tracks\n");
 }
