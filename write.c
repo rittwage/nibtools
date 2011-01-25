@@ -77,14 +77,15 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	step_to_halftrack(fd, track);
 	set_density(fd, track_density[track]&3);
 
+	/* this doesn't work over USB since we aren't in control of timing, I don't think */
 	// try to do track alignment through simple timers
-	if((align_disk) && (auto_capacity_adjust))
-	{
-		/* subtract overhead from one revolution;
-		    adjust for motor speed and density;	*/
-		align_delay = (int) ((175500) + ((300 - motor_speed) * 600));
-		msleep(align_delay);
-	}
+	//if((align_disk) && (auto_capacity_adjust))
+	//{
+	//	/* subtract overhead from one revolution;
+	//	    adjust for motor speed and density;	*/
+	//	align_delay = (int) ((175500) + ((300 - motor_speed) * 600));
+	//	msleep(align_delay);
+	//}
 
 	/* burst send track */
 	for (i = 0; i < 3; i ++)

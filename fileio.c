@@ -233,7 +233,7 @@ void parseargs(char *argv[])
 
 		case 't':
 			if(!ihs) align_disk = 1;
-			printf("* Attempt soft track alignment\n");
+			printf("* Attempt sweep track alignment\n");
 			break;
 
 		case 'i':

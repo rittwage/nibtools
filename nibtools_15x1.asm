@@ -380,6 +380,9 @@ _align_disk:
         LDA #$52  	 ; track 41	
        	STA $cf
 
+;--------------------------------------
+; this simple sweep aligns small syncs 20ms off from each other, not real great 
+;--------------------------------------
  _admain:
 	JSR _step_dest_internal
 	LDA  #$ff                 ;
