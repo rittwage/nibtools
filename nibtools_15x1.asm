@@ -96,27 +96,8 @@ _main_loop:
 ; read out track after index hole
 _read_after_ihs:
         JSR  _send_byte           ; parallel-send data byte to C64
-        LDA  #$10                 ; send L1 command to WD177x so we can query status
-        STA  $2000               
-        LDX #$20                  ; we do this here to satisfy 16/32 cycle wait
-_ihsr_busywait:
-        DEX
-        BNE _ihsr_busywait;
-        LDA #$02                  ; index hole is bit 1 in WD177x status register
+	JSR _1571_ihs_wait_hole
 
-;--------------------------------------------------------------
-;wait for it to pass or start at beginning?  What did TRACE devices do? 
-;--------------------------------------------------------------
-_ihsr_wait1:
-        BIT  $2000               ; 
-        BNE  _ihsr_wait1       ; 
-_ihsr_wait2:
-        BIT  $2000               ; 
-        BEQ  _ihsr_wait2       ; 
-_ihsr_wait3:
-        BIT  $2000               ; 
-        BNE  _ihsr_wait3       ; 
-        
         ;BEQ _read_in_sync ;  
 	BEQ _read_start	;  WARNING:  reading without waiting for a sync can cause a bad sector since it can be out of framing	
 ;----------------------------------------
@@ -514,40 +495,23 @@ _write_track:
         JSR  _read_byte           ; read byte from parallel data port
         STA  _waitsync+1         ; can change sync Branch value
         
-        LDA  #$10                 ; send L1 command to WD117x so we can fetch status
-        STA  $2000                ; we do this here to satisfy 16 cycle wait
-
         LDA  $180f                ; time requirement between command and status access
         PHA
         ORA  #$20
         TAX
         STX  $180f                ; enable 2MHz mode for tighter loops
-        LDX  #$ce                 ; do this here for fast enabling
-
-_ihs_wait:        
-        LDA  #$02                 ; index hole is bit 1 in WD177x status register
 
 _skipihs:
-        BNE  _waitsync_start		; default is skip IHS	       
+        BNE  _waitsync_start		; default is skip IHS
 
-;--------------------------------------------------------------
-;wait for it to pass or start at beginning?  What did TRACE devices do? 
-;--------------------------------------------------------------
-_ihsw_wait_1:
-        BIT  $2000                ; 
-        BNE  _ihsw_wait_1       ; 
-_ihsw_wait_2:
-        BIT  $2000                ; 
-        BEQ  _ihsw_wait_2     ;
-_ihsw_wait_3:			; 
-        BIT  $2000                ; 
-        BNE  _ihsw_wait_3       ; 
-
+	JSR _1571_ihs_wait_hole
+	
 _waitsync_start:
         BIT  $1c00                ; wait for end of Sync, if writing
 _waitsync:
-        BMI  _waitsync_start    ;  modified by arg
-        
+        BMI  _waitsync_start    ;  
+
+        LDX  #$ce                 ; do this here for fast enabling        
         TYA
         STA  $1800                ; send handshake
         DEC  $1c03                ; CA data direction head (0->$ff: write)
@@ -738,8 +702,31 @@ _mt_end:
         TXA                       ; (0) : Track 'too long'
         JMP  _send_byte           ; parallel-send data byte to C64
         
+
 ;----------------------------------------
-; setup index hole sensor and wait for the hole to appear
+; setup 1571 index hole sensor and wait for the hole to appear
+;-----------------------------------------        
+_1571_ihs_wait_hole:
+        LDA  #$10                 ; send L1 command to WD177x so we can query status
+        STA  $2000               
+
+        LDX #$20                  ; we do this here to satisfy 16/32 cycle wait
+_ihsr_busywait:
+        DEX
+        BNE _ihsr_busywait;
+        
+        LDA #$02                  ; index hole is bit 1 in WD177x status register
+;--------------------------------------------------------------
+;wait for it to pass or start at beginning?  What did TRACE devices do? 
+;--------------------------------------------------------------
+_ihsr_wait:
+	BIT  $2000               ; in dark
+	BEQ  _ihsr_wait       ; wait until light hole
+	RTS 
+        
+;----------------------------------------
+; setup SC index hole sensor and wait for the hole to appear
+;-----------------------------------------
 _sc_ihs_wait_hole:
         PHA
         LDA  $1c02                ; prep for IHS reading
@@ -748,20 +735,13 @@ _sc_ihs_wait_hole:
 ;--------------------------------------------------------------
 ;wait for it to pass or start at beginning?  What did TRACE devices do? 
 ;--------------------------------------------------------------
-_sc_ihs_in_dark_1:
+_sc_ihs_in_dark:
         LDA  $1c00                ; read from PB3 (IHS)
         AND  #$08                 ;
-        BNE  _sc_ihs_in_dark_1             ; wait until we hit the index hole
-_sc_ihs_in_dark_2:
-        LDA  $1c00                ; read from PB3 (IHS)
-        AND  #$08                 ;
-        BEQ  _sc_ihs_in_dark_2             ; wait until we hit the index hole
- _sc_ihs_in_dark_3:
-	LDA  $1c00                ; read from PB3 (IHS)
-	AND  #$08                 ;
-        BNE  _sc_ihs_in_dark_3             ; wait until we hit the index hole
+        BNE  _sc_ihs_in_dark             ; wait until we hit the index hole
         PLA
         RTS
+
 _sc_ihs_cleanup:
         LDA  $1c02                ; clean up from IHS reading
         ORA  #$08
