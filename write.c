@@ -94,10 +94,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 
 		/* IHS will lock forever if IHS is set and it sees no index hole, i.e. side 2 of flippy disk or there is no compatible IHS */
 		/* Arnd has some code to test for it, not implemented yet */
-		if(drivetype == 1571)
-			cbm_parallel_burst_write(fd, (__u_char)((ihs) ? 0x00 : 0x03));
-		else
-			cbm_parallel_burst_write(fd, (__u_char)((ihs) ? 0x00 : 0x03));
+		cbm_parallel_burst_write(fd, (__u_char)((ihs) ? 0x00 : 0x03));
 
 		/* align disk waits until end of sync before writing */
 		//cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
