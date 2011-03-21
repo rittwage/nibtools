@@ -66,6 +66,7 @@ int increase_sync = 0;
 int presync = 0;
 BYTE fillbyte = 0x55;
 BYTE drive = 8;
+char cbm_adapter[64];
 
 unsigned char md5_hash_result[16];
 unsigned char md5_dir_hash_result[16];

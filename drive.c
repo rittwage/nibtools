@@ -64,7 +64,7 @@ handle_exit(void)
 #ifndef DJGPP
 	cbm_driver_close(fd);
 #endif
-	printf("Bailing out...\n");
+	printf("Cleaning up...\n");
 }
 
 int

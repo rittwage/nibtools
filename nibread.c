@@ -61,6 +61,7 @@ int increase_sync = 0;
 int presync = 0;
 BYTE fillbyte = 0x55;
 BYTE drive = 8;
+char cbm_adapter[64];
 
 BYTE density_map;
 float motor_speed;
@@ -134,6 +135,10 @@ main(int argc, char *argv[])
 	{
 		switch ((*argv)[1])
 		{
+		case '@':
+			strcpy(cbm_adapter, &(*argv)[2]);
+			printf("* Using OpenCBM adapter %s\n", cbm_adapter);
+			break;
 
 		case 'A':
 			align_report = 1;
@@ -246,7 +251,7 @@ main(int argc, char *argv[])
 		return 0;
 #else
 	/* under Linux we have to open the device via cbm4linux */
-	if (cbm_driver_open(&fd, 0) != 0) {
+	if (cbm_driver_open_ex(&fd, cbm_adapter) != 0) {
 		printf("Is your X-cable properly configured?\n");
 		exit(0);
 	}

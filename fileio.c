@@ -25,6 +25,11 @@ void parseargs(char *argv[])
 	// parse arguments
 	switch ((*argv)[1])
 	{
+		case '@':
+			strcpy(cbm_adapter, &(*argv)[2]);
+			printf("* Using OpenCBM adapter %s\n", cbm_adapter);
+			break;
+
 		case 'h':
 			track_inc = 1;
 			printf("* Using halftracks\n");
