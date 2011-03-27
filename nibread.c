@@ -61,7 +61,7 @@ int increase_sync = 0;
 int presync = 0;
 BYTE fillbyte = 0x55;
 BYTE drive = 8;
-char cbm_adapter[64];
+char * cbm_adapter = "";
 
 BYTE density_map;
 float motor_speed;
@@ -136,7 +136,7 @@ main(int argc, char *argv[])
 		switch ((*argv)[1])
 		{
 		case '@':
-			strcpy(cbm_adapter, &(*argv)[2]);
+			cbm_adapter = &(*argv)[2];
 			printf("* Using OpenCBM adapter %s\n", cbm_adapter);
 			break;
 

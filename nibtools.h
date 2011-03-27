@@ -67,7 +67,7 @@
 extern char bitrate_range[4];
 extern char bitrate_value[4];
 extern char density_branch[4];
-extern char cbm_adapter[64];
+extern char *cbm_adapter;
 extern BYTE density_map;
 extern BYTE skew_map[];
 extern BYTE fillbyte;

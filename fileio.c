@@ -26,7 +26,7 @@ void parseargs(char *argv[])
 	switch ((*argv)[1])
 	{
 		case '@':
-			strcpy(cbm_adapter, &(*argv)[2]);
+			cbm_adapter = &(*argv)[2];
 			printf("* Using OpenCBM adapter %s\n", cbm_adapter);
 			break;
 
