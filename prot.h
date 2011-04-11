@@ -5,6 +5,7 @@ BYTE *align_vmax(BYTE * work_buffer, size_t track_len);
 BYTE *align_vmax_cw(BYTE * work_buffer, size_t track_len);
 BYTE *align_vmax_new(BYTE * work_buffer, size_t tracklen);
 BYTE *align_pirateslayer(BYTE * work_buffer, size_t tracklen);
+BYTE *align_rl_special(BYTE * work_buffer, size_t tracklen);
 BYTE *auto_gap(BYTE * work_buffer, size_t track_len);
 BYTE *find_bad_gap(BYTE * work_buffer, size_t tracklen);
 BYTE *find_long_sync(BYTE * work_buffer, size_t tracklen);

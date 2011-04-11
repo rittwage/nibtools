@@ -108,9 +108,9 @@ void parseargs(char *argv[])
 
 				case'r':
 					printf("RAPIDLOK\n"); /* don't reduce sync, but everything else */
-					for(count = 1; count <= MAX_TRACKS_1541; count ++)
-						reduce_map[count] = REDUCE_BAD | REDUCE_GAP;
-					memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541+1);
+					//for(count = 1; count <= MAX_TRACKS_1541; count ++)
+					//	reduce_map[count] = REDUCE_BAD | REDUCE_GAP;
+					memset(align_map, ALIGN_RAPIDLOK, MAX_TRACKS_1541+1);
 					break;
 
 				case'p':
