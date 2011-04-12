@@ -141,19 +141,25 @@ BYTE *
 align_pirateslayer(BYTE * work_buffer, size_t tracklen)
 {
 	BYTE *pos, *buffer_end;
+	int shift;
 
-	pos = work_buffer;
-	buffer_end = work_buffer + tracklen + 1;
-
-	/* try to find pslayer signature */
-	while (pos < buffer_end-5)
+	for(shift=0; shift<8; shift++)
 	{
-		if ( ((pos[0] == 0xd7) && (pos[1] == 0xd7) && (pos[2] == 0xeb) && (pos[3] == 0xcc) && (pos[4] == 0xad)) ||
-			 ((pos[0] == 0xeb) && (pos[1] == 0xd7) && (pos[2] == 0xaa) && (pos[3] == 0x55)) )
+		pos = work_buffer;
+		buffer_end = work_buffer + tracklen + 1;
+
+		/* try to find pslayer signature */
+		while (pos < buffer_end-5)
 		{
-			return pos;
+			if ( ((pos[0] == 0xd7) && (pos[1] == 0xd7) && (pos[2] == 0xeb) && (pos[3] == 0xcc) && (pos[4] == 0xad)) ||
+				 ((pos[0] == 0xeb) && (pos[1] == 0xd7) && (pos[2] == 0xaa) && (pos[3] == 0x55)) )
+			{
+				return pos - 5;
+			}
+			pos++;
 		}
-		pos++;
+		printf(">>%d", shift);
+		shift_buffer_right(work_buffer, tracklen, 1);
 	}
 	return NULL;
 }
