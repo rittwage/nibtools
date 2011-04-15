@@ -1,6 +1,6 @@
 /*
  * Protection handlers for MNIB
- * Copyright 2004Pete Rittwage <peter(at)rittwage(dot)com>
+ * Copyright Pete Rittwage <peter(at)rittwage(dot)com>
  */
 
 #include <stdio.h>
@@ -141,7 +141,11 @@ BYTE *
 align_pirateslayer(BYTE * work_buffer, size_t tracklen)
 {
 	BYTE *pos, *buffer_end;
+	BYTE backup_buffer[NIB_TRACK_LENGTH*2];
 	int shift;
+
+	/* backup since we are shifting */
+	memcpy(backup_buffer, work_buffer, NIB_TRACK_LENGTH*2);
 
 	for(shift=0; shift<8; shift++)
 	{
@@ -151,16 +155,21 @@ align_pirateslayer(BYTE * work_buffer, size_t tracklen)
 		/* try to find pslayer signature */
 		while (pos < buffer_end-5)
 		{
-			if ( ((pos[0] == 0xd7) && (pos[1] == 0xd7) && (pos[2] == 0xeb) && (pos[3] == 0xcc) && (pos[4] == 0xad)) ||
-				 ((pos[0] == 0xeb) && (pos[1] == 0xd7) && (pos[2] == 0xaa) && (pos[3] == 0x55)) )
+			if ( ((pos[0] == 0xd7) && (pos[1] == 0xd7) && (pos[2] == 0xeb) && (pos[3] == 0xcc) && (pos[4] == 0xad)) ||   /* version 1 and version 2 */
+				/* it also looks for another byte pattern just after that: $55 $AE $9B $55 $AD $55 $CB $AE $6B $AB $AD $AF, but we only flag first one */
+				((pos[0] == 0xeb) && (pos[1] == 0xd7) && (pos[2] == 0xaa) && (pos[3] == 0x55)) )  /* version 1 seconday check */
 			{
-				return pos - 5;
+				return pos - 5;  /* back up a little */
 			}
 			pos++;
 		}
-		printf(">>%d", shift);
+		printf(">>%d", shift+1);
 		shift_buffer_right(work_buffer, tracklen, 1);
 	}
+
+	/* never found signature, restore original track data */
+	memcpy(work_buffer, backup_buffer, NIB_TRACK_LENGTH*2);
+
 	return NULL;
 }
 
@@ -234,7 +243,7 @@ align_rl_special(BYTE * work_buffer, size_t tracklen)
 	RLT17S0Identified = RLT18S15Identified = RLver = RLT18S18Identified = RLT18S17Identified = 0;
 	/* End of initializations */
 
-	/* we have the track image two consecutive times, which simplifies everything.
+	/* we have the track image two consecutive times, which simplifies everything. */
 
 	/* try to find longest good gcr run of RL-TH, check for RL/DOS format,
 	   KS, RL-ver & RL-TV. */

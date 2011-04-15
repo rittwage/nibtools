@@ -663,6 +663,9 @@ check_valid_data(BYTE * data, int matchlen)
 		if((data[i] == 0xaa) && (data[i+1] == 0x55) && (data[i+2] == 0xaa)) return 0;
 		if((data[i] == 0x5a) && (data[i+1] == 0xa5) && (data[i+2] == 0x5a)) return 0;
 
+		/* don't match alternating bytes (as seen on PirateSlayer tracks */
+		if((data[i] == data[i+2]) && (data[i+1] == data[i+3])) return 0;
+
 		/* check we aren't matching gap data (GCR encoded 555555 or AAAAAA) */
 		//if((data[i] == 0x52) && (data[i+1] == 0xd4) && (data[i+2] == 0xb5)) return 0;
 		//if((data[i] == 0x2d) && (data[i+1] == 0x4b) && (data[i+2] == 0x52)) return 0;
