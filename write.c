@@ -377,7 +377,7 @@ void adjust_target(CBM_FILE fd)
 	printf("Drive motor speed average: %.2f RPM.\n", motor_speed);
 	printf("Track capacity margin: %d\n", capacity_margin + EXTRA_CAPACITY_MARGIN);
 
-	if( (motor_speed > 310) || (motor_speed < 290))
+	if( (motor_speed > 320) || (motor_speed < 280))
 	{
 		printf("\n\nERROR!\nDrive speed out of range.\nCheck motor, write-protect, or bad media.\n");
 		exit(0);
