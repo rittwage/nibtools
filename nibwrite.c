@@ -137,23 +137,18 @@ main(int argc, char *argv[])
 	calibrate();
 	if (!detect_ports(reset))
 		return 0;
-#else
-	if(cbm_adapter)
+#elif defined(OPENCBM_42)
+	/* remain compatible with OpenCBM < 0.4.99 */
+	if (cbm_driver_open(&fd, 0) != 0)
 	{
-		if (cbm_driver_open_ex(&fd, cbm_adapter) != 0)
-		{
-			printf("Is your X-cable properly configured?\n");
-			exit(0);
-		}
+		printf("Is your X-cable properly configured?\n");
+		exit(0);
 	}
-	else
+#else /* assume > 0.4.99 */
+	if (cbm_driver_open_ex(&fd, cbm_adapter) != 0)
 	{
-		/* remain compatible with OpenCBM < 0.4.99 */
-		if (cbm_driver_open(&fd, 0) != 0)
-		{
-			printf("Is your X-cable properly configured?\n");
-			exit(0);
-		}
+		printf("Is your X-cable properly configured?\n");
+		exit(0);
 	}
 #endif
 
