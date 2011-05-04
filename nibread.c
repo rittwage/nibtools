@@ -250,10 +250,22 @@ main(int argc, char *argv[])
 	if (!detect_ports(reset))
 		return 0;
 #else
-	/* under Linux we have to open the device via cbm4linux */
-	if (cbm_driver_open_ex(&fd, cbm_adapter) != 0) {
-		printf("Is your X-cable properly configured?\n");
-		exit(0);
+	if(cbm_adapter)
+	{
+		if (cbm_driver_open_ex(&fd, cbm_adapter) != 0)
+		{
+			printf("Is your X-cable properly configured?\n");
+			exit(0);
+		}
+	}
+	else
+	{
+		/* remain compatible with OpenCBM < 0.4.99 */
+		if (cbm_driver_open(&fd, 0) != 0)
+		{
+			printf("Is your X-cable properly configured?\n");
+			exit(0);
+		}
 	}
 #endif
 
