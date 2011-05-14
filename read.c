@@ -53,6 +53,17 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		density = scan_track(fd, halftrack);
 	}
 
+	/* Set bitrate to the discovered density and scan 3x again for NOSYNC/KILLER */
+	/* If you don't do this, some 1541-II and 1571 drives can timeout */
+	/* because they see phantom syncs in empty tracks (no flux transitions) */
+	for (i = 0; i < 3; i++)
+	{
+		set_bitrate(fd, density);
+		send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
+		density |= cbm_parallel_burst_read(fd);
+		if(density & BM_NO_SYNC) break;
+	}
+
 	/* output current density */
 	printf("(%d",density&3);
 	fprintf(fplog,"(%d",density&3);
@@ -531,10 +542,6 @@ scan_track(CBM_FILE fd, int track)
 	else
 		density = scanned_density;
 
-	/* Set bitrate to the discovered density and scan again for NOSYNC/KILLER */
-	set_bitrate(fd, density);
-	send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
-	killer_info = cbm_parallel_burst_read(fd);
 	return (density | killer_info);
 }
 
