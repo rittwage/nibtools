@@ -58,10 +58,10 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	/* because they see phantom syncs in empty tracks (no flux transitions) */
 	for (i = 0; i < 3; i++)
 	{
-		set_bitrate(fd, density);
+		set_bitrate(fd, density&3);
 		send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
 		density |= cbm_parallel_burst_read(fd);
-		if(density & BM_NO_SYNC) break;
+		if((density & BM_NO_SYNC) || (density & BM_FF_TRACK)) break;
 	}
 
 	/* output current density */
