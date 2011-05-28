@@ -98,8 +98,8 @@ _read_after_ihs:
         JSR  _send_byte           ; parallel-send data byte to C64
 	JSR _1571_ihs_wait_hole
 
-        ;BEQ _read_in_sync ;  
-	BEQ _read_start	;  WARNING:  reading without waiting for a sync can cause a bad sector since it can be out of framing	
+        ;JMP _read_in_sync ;  
+	JMP _read_start	;  WARNING:  reading without waiting for a sync can cause a bad sector since it can be out of framing	
 ;----------------------------------------
 .elseif DRIVE = 1541
 ;----------------------------------------
@@ -107,8 +107,8 @@ _read_after_ihs:
         JSR  _send_byte           ; parallel-send data byte to C64
 	JSR  _sc_ihs_wait_hole
 
-	;BEQ _read_in_sync ;  
-	BEQ _read_start	;  WARNING:  reading without waiting for a sync can cause a bad sector since it can be out of framing	
+	;JMP _read_in_sync ;  
+	JMP _read_start	;  WARNING:  reading without waiting for a sync can cause a bad sector since it can be out of framing	
 .endif
 
 ;----------------------------------------
