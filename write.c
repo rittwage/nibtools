@@ -18,8 +18,7 @@ extern int drivetype;
 void
 master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t tracklen)
 {
-	#define LEADER  0x20
-	int i;
+	int i, leader =  0x20;
 	static size_t skewbytes = 0;
 	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
 	BYTE tempfillbyte;
@@ -54,11 +53,11 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		    (track_buffer[(track * NIB_TRACK_LENGTH) + 1] != 0xff)) || (presync) )
 	{
 		printf("{presync} ");
-		memset(rawtrack + LEADER + skewbytes - 2, 0xff, 2);
+		memset(rawtrack + leader + skewbytes - 2, 0xff, 2);
 	}
 
 	/* merge track data */
-	memcpy(rawtrack + LEADER + skewbytes,  track_buffer + (track * NIB_TRACK_LENGTH), tracklen);
+	memcpy(rawtrack + leader + skewbytes,  track_buffer + (track * NIB_TRACK_LENGTH), tracklen);
 
 	//printf("[%.2x%.2x%.2x%.2x%.2x] ",
 	//		rawtrack[0], rawtrack[1], rawtrack[2], rawtrack[3], rawtrack[4]);
@@ -100,7 +99,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		//cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
 		cbm_parallel_burst_write(fd, 0x00);
 
-		if (cbm_parallel_burst_write_track(fd, rawtrack, (int)(tracklen + LEADER + skewbytes + 1)))
+		if (cbm_parallel_burst_write_track(fd, rawtrack, (int)(tracklen + leader + skewbytes + 1)))
 			break;
 		else
 		{

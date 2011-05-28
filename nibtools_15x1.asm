@@ -722,9 +722,12 @@ _ihsr_busywait:
 ;--------------------------------------------------------------
 ;wait for it to pass or start at beginning?  What did TRACE devices do? 
 ;--------------------------------------------------------------
-_ihsr_wait:
-	BIT  $2000               ; in dark
-	BEQ  _ihsr_wait       ; wait until light hole
+_ihsr_wait1:
+	BIT  $2000               ; check ihs
+	BNE  _ihsr_wait1       ; wait until dark
+_ihsr_wait2:
+	BIT  $2000               ; check ihs
+	BEQ  _ihsr_wait2       ; wait until light
 	RTS 
         
 ;----------------------------------------
@@ -738,10 +741,14 @@ _sc_ihs_wait_hole:
 ;--------------------------------------------------------------
 ;wait for it to pass or start at beginning?  What did TRACE devices do? 
 ;--------------------------------------------------------------
-_sc_ihs_in_dark:
+_sc_ihs_wait1:
         LDA  $1c00                ; read from PB3 (IHS)
         AND  #$08                 ;
-        BNE  _sc_ihs_in_dark             ; wait until we hit the index hole
+        BEQ  _sc_ihs_wait1             ; wait until dark
+_sc_ihs_wait2:
+        LDA  $1c00                ; read from PB3 (IHS)
+        AND  #$08                 ;
+        BNE  _sc_ihs_wait2             ; wait until we hit the index hole
         PLA
         RTS
 

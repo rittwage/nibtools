@@ -17,6 +17,7 @@ SOURCES=../nibread.c \
 	../crc.c \
 	../md5.c \
 	../lz.c \
+	../ihs.c \
         nibread.rc
 
 UMTYPE=console

@@ -715,7 +715,7 @@ find_sector0(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 		pos -= tracklen;
 
 	/*return pos - 1;  // go to  last byte that contains first few bits of sync */
-	return pos; // go to first byte of sync
+	return pos; // go to first full byte of sync
 }
 
 BYTE *
@@ -773,7 +773,7 @@ find_sector_gap(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 		pos -= tracklen;
 
 	/*return pos - 1;  // go to  last byte that contains first few bits of sync*/
-	return pos; // return at first byte of sync
+	return pos; // return at first full byte of sync
 }
 
 /* checks if there is any reasonable section of formatted (GCR) data */
