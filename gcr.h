@@ -16,6 +16,8 @@
 
 #define BYTE unsigned char
 #define DWORD unsigned int
+#define TRUE 1
+#define FALSE 0
 #define MAX_TRACKS_1541 42 /* tracks are referenced 1-42 instead of 0-41 */
 #define MAX_TRACKS_1571 (MAX_TRACKS_1541 * 2)
 #define MAX_HALFTRACKS_1541 (MAX_TRACKS_1541 * 2)

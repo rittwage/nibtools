@@ -73,22 +73,51 @@ cbm_handshaked_write(char data, int toggle)
 int
 cbm_parallel_burst_read_track(int fd, unsigned char * buffer, unsigned int length)
 {
-	int i, byte;
+	unsigned int i;
+	int dbyte;
 
 	disable();
 
 	for (i = 0; i < NIB_TRACK_LENGTH; i++)
 	{
-		byte = cbm_handshaked_read(i & 1);
+		dbyte = cbm_handshaked_read(i & 1);
 
-		if (byte < 0)
+		if (dbyte < 0)
 		{
 			// timeout
 			enable();
 			return 0;
 		}
 
-		buffer[i] = byte;
+		buffer[i] = dbyte;
+	}
+
+	cbm_parallel_burst_read(fd);
+
+	enable();
+	return (1);
+}
+
+int
+cbm_parallel_burst_read_track_var(int fd, unsigned char * buffer, unsigned int length)
+{
+	unsigned int i;
+	int dbyte;
+
+	disable();
+
+	for (i = 0; i < length; i++)
+	{
+		dbyte = cbm_handshaked_read(i & 1);
+
+		if (dbyte < 0)
+		{
+			// timeout
+			enable();
+			return 0;
+		}
+
+		buffer[i] = dbyte;
 	}
 
 	cbm_parallel_burst_read(fd);
