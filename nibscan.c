@@ -98,7 +98,7 @@ main(int argc, char *argv[])
 	cap_min_ignore = 0;
 
 	printf("\nnibscan - Commodore disk image scanner / comparator\n"
-	  "(C) 2004-2010 Peter Rittwage\nC64 Preservation Project\nhttp://c64preservation.com\n"
+	  "(C) C64 Preservation Project\nhttp://c64preservation.com\n"
 	  "Revision %d - " VERSION "\n\n", SVN);
 
 	/* we can do nothing with no switches */

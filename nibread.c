@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 
 	fprintf(stdout,
 	  "\nnibread - Commodore 1541/1571 disk image nibbler\n"
-	  "(C) 2004-2010 Peter Rittwage\nC64 Preservation Project\nhttp://c64preservation.com\n"
+	  "(C) C64 Preservation Project\nhttp://c64preservation.com\n"
 	  "Revision %d - " VERSION "\n\n", SVN);
 
 	/* we can do nothing with no switches */
@@ -138,6 +138,31 @@ main(int argc, char *argv[])
 		case '@':
 			cbm_adapter = &(*argv)[2];
 			printf("* Using OpenCBM adapter %s\n", cbm_adapter);
+			break;
+
+		case 'j':
+			printf("* 1541/1571 Index Hole Sensor (SC+ compatible)\n");
+			Use_SCPlus_IHS = 1;
+			use_floppycode_ihs = 1; // ihs floppy code!
+			break;
+
+		case 'x':
+			printf("* Track Alignment Report (1541/1571 SC+ compatible IHS)\n");
+			track_align_report = 1;
+			use_floppycode_ihs = 1; // ihs floppy code!
+			break;
+
+		case 'y':
+			printf("* Deep Bitrate Scan (1541/1571 SC+ compatible IHS)\n");
+			Deep_Bitrate_SCPlus_IHS = 1;
+			use_floppycode_ihs = 1; // ihs floppy code!
+			break;
+
+		case 'z':
+			printf("* Testing 1541/1571 Index Hole Sensor (SC+ compatible)\n");
+			Test_SCPlus_IHS = 1;
+			bump = 0; // Don't bump for simple IHS check
+			use_floppycode_ihs = 1; // ihs floppy code!
 			break;
 
 		case 'A':
@@ -277,6 +302,13 @@ main(int argc, char *argv[])
 	if(extended_parallel_test)
 		parallel_test(extended_parallel_test);
 
+	if (Test_SCPlus_IHS) // "-z"
+	{
+		IHSresult = Check_SCPlus_IHS(fd,0); // 0=TurnIHSoffAfterwards
+		OutputIHSResult(TRUE,FALSE,IHSresult,NULL);
+		exit(0);
+	}
+
 	if(align_report)
 		TrackAlignmentReport(fd);
 
@@ -305,8 +337,47 @@ main(int argc, char *argv[])
 		exit(0);
 	}
 
-	if(!(disk2file(fd, filename)))
-		printf("Operation failed!\n");
+	if (Use_SCPlus_IHS) // "-j"
+	{
+		IHSresult = Check_SCPlus_IHS(fd,1); // 1=KeepOn
+		OutputIHSResult(TRUE,TRUE,IHSresult,fplog);
+		if (IHSresult != 0)
+		{
+			// turn SCPlus IHS off
+			send_mnib_cmd(fd, FL_IHS_OFF, NULL, 0);
+			cbm_parallel_burst_read(fd);
+
+			if (fplog) fclose(fplog);
+			exit(0);
+		}
+	}
+
+
+	if (Deep_Bitrate_SCPlus_IHS) // "-y"
+	{
+		// We need some memory for the Deep Bitrate Scan
+		if(!(logline = malloc(0x10000)))
+		{
+			printf("Error: Could not allocate memory for Deep Bitrate Scan buffer.\n");
+			exit(0);
+		}
+		DeepBitrateAnalysis(fd,filename,track_buffer,logline);
+	}
+	else if (track_align_report) // "-x"
+		TrackAlignmentReport2(fd,track_buffer);
+	else
+	{
+		if(!(disk2file(fd, filename)))
+			printf("Operation failed!\n");
+	}
+
+
+	if (Use_SCPlus_IHS) // "-j"
+	{
+		// turn SCPlus IHS off
+		send_mnib_cmd(fd, FL_IHS_OFF, NULL, 0);
+		cbm_parallel_burst_read(fd);
+	}
 
 	motor_on(fd);
 	step_to_halftrack(fd, 18*2);
@@ -425,6 +496,10 @@ usage(void)
 	     " -V: Verbose (output more detailed track data)\n"
 	     " -h: Read halftracks\n"
 	     " -t: Extended parallel port tests\n"
+	     " -j: Use Index Hole Sensor  (1541/1571 SC+ compatible IHS)\n"
+	     " -x: Track Alignment Report (1541/1571 SC+ compatible IHS)\n"
+	     " -y: Deep Bitrate Analysis  (1541/1571 SC+ compatible IHS)\n"
+	     " -z: Test Index Hole Sensor (1541/1571 SC+ compatible IHS)\n"
 	     );
 	exit(1);
 }

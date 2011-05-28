@@ -64,11 +64,11 @@ WARNS= -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wpointer-arith
 # Common objects
 OBJ=gcr.o prot.o fileio.o crc.o md5.o lz.o
 
-# Objects for just mnib
-NIBREAD_OBJ=nibread.o read.o drive.o 
-NIBWRITE_OBJ=nibwrite.o write.o drive.o
+# Objects for just drive access
+NIBREAD_OBJ=nibread.o read.o drive.o ihs.o
+NIBWRITE_OBJ=nibwrite.o write.o drive.o ihs.o
 
-NIBTOOLS_BIN=nibtools_1541.inc nibtools_1571.inc
+NIBTOOLS_BIN=nibtools_1541.inc nibtools_1571.inc nibtools_1541_ihs.inc nibtools_1571_ihs.inc 
 
 # All programs to build
 PROG=nibread nibwrite nibscan nibconv nibrepair
@@ -112,6 +112,14 @@ nibtools_1571.bin: nibtools_15x1.asm
 	$(CA65) $(CA65_FLAGS) -D DRIVE=1571 -o $*.tmp $<
 	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
 
+nibtools_1541_ihs.bin: nibtools_15x1_ihs.asm
+	$(CA65) $(CA65_FLAGS) -D DRIVE=1541 -o $*.tmp $<
+	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
+
+nibtools_1571_ihs.bin: nibtools_15x1_ihs.asm
+	$(CA65) $(CA65_FLAGS) -D DRIVE=1571 -o $*.tmp $<
+	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
+	
 .bin.inc:
 	test -s $< && od -w8 -txC -v -An $< | \
 	sed 's/\([0-9a-f]\{2\}\) */0x\1,/g; $$s/,$$//' > $@

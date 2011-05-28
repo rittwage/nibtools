@@ -81,16 +81,44 @@ upload_code(CBM_FILE fd, BYTE drive)
 #include "nibtools_1571.inc"
     };
 
+    static BYTE floppycode1541ihs[] = {
+#include "nibtools_1541_ihs.inc"
+    };
+
+    static BYTE floppycode1571ihs[] = {
+#include "nibtools_1571_ihs.inc"
+    };
+
     switch (drivetype)
     {
     case 1571:
-        floppy_code = floppycode1571;
-        databytes = sizeof(floppycode1571);
+		if (!use_floppycode_ihs)
+		{
+			// non IHS floppy code
+        	floppy_code = floppycode1571;
+        	databytes = sizeof(floppycode1571);
+        }
+        else
+        {
+			// IHS floppy code
+			floppy_code = floppycode1571ihs;
+			databytes = sizeof(floppycode1571ihs);
+        }
         break;
 
     case 1541:
-        floppy_code = floppycode1541;
-        databytes = sizeof(floppycode1541);
+		if (!use_floppycode_ihs)
+		{
+			// non IHS floppy code
+			floppy_code = floppycode1541;
+			databytes = sizeof(floppycode1541);
+		}
+		else
+		{
+			// IHS floppy code
+			floppy_code = floppycode1541ihs;
+			databytes = sizeof(floppycode1541ihs);
+		}
         break;
 
 	default:

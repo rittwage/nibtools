@@ -47,6 +47,10 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		density = speed_map[halftrack/2];
 		printf("{DEFAULT }");
 	}
+	else if (Use_SCPlus_IHS)
+		// deep scan track density (1541/1571 SC+ compatible IHS)
+		// (IHS presence was initially checked)
+		density = Scan_Track_SCPlus_IHS(fd, halftrack, buffer);
 	else
 	{
 		// we scan for the disk density
@@ -101,6 +105,8 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		// read track
 		if((ihs) && (!(density & BM_NO_SYNC)))
 			send_mnib_cmd(fd, FL_READIHS, NULL, 0);
+		else if (Use_SCPlus_IHS) // "-j"
+			send_mnib_cmd(fd, FL_IHS_READ_SCP, NULL, 0);
 		else
 		{
 			if ((density & BM_NO_SYNC) || (density & BM_FF_TRACK) || (force_nosync))

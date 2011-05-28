@@ -97,6 +97,8 @@ extern int unformat_passes;
 extern int align_delay;
 extern int presync;
 
+#include "IHS.h"
+
 /* common */
 void usage(void);
 
