@@ -20,6 +20,8 @@ char *logline;
 
 BYTE DBG_IHS = 0; // set this to "1" for IHS debugging messages
 
+static BYTE read_mem(CBM_FILE fd, unsigned short addr);
+static BYTE get_default_bitrate(int track);
 
 // Check for 1541/1571 (SC+ compatible) IHS presence
 //  0 = found
@@ -725,7 +727,7 @@ Scan_Track_SCPlus_IHS(CBM_FILE fd, int track, BYTE *buffer)
 
 
 // read drive memory location, returns 8bit value from 16bit address
-BYTE
+static BYTE
 read_mem(CBM_FILE fd, unsigned short addr)
 {
         send_mnib_cmd(fd, FL_READ_MEM, NULL, 0);
@@ -736,7 +738,7 @@ read_mem(CBM_FILE fd, unsigned short addr)
 
 
 // return default bitrate for track
-BYTE
+static BYTE
 get_default_bitrate(int track)
 {
 	return (speed_map[track/2]);

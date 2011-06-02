@@ -18,9 +18,6 @@ extern BYTE IHSresult;
 extern int use_floppycode_ihs;
 extern char *logline;
 
-BYTE read_mem(CBM_FILE fd, unsigned short addr);
-BYTE get_default_bitrate(int track);
-
 BYTE Check_SCPlus_IHS(CBM_FILE fd, BYTE KeepOn);
 BYTE Check_SCPlus_IHS_2(CBM_FILE fd, BYTE KeepOn);
 void OutputIHSResult(int ToConsole, int ToLogfile, BYTE IHSresult, FILE *fplog);
