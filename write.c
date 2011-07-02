@@ -246,9 +246,6 @@ unformat_disk(CBM_FILE fd)
 	set_density(fd, 2);
 
 	printf("\nUnformatting...\n\n");
-	printf("00000000011111111112222222222333333333344\n");
-	printf("12345678901234567890123456789012345678901\n");
-	printf("-----------------------------------------\n");
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
@@ -257,9 +254,8 @@ unformat_disk(CBM_FILE fd)
 			kill_track(fd,track);
 			zero_track(fd, track);
 		}
-		printf("X");
+		printf("Track %.1d - unformatted\n", track/2);
 	}
-	printf("\n");
 }
 
 void kill_track(CBM_FILE fd, int track)
