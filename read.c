@@ -520,6 +520,7 @@ scan_track(CBM_FILE fd, int track)
 
 			density_stats[bin] += count;
 		}
+		cbm_parallel_burst_read(fd);
 
 		// calculate
 		iMajorMax = iStatsMax = 0;
