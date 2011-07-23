@@ -4,10 +4,10 @@
  * based on MNIB by Markus Brenner <markus(at)brenner(dot)de>
  */
 
-#define VERSION "(Built "__DATE__" "__TIME__")"
+#define VERSION "Built "__DATE__" "__TIME__
 
 #ifndef SVN
-#define SVN "WDDK/WSDK"
+#define SVN 2011
 #endif
 
 #define FL_STEPTO      0x00

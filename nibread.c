@@ -78,9 +78,9 @@ main(int argc, char *argv[])
 	FILE *fp;
 
 	fprintf(stdout,
-	  "\nnibread - Commodore 1541/1571 disk image nibbler\n"
-	  "(C) C64 Preservation Project\nhttp://c64preservation.com\n"
-	  "Revision " SVN " - " VERSION "\n\n");
+		"\nnibread - Commodore 1541/1571 disk image nibbler\n"
+		"(C) C64 Preservation Project\nhttp://c64preservation.com\n"
+		"Revision %d - " VERSION "\n\n", SVN);
 
 	/* we can do nothing with no switches */
 	if (argc < 2)
@@ -475,6 +475,7 @@ int disk2file(CBM_FILE fd, char *filename)
 			}
 		}
 	}
+
 	return 1;
 }
 

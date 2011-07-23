@@ -80,9 +80,9 @@ main(int argc, char **argv)
 	rpm_real = 0;
 
 	fprintf(stdout,
-	  "\nnibrepair - converts a damaged NIB/NB2/G64 to a new 'repaired' G64 file.\n"
-	  "(C) C64 Preservation Project\nhttp://c64preservation.com\n"
-	  "Revision " SVN " - " VERSION "\n\n");
+		"\nnibrepair - converts a damaged NIB/NB2/G64 to a new 'repaired' G64 file.\n"
+		"(C) C64 Preservation Project\nhttp://c64preservation.com\n"
+		"Revision %d - " VERSION "\n\n", SVN);
 
 	/* clear heap buffers */
 	memset(compressed_buffer, 0x00, sizeof(compressed_buffer));

@@ -69,9 +69,9 @@ main(int argc, char *argv[])
 	char argcache[256];
 
 	fprintf(stdout,
-	  "\nnibwrite - Commodore 1541/1571 disk image 'remastering' tool\n"
-	  "(C) C64 Preservation Project\nhttp://c64preservation.com\n"
-	  "Revision " SVN " - " VERSION "\n\n");
+		"\nnibwrite - Commodore 1541/1571 disk image 'remastering' tool\n"
+		"(C) C64 Preservation Project\nhttp://c64preservation.com\n"
+		"Revision %d - " VERSION "\n\n", SVN);
 
 	/* we can do nothing with no switches */
 	if (argc < 2)
