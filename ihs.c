@@ -402,7 +402,7 @@ int DeepBitrateAnalysis(CBM_FILE fd, char *filename, BYTE *buffer, char *logline
 					send_mnib_cmd(fd, FL_DBR_ANALYSIS, NULL, 0);
 					cbm_parallel_burst_read(fd);
 
-					res = cbm_parallel_burst_read_track_var(fd, buffer, NIB_TRACK_LENGTH-6);
+					res = cbm_parallel_burst_read_n(fd, buffer, NIB_TRACK_LENGTH-6);
 
 					if (!res)
 					{
@@ -429,7 +429,7 @@ int DeepBitrateAnalysis(CBM_FILE fd, char *filename, BYTE *buffer, char *logline
 				}
 				else
 				{
-					// Call to "cbm_parallel_burst_read_track_var" was 10x unsuccessful.
+					// Call to "cbm_parallel_burst_read_n" was 10x unsuccessful.
 					// BRX files may be asynchronous.
 					printf("Too many errors.\n");
 					fprintf(fplog, "Too many errors.\n");
@@ -651,7 +651,7 @@ Scan_Track_SCPlus_IHS(CBM_FILE fd, int track, BYTE *buffer)
 				send_mnib_cmd(fd, FL_DBR_ANALYSIS, NULL, 0);
 				cbm_parallel_burst_read(fd);
 
-				res = cbm_parallel_burst_read_track_var(fd, buffer, NIB_TRACK_LENGTH);
+				res = cbm_parallel_burst_read_n(fd, buffer, NIB_TRACK_LENGTH);
 
 				if (!res)
 				{
@@ -676,7 +676,7 @@ Scan_Track_SCPlus_IHS(CBM_FILE fd, int track, BYTE *buffer)
 			}
 			else
 			{
-				// Call to "cbm_parallel_burst_read_track_var" was 10x unsuccessful.
+				// Call to "cbm_parallel_burst_read_n" was 10x unsuccessful.
 				printf("Too many errors.\n");
 				fprintf(fplog, "Too many errors.\n");
 				exit(2);
