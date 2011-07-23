@@ -250,7 +250,6 @@ int writeimage(CBM_FILE fd)
 		master_disk(fd, track_buffer, track_density, track_length);
 
 	step_to_halftrack(fd, 18 * 2);
-	cbm_parallel_burst_read(fd);
 	printf("\n");
 
 	return 1;
