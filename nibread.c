@@ -475,7 +475,6 @@ int disk2file(CBM_FILE fd, char *filename)
 			}
 		}
 	}
-	cbm_parallel_burst_read(fd);
 	return 1;
 }
 
