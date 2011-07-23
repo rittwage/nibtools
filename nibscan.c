@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 
 	printf("\nnibscan - Commodore disk image scanner / comparator\n"
 	  "(C) C64 Preservation Project\nhttp://c64preservation.com\n"
-	  "Revision %d - " VERSION "\n\n", SVN);
+	  "Revision " SVN " - " VERSION "\n\n");
 
 	/* we can do nothing with no switches */
 	if (argc < 2)
