@@ -804,6 +804,8 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 
 	FILE *fpout;
 	int track, sector;
+	int errors = 0;
+	int hi_errors = 0;
 	int save_errorinfo = 0;
 	int save_40_errors = 0;
 	int save_40_tracks = 0;
@@ -855,9 +857,15 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 			if (errorcode != SECTOR_OK)
 			{
 				if (track/2 <= 35)
+				{
 					save_errorinfo = 1;
+					errors++;
+				}
 				else
+				{
 					save_40_errors = 1;
+					hi_errors++;
+				}
 			}
 			else if (track/2 > 35)
 			{
@@ -878,6 +886,7 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		}
 		printf("\n");
 	}
+	printf("\n");
 
 	blocks_to_save = (save_40_tracks) ? MAXBLOCKSONDISK : BLOCKSONDISK;
 
@@ -890,15 +899,21 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	if (save_errorinfo == 1)
 	{
 		assert(sizeof(errorinfo) >= (size_t)blocks_to_save);
+
 		if (fwrite(errorinfo, blocks_to_save, 1, fpout) != 1)
 		{
 			fprintf(stderr, "Cannot write sector data.\n");
 			return 0;
 		}
+
+		if(blocks_to_save > 683)
+			printf("Converted %d errors into errorblock\n", errors+hi_errors);
+		else
+			printf("Converted %d errors into errorblock\n", errors);
 	}
 
 	fclose(fpout);
-	printf("Successfully saved D64 file\n");
+	printf("Converted %d blocks into D64 file\n", blocks_to_save);
 	return 1;
 }
 
