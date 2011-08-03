@@ -869,7 +869,8 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 			}
 			if((track/2 > 35) &&
 				(errorcode != SYNC_NOT_FOUND) &&
-				(errorcode != NO_TRACK_DATA))
+				(errorcode != NO_TRACK_DATA) &&
+				(errorcode != HEADER_NOT_FOUND))
 			{
 				save_40_tracks = 1;
 			}
