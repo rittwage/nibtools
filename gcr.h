@@ -92,18 +92,19 @@ speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 /*#define GCR_MIN_FORMATTED 64 */	/* chessmaster track 29 */
 
 /* Disk Controller error codes */
-#define SECTOR_OK           0x01
-#define HEADER_NOT_FOUND    0x02
-#define SYNC_NOT_FOUND      0x03
-#define DATA_NOT_FOUND      0x04
-#define BAD_DATA_CHECKSUM   0x05
-#define BAD_GCR_CODE        0x06
-#define VERIFY_ERROR        0x07
-#define WRITE_PROTECTED     0x08
-#define BAD_HEADER_CHECKSUM 0x09
-#define ID_MISMATCH         0x0b
-#define DISK_NOT_INSERTED   0x0f
-#define NO_TRACK_DATA 0x00  /*not a CBM error code */
+#define NO_TRACK_DATA				0x00	/*not a real CBM error code */
+#define SECTOR_OK						0x01	// 00,OK
+#define HEADER_NOT_FOUND		0x02	// 20,READ ERROR
+#define SYNC_NOT_FOUND			0x03	// 21,READ ERROR
+#define DATA_NOT_FOUND			0x04	// 22,READ ERROR
+#define BAD_DATA_CHECKSUM		0x05	// 23,READ ERROR
+#define BAD_GCR_CODE					0x06	// 24,READ ERROR
+#define VERIFY_ERROR					0x07	// 25,WRITE ERROR
+#define WRITE_PROTECTED			0x08	// 26,WRITE PROTECT ON
+#define BAD_HEADER_CHECKSUM	0x09	// 27,READ ERROR
+#define UNKNOWN_28_ERROR		0x0A	// 28,READ ERROR
+#define ID_MISMATCH					0x0B	// 29,DISK ID MISMATCH
+#define DISK_NOT_INSERTED			0x0F		// 74,DRIVE NOT READY
 
 #define BM_MATCH       0x10
 #define BM_NO_CYCLE	   0x20
