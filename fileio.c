@@ -206,7 +206,7 @@ void parseargs(char *argv[])
 				fix_gcr = 0;
 			else
 				fix_gcr = atoi(&(*argv)[2]);
-			printf("* Enabled level %d bad GCR reproduction.\n", fix_gcr);
+			printf("* Enabled level %d 'bad' GCR reproduction.\n", fix_gcr);
 			break;
 
 		case 'v':
@@ -238,7 +238,7 @@ void parseargs(char *argv[])
 
 		case 't':
 			if(!ihs) align_disk = 1;
-			printf("* Attempt sweep track alignment\n");
+			printf("* Attempt timer-based track alignment\n");
 			break;
 
 		case 'i':
@@ -867,7 +867,9 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 					hi_errors++;
 				}
 			}
-			else if (track/2 > 35)
+			if((track/2 > 35) &&
+				(errorcode != SYNC_NOT_FOUND) &&
+				(errorcode != NO_TRACK_DATA))
 			{
 				save_40_tracks = 1;
 			}
