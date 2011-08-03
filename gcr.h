@@ -99,10 +99,7 @@ speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 #define DATA_NOT_FOUND			0x04	// 22,READ ERROR
 #define BAD_DATA_CHECKSUM		0x05	// 23,READ ERROR
 #define BAD_GCR_CODE					0x06	// 24,READ ERROR
-#define VERIFY_ERROR					0x07	// 25,WRITE ERROR
-#define WRITE_PROTECTED			0x08	// 26,WRITE PROTECT ON
 #define BAD_HEADER_CHECKSUM	0x09	// 27,READ ERROR
-#define UNKNOWN_28_ERROR		0x0A	// 28,READ ERROR
 #define ID_MISMATCH					0x0B	// 29,DISK ID MISMATCH
 #define DISK_NOT_INSERTED			0x0F		// 74,DRIVE NOT READY
 
