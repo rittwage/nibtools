@@ -1,6 +1,6 @@
 /*
  * NIBTOOL write routines
- * Copyright 2001-2007 Pete Rittwage <peter(at)rittwage(dot)com>
+ * Copyright 2005-2011 C64 Preservation Project
  * based on MNIB by Markus Brenner <markus(at)brenner(dot)de>
  */
 
@@ -12,8 +12,6 @@
 #include "mnibarch.h"
 #include "gcr.h"
 #include "nibtools.h"
-
-extern int drivetype;
 
 void
 master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t tracklen)
@@ -93,20 +91,20 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 
 		/* IHS will lock forever if IHS is set and it sees no index hole, i.e. side 2 of flippy disk or there is no compatible IHS */
 		/* Arnd has some code to test for it, not implemented yet */
-		cbm_parallel_burst_write(fd, (__u_char)((ihs) ? 0x00 : 0x03));
+		burst_write(fd, (__u_char)((ihs) ? 0x00 : 0x03));
 
 		/* align disk waits until end of sync before writing */
-		//cbm_parallel_burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
-		cbm_parallel_burst_write(fd, 0x00);
+		//burst_write(fd, (__u_char)((align_disk) ? 0xfb : 0x00));
+		burst_write(fd, 0x00);
 
-		if (cbm_parallel_burst_write_track(fd, rawtrack, (int)(tracklen + leader + skewbytes + 1)))
+		if (burst_write_track(fd, rawtrack, (int)(tracklen + leader + skewbytes + 1)))
 			break;
 		else
 		{
 			//putchar('?');
 			printf("(timeout) ");
 			fflush(stdin);
-			cbm_parallel_burst_read(fd);
+			burst_read(fd);
 			//msleep(500);
 			//printf("%c ", test_par_port(fd)? '+' : '-');
 			test_par_port(fd);
@@ -265,8 +263,8 @@ void kill_track(CBM_FILE fd, int track)
 
 	// write all $ff bytes
 	send_mnib_cmd(fd, FL_FILLTRACK, NULL, 0);
-	cbm_parallel_burst_write(fd, 0xff);  // 0xff byte is all sync "killer" track
-	cbm_parallel_burst_read(fd);
+	burst_write(fd, 0xff);  // 0xff byte is all sync "killer" track
+	burst_read(fd);
 }
 
 void
@@ -277,8 +275,8 @@ zero_track(CBM_FILE fd, int track)
 
 	// write all $0 bytes
 	send_mnib_cmd(fd, FL_FILLTRACK, NULL, 0);
-	cbm_parallel_burst_write(fd, 0x0);  // 0x00 byte is "unformatted"
-	cbm_parallel_burst_read(fd);
+	burst_write(fd, 0x0);  // 0x00 byte is "unformatted"
+	burst_read(fd);
 }
 
 void speed_adjust(CBM_FILE fd)
@@ -402,14 +400,14 @@ init_aligned_disk(CBM_FILE fd)
 
 		// write all $55 bytes
 		send_mnib_cmd(fd, FL_FILLTRACK, NULL, 0);
-		cbm_parallel_burst_write(fd, 0x55);
-		cbm_parallel_burst_read(fd);
+		burst_write(fd, 0x55);
+		burst_read(fd);
 	}
 
 	/* drive code version, timers can hang w/o interrupts too long */
 	printf("Sync sweep...\n");
 	send_mnib_cmd(fd, FL_ALIGNDISK, NULL, 0);
-	cbm_parallel_burst_write(fd, 0);
-	cbm_parallel_burst_read(fd);
+	burst_write(fd, 0);
+	burst_read(fd);
 	printf("Attempted sweep-aligned tracks\n");
 }

@@ -62,6 +62,7 @@ int presync = 0;
 BYTE fillbyte = 0x55;
 BYTE drive = 8;
 char * cbm_adapter = "";
+int use_floppycode_srq = 0;
 
 BYTE density_map;
 float motor_speed;
@@ -140,6 +141,11 @@ main(int argc, char *argv[])
 			printf("* Using OpenCBM adapter %s\n", cbm_adapter);
 			break;
 
+		case 's':
+			printf("* Use 1571 SRQ Support\n");
+			use_floppycode_srq = 1; // srq floppy code!
+			break;
+
 		case 'j':
 			printf("* 1541/1571 Index Hole Sensor (SC+ compatible)\n");
 			Use_SCPlus_IHS = 1;
@@ -186,7 +192,7 @@ main(int argc, char *argv[])
 			printf("* Simple track match (crude verify)\n");
 			break;
 
-		case 's':
+		case 'n':
 			force_nosync = 1;
 			printf("* Forcing read without regard to sync\n");
 			break;
@@ -345,7 +351,7 @@ main(int argc, char *argv[])
 		{
 			// turn SCPlus IHS off
 			send_mnib_cmd(fd, FL_IHS_OFF, NULL, 0);
-			cbm_parallel_burst_read(fd);
+			burst_read(fd);
 
 			if (fplog) fclose(fplog);
 			exit(0);
@@ -376,7 +382,7 @@ main(int argc, char *argv[])
 	{
 		// turn SCPlus IHS off
 		send_mnib_cmd(fd, FL_IHS_OFF, NULL, 0);
-		cbm_parallel_burst_read(fd);
+		burst_read(fd);
 	}
 
 	motor_on(fd);

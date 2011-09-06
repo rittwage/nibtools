@@ -92,21 +92,21 @@ speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 /*#define GCR_MIN_FORMATTED 64 */	/* chessmaster track 29 */
 
 /* Disk Controller error codes */
-#define NO_TRACK_DATA				0x00	/*not a real CBM error code */
-#define SECTOR_OK						0x01	// 00,OK
-#define HEADER_NOT_FOUND		0x02	// 20,READ ERROR
-#define SYNC_NOT_FOUND			0x03	// 21,READ ERROR
-#define DATA_NOT_FOUND			0x04	// 22,READ ERROR
-#define BAD_DATA_CHECKSUM		0x05	// 23,READ ERROR
-#define BAD_GCR_CODE					0x06	// 24,READ ERROR
+#define NO_TRACK_DATA					0x00	/*not a real CBM error code */
+#define SECTOR_OK								0x01	// 00,OK
+#define HEADER_NOT_FOUND			0x02	// 20,READ ERROR
+#define SYNC_NOT_FOUND				0x03	// 21,READ ERROR
+#define DATA_NOT_FOUND				0x04	// 22,READ ERROR
+#define BAD_DATA_CHECKSUM			0x05	// 23,READ ERROR
+#define BAD_GCR_CODE						0x06	// 24,READ ERROR
 #define BAD_HEADER_CHECKSUM	0x09	// 27,READ ERROR
-#define ID_MISMATCH					0x0B	// 29,DISK ID MISMATCH
-#define DISK_NOT_INSERTED			0x0F		// 74,DRIVE NOT READY
+#define ID_MISMATCH						0x0B	// 29,DISK ID MISMATCH
+#define DRIVE_NOT_READY				0x0F		// 74,DRIVE NOT READY
 
-#define BM_MATCH       0x10
-#define BM_NO_CYCLE	   0x20
-#define BM_NO_SYNC     0x40
-#define BM_FF_TRACK    0x80
+#define BM_MATCH       		0x10
+#define BM_NO_CYCLE	   	0x20
+#define BM_NO_SYNC     	0x40
+#define BM_FF_TRACK    		0x80
 
 #define ALIGN_NONE				0x0
 #define ALIGN_GAP					0x1

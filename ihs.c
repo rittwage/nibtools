@@ -38,7 +38,7 @@ BYTE Check_SCPlus_IHS(CBM_FILE fd, BYTE KeepOn)
 
 	// turn SC+ IHS on
 	send_mnib_cmd(fd, FL_IHS_ON, NULL, 0);
-	cbm_parallel_burst_read(fd);
+	burst_read(fd);
 
 	for (i = 0; i < 10; i++)
 	{
@@ -46,18 +46,18 @@ BYTE Check_SCPlus_IHS(CBM_FILE fd, BYTE KeepOn)
 
 		// check SC+ IHS presence
 		send_mnib_cmd(fd, FL_IHS_PRESENT, NULL, 0);
-		cbm_parallel_burst_read(fd);
+		burst_read(fd);
 
-		res = cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH);
+		res = burst_read_track(fd, buffer, NIB_TRACK_LENGTH);
 
 		if (!res)
 		{
 			printf("(timeout) ");
 			fprintf(fplog, "(timeout) ");
 			fflush(stdout);
-			cbm_parallel_burst_read(fd);
+			burst_read(fd);
 			//delay(500);
-			cbm_parallel_burst_read(fd);
+			burst_read(fd);
 		}
 		else
 			break;
@@ -81,7 +81,7 @@ BYTE Check_SCPlus_IHS(CBM_FILE fd, BYTE KeepOn)
 	{
 		// turn SC+ IHS off
 		send_mnib_cmd(fd, FL_IHS_OFF, NULL, 0);
-		cbm_parallel_burst_read(fd);
+		burst_read(fd);
 	}
 
 	return (ihs_detected);
@@ -100,17 +100,17 @@ BYTE Check_SCPlus_IHS_2(CBM_FILE fd, BYTE KeepOn)
 
 	// turn SCPlus IHS on
 	send_mnib_cmd(fd, FL_IHS_ON, NULL, 0);
-	cbm_parallel_burst_read(fd);
+	burst_read(fd);
 
 	// check SCPlus IHS presence
 	send_mnib_cmd(fd, FL_IHS_PRESENT2, NULL, 0);
-	ihs_detected = cbm_parallel_burst_read(fd);
+	ihs_detected = burst_read(fd);
 
 	if (KeepOn == 0)
 	{
 		// turn SCPlus IHS off
 		send_mnib_cmd(fd, FL_IHS_OFF, NULL, 0);
-		cbm_parallel_burst_read(fd);
+		burst_read(fd);
 	}
 
 	return (ihs_detected);
@@ -227,17 +227,17 @@ int TrackAlignmentReport2(CBM_FILE fd, BYTE *buffer)
 			memset(buffer, 0x00, NIB_TRACK_LENGTH);
 
 			send_mnib_cmd(fd, FL_IHS_READ_SCP, NULL, 0);
-			cbm_parallel_burst_read(fd);
+			burst_read(fd);
 
-			res = cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH);
+			res = burst_read_track(fd, buffer, NIB_TRACK_LENGTH);
 
 			if (!res)
 			{
 				printf("(timeout #%d: T%d D%d)", i+1, track, density); // &3
 				fflush(stdout);
-				cbm_parallel_burst_read(fd);
+				burst_read(fd);
 				delay(500);
-				cbm_parallel_burst_read(fd);
+				burst_read(fd);
 			}
 			else
 				break;
@@ -290,7 +290,7 @@ int TrackAlignmentReport2(CBM_FILE fd, BYTE *buffer)
 		}
 		else
 		{
-			// Call to "cbm_parallel_burst_read_track" was 10x unsuccessful.
+			// Call to "burst_read_track" was 10x unsuccessful.
 			printf("\nToo many errors.");
 			fprintf(fplog, "\nToo many errors.");
 			exit(2);
@@ -303,7 +303,7 @@ finish1:
 
 	// turn SCPlus IHS off
 	send_mnib_cmd(fd, FL_IHS_OFF, NULL, 0);
-	cbm_parallel_burst_read(fd);
+	burst_read(fd);
 
 	return 0;
 }
@@ -381,7 +381,7 @@ int DeepBitrateAnalysis(CBM_FILE fd, char *filename, BYTE *buffer, char *logline
 
 			// Scan for killer track
 			send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
-			killer_info = cbm_parallel_burst_read(fd);
+			killer_info = burst_read(fd);
 
 			if (killer_info & BM_FF_TRACK)
 			{
@@ -400,18 +400,18 @@ int DeepBitrateAnalysis(CBM_FILE fd, char *filename, BYTE *buffer, char *logline
 					memset(buffer, 0x00, NIB_TRACK_LENGTH);
 
 					send_mnib_cmd(fd, FL_DBR_ANALYSIS, NULL, 0);
-					cbm_parallel_burst_read(fd);
+					burst_read(fd);
 
-					res = cbm_parallel_burst_read_n(fd, buffer, NIB_TRACK_LENGTH-6);
+					res = burst_read_n(fd, buffer, NIB_TRACK_LENGTH-6);
 
 					if (!res)
 					{
 						printf("(deep scan timeout #%d: T%d D%d)", i+1, track, density);
 						fprintf(fplog, "(deep scan timeout #%d: T%d D%d)", i+1, track, density);
 						fflush(stdout);
-						cbm_parallel_burst_read(fd);
+						burst_read(fd);
 						delay(500);
-						cbm_parallel_burst_read(fd);
+						burst_read(fd);
 					}
 					else
 						break;
@@ -429,7 +429,7 @@ int DeepBitrateAnalysis(CBM_FILE fd, char *filename, BYTE *buffer, char *logline
 				}
 				else
 				{
-					// Call to "cbm_parallel_burst_read_n" was 10x unsuccessful.
+					// Call to "burst_read_n" was 10x unsuccessful.
 					// BRX files may be asynchronous.
 					printf("Too many errors.\n");
 					fprintf(fplog, "Too many errors.\n");
@@ -493,7 +493,7 @@ finish2:
 
 	// turn SCPlus IHS off
 	send_mnib_cmd(fd, FL_IHS_OFF, NULL, 0);
-	cbm_parallel_burst_read(fd);
+	burst_read(fd);
 
 	return 0;
 }
@@ -630,7 +630,7 @@ Scan_Track_SCPlus_IHS(CBM_FILE fd, int track, BYTE *buffer)
 
 		/* Scan for killer track! */
 		send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
-		killer_info = cbm_parallel_burst_read(fd);
+		killer_info = burst_read(fd);
 
 		if (killer_info & BM_FF_TRACK)
 		{
@@ -649,18 +649,18 @@ Scan_Track_SCPlus_IHS(CBM_FILE fd, int track, BYTE *buffer)
 				memset(buffer, 0x00, NIB_TRACK_LENGTH);
 
 				send_mnib_cmd(fd, FL_DBR_ANALYSIS, NULL, 0);
-				cbm_parallel_burst_read(fd);
+				burst_read(fd);
 
-				res = cbm_parallel_burst_read_n(fd, buffer, NIB_TRACK_LENGTH);
+				res = burst_read_n(fd, buffer, NIB_TRACK_LENGTH);
 
 				if (!res)
 				{
 					printf("(deep scan timeout #%d: T%.1f D%d)", m+1, (float) track/2, density);
 					fprintf(fplog, "(deep scan timeout #%d: T%.1f D%d)", m+1, (float) track/2, density);
 					fflush(stdout);
-					cbm_parallel_burst_read(fd);
+					burst_read(fd);
 					delay(500);
-					cbm_parallel_burst_read(fd);
+					burst_read(fd);
 				}
 				else
 					break;
@@ -676,7 +676,7 @@ Scan_Track_SCPlus_IHS(CBM_FILE fd, int track, BYTE *buffer)
 			}
 			else
 			{
-				// Call to "cbm_parallel_burst_read_n" was 10x unsuccessful.
+				// Call to "burst_read_n" was 10x unsuccessful.
 				printf("Too many errors.\n");
 				fprintf(fplog, "Too many errors.\n");
 				exit(2);
@@ -731,9 +731,9 @@ static BYTE
 read_mem(CBM_FILE fd, unsigned short addr)
 {
         send_mnib_cmd(fd, FL_READ_MEM, NULL, 0);
-        cbm_parallel_burst_write(fd, (BYTE)(addr & 0xff) );
-        cbm_parallel_burst_write(fd, (BYTE)((addr >> 8) & 0xff) );
-        return cbm_parallel_burst_read(fd);
+        burst_write(fd, (BYTE)(addr & 0xff) );
+        burst_write(fd, (BYTE)((addr >> 8) & 0xff) );
+        return burst_read(fd);
 }
 
 

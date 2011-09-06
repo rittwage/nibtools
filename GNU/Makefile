@@ -68,7 +68,7 @@ OBJ=gcr.o prot.o fileio.o crc.o md5.o lz.o
 NIBREAD_OBJ=nibread.o read.o drive.o ihs.o
 NIBWRITE_OBJ=nibwrite.o write.o drive.o ihs.o
 
-NIBTOOLS_BIN=nibtools_1541.inc nibtools_1571.inc nibtools_1541_ihs.inc nibtools_1571_ihs.inc 
+NIBTOOLS_BIN=nibtools_1541.inc nibtools_1571.inc nibtools_1541_ihs.inc nibtools_1571_ihs.inc nibtools_1571_srq.inc
 
 # All programs to build
 PROG=nibread nibwrite nibscan nibconv nibrepair
@@ -117,6 +117,10 @@ nibtools_1541_ihs.bin: nibtools_15x1_ihs.asm
 	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
 
 nibtools_1571_ihs.bin: nibtools_15x1_ihs.asm
+	$(CA65) $(CA65_FLAGS) -D DRIVE=1571 -o $*.tmp $<
+	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
+	
+nibtools_1571_srq.bin: nibtools_1571_srq.asm
 	$(CA65) $(CA65_FLAGS) -D DRIVE=1571 -o $*.tmp $<
 	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
 	

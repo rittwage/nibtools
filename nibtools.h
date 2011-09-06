@@ -96,6 +96,7 @@ extern int rpm_real;
 extern int unformat_passes;
 extern int align_delay;
 extern int presync;
+extern int use_floppycode_srq;
 
 #include "IHS.h"
 
@@ -154,6 +155,12 @@ void kill_track(CBM_FILE fd, int track);
 
 /* drive.c  */
 int compare_extension(char * filename, char * extension);
+__u_char  CBMAPIDECL burst_read(CBM_FILE f);
+void CBMAPIDECL burst_write(CBM_FILE f, __u_char c);
+int CBMAPIDECL burst_read_n(CBM_FILE f, __u_char *Buffer, unsigned int Length);
+int CBMAPIDECL burst_write_n(CBM_FILE f, __u_char *Buffer, unsigned int Length);
+int CBMAPIDECL burst_read_track(CBM_FILE f, __u_char *Buffer, unsigned int Length);
+int CBMAPIDECL burst_write_track(CBM_FILE f, __u_char *Buffer, unsigned int Length);
 void ARCH_SIGNALDECL handle_signals(int sig);
 void ARCH_SIGNALDECL handle_exit(void);
 int upload_code(CBM_FILE fd, BYTE drive);

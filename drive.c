@@ -18,6 +18,7 @@ int lpt_num;
 extern int drivetype;
 unsigned int floppybytes;
 extern CBM_FILE fd;
+extern int use_floppycode_srq;
 
 #ifdef OPENCBM_42
 int CBMAPIDECL
@@ -43,6 +44,56 @@ cbm_parallel_burst_write_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 }
 #endif
 
+
+/* Change the burst r/w routines to callbacks to avoid code mess */
+__u_char  CBMAPIDECL
+burst_read(CBM_FILE f)
+{
+	if(use_floppycode_srq)
+		return cbm_srq_burst_read(f);
+	else
+		return cbm_parallel_burst_read(f);
+}
+void CBMAPIDECL
+burst_write(CBM_FILE f, __u_char c)
+{
+	if(use_floppycode_srq)
+		cbm_srq_burst_write(f, c);
+	else
+		cbm_parallel_burst_write(f, c);
+}
+int CBMAPIDECL
+burst_read_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
+{
+	if(use_floppycode_srq)
+		return cbm_srq_burst_read_n(f, Buffer, Length);
+	else
+		return cbm_parallel_burst_read_n(f, Buffer, Length);
+}
+int CBMAPIDECL
+burst_write_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
+{
+	if(use_floppycode_srq)
+		return cbm_srq_burst_write_n(f, Buffer, Length);
+	else
+		return cbm_parallel_burst_write_n(f, Buffer, Length);
+}
+int CBMAPIDECL
+burst_read_track(CBM_FILE f, __u_char *Buffer, unsigned int Length)
+{
+	if(use_floppycode_srq)
+		return cbm_srq_burst_read_track(f, Buffer, Length);
+	else
+		return cbm_parallel_burst_read_track(f, Buffer, Length);
+}
+int CBMAPIDECL
+burst_write_track(CBM_FILE f, __u_char *Buffer, unsigned int Length)
+{
+	if(use_floppycode_srq)
+		return cbm_srq_burst_write_track(f, Buffer, Length);
+	else
+		return cbm_parallel_burst_write_track(f, Buffer, Length);
+}
 
 void ARCH_SIGNALDECL
 handle_signals(int sig)
@@ -74,52 +125,58 @@ upload_code(CBM_FILE fd, BYTE drive)
 	int ret;
 
     static BYTE floppycode1541[] = {
-#include "nibtools_1541.inc"
-    };
-
+		#include "nibtools_1541.inc"
+		};
     static BYTE floppycode1571[] = {
-#include "nibtools_1571.inc"
-    };
-
+		#include "nibtools_1571.inc"
+		};
     static BYTE floppycode1541ihs[] = {
-#include "nibtools_1541_ihs.inc"
-    };
-
+		#include "nibtools_1541_ihs.inc"
+		};
     static BYTE floppycode1571ihs[] = {
-#include "nibtools_1571_ihs.inc"
-    };
+		#include "nibtools_1571_ihs.inc"
+		};
+    static BYTE floppycode1571srq[] = {
+		#include "nibtools_1571_srq.inc"
+		};
 
     switch (drivetype)
     {
-    case 1571:
-		if (!use_floppycode_ihs)
-		{
-			// non IHS floppy code
-        	floppy_code = floppycode1571;
-        	databytes = sizeof(floppycode1571);
-        }
-        else
-        {
-			// IHS floppy code
-			floppy_code = floppycode1571ihs;
-			databytes = sizeof(floppycode1571ihs);
-        }
-        break;
+    	case 1571:
+			if (use_floppycode_ihs)
+			{
+				// IHS floppy code
+				floppy_code = floppycode1571ihs;
+				databytes = sizeof(floppycode1571ihs);
+			}
+			else if(use_floppycode_srq)
+    	    {
+				// srq floppy code
+				floppy_code = floppycode1571srq;
+				databytes = sizeof(floppycode1571srq);
+			}
+			else
+			{
+				// non IHS floppy code
+    	    	floppy_code = floppycode1571;
+    	    	databytes = sizeof(floppycode1571);
+    	    }
+    	    break;
 
-    case 1541:
-		if (!use_floppycode_ihs)
-		{
-			// non IHS floppy code
-			floppy_code = floppycode1541;
-			databytes = sizeof(floppycode1541);
-		}
-		else
-		{
-			// IHS floppy code
-			floppy_code = floppycode1541ihs;
-			databytes = sizeof(floppycode1541ihs);
-		}
-        break;
+    	case 1541:
+			if (!use_floppycode_ihs)
+			{
+				// non IHS floppy code
+				floppy_code = floppycode1541;
+				databytes = sizeof(floppycode1541);
+			}
+			else
+			{
+				// IHS floppy code
+				floppy_code = floppycode1541ihs;
+				databytes = sizeof(floppycode1541ihs);
+			}
+    	    break;
 
 	default:
 		printf("Unsupported drive type\n");
@@ -141,8 +198,10 @@ test_par_port(CBM_FILE fd)
 	BYTE testBuf[0x100 + 1];
 
 	rv = 1;
+
+	printf("Testing communication...");
 	send_mnib_cmd(fd, FL_TEST, NULL, 0);
-	cbm_parallel_burst_read_n(fd, testBuf, sizeof(testBuf));
+	burst_read_n(fd, testBuf, sizeof(testBuf));
 
 	// Check first 256 bytes for values 0 ... 255
 	for (i = 0; i < sizeof(testBuf) - 1; i++) {
@@ -155,6 +214,8 @@ test_par_port(CBM_FILE fd)
 	// Check last byte for 0
 	if (testBuf[sizeof(testBuf) - 1] != 0)
 		rv = 0;
+
+	printf("done.\n");
 	return (rv);
 }
 
@@ -164,9 +225,10 @@ verify_floppy(CBM_FILE fd)
 	unsigned int i, rv;
 	BYTE testBuf[(0x800 - 0x300) + 1];
 
+	printf("Testing code upload...");
 	rv = 1;
 	send_mnib_cmd(fd, FL_VERIFY_CODE, NULL, 0);
-	cbm_parallel_burst_read_n(fd, testBuf, sizeof(testBuf));
+	burst_read_n(fd, testBuf, sizeof(testBuf));
 
 	// Check for exact match with code we uploaded
 	for (i = 0; i < floppybytes; i++)
@@ -234,7 +296,7 @@ reset_floppy(CBM_FILE fd, BYTE drive)
 		return (ret);
 	}
 	cbm_unlisten(fd);
-	cbm_parallel_burst_read(fd);
+	burst_read(fd);
 	return (0);
 }
 
@@ -294,10 +356,11 @@ init_floppy(CBM_FILE fd, BYTE drive, int bump)
 	}
 
 	/* Begin executing drive code at $300 */
-	printf("Starting custom drive code...\n");
+	printf("Starting custom drive code...");
 	sprintf(cmd, "M-E%c%c", 0x00, 0x03);
 	cbm_exec_command(fd, drive, cmd, 5);
-	cbm_parallel_burst_read(fd);
+	burst_read(fd);
+	printf("Started!\n");
 
 #ifdef DJGPP
 	if (!find_par_port(fd))
@@ -308,16 +371,19 @@ init_floppy(CBM_FILE fd, BYTE drive, int bump)
 
 	if(!test_par_port(fd))
 	{
-		printf("\nFailed parallel port transfer test. Check cabling.\n");
+		printf("\nFailed port transfer test. Check cabling.\n");
 		return 0;
 	}
+	printf("Passed initial communication test.\n");
+
 	if(!verify_floppy(fd))
 	{
-		printf("\nFailed parallel port transfer test. Check cabling.\n");
+		printf("\nFailed code verification test. Check cabling.\n");
 		return 0;
 	}
+	printf("Passed code verification test.\n");
 
-	printf("Passed basic parallel port checks.\n");
+	printf("Passed all basic port checks.\n");
 	return 1;
 }
 
@@ -385,7 +451,7 @@ set_density(CBM_FILE fd, BYTE density)
 	};
 
 	send_mnib_cmd(fd, FL_DENSITY, cmdArgs, sizeof(cmdArgs));
-	cbm_parallel_burst_read(fd);
+	burst_read(fd);
 
 	return (density);
 }
@@ -399,7 +465,7 @@ set_bitrate(CBM_FILE fd, BYTE density)
 		bitrate_value[density],	/* $1c00 SET mask */
 	};
 	send_mnib_cmd(fd, FL_MOTOR, cmdArgs, sizeof(cmdArgs));
-	cbm_parallel_burst_read(fd);
+	burst_read(fd);
 	return (density);
 }
 
@@ -425,7 +491,7 @@ send_mnib_cmd(CBM_FILE fd, BYTE cmd, BYTE *args, int num_args)
 
 	if (num_args != 0)
 		memcpy(&cmdBuf[5], args, num_args);
-	cbm_parallel_burst_write_n(fd, cmdBuf, 5 + num_args);
+	burst_write_n(fd, cmdBuf, 5 + num_args);
 }
 
 void
@@ -436,7 +502,7 @@ set_full_track(CBM_FILE fd)
 		0x02,	/* $1c00 SET mask (stepper bits = %10) */
 	};
 	send_mnib_cmd(fd, FL_MOTOR, cmdArgs, sizeof(cmdArgs));
-	cbm_parallel_burst_read(fd);
+	burst_read(fd);
 	delay(500);			/* wait for motor to step */
 }
 
@@ -448,7 +514,7 @@ motor_on(CBM_FILE fd)
 		0x0c,	/* $1c00 SET mask (LED + motor ON) */
 	};
 	send_mnib_cmd(fd, FL_MOTOR, cmdArgs, sizeof(cmdArgs));
-	cbm_parallel_burst_read(fd);
+	burst_read(fd);
 	delay(500);			/* wait for motor to turn on */
 }
 
@@ -460,7 +526,7 @@ motor_off(CBM_FILE fd)
 		0x00,	/* $1c00 SET mask (LED + motor OFF) */
 	};
 	send_mnib_cmd(fd, FL_MOTOR, cmdArgs, sizeof(cmdArgs));
-	cbm_parallel_burst_read(fd);
+	burst_read(fd);
 	delay(500);			/* wait for motor to turn off */
 }
 
@@ -471,7 +537,7 @@ step_to_halftrack(CBM_FILE fd, int halftrack)
 		(BYTE) (halftrack != 0 ? halftrack : 1),
 	};
 	send_mnib_cmd(fd, FL_STEPTO, cmdArgs, sizeof(cmdArgs));
-	cbm_parallel_burst_read(fd);
+	burst_read(fd);
 }
 
 unsigned int
@@ -481,7 +547,7 @@ track_capacity(CBM_FILE fd)
 	BYTE capacity_data[2];
 
 	send_mnib_cmd(fd, FL_CAPACITY, NULL, 0);
-	cbm_parallel_burst_read_n(fd, capacity_data, sizeof(capacity_data));
+	burst_read_n(fd, capacity_data, sizeof(capacity_data));
 
 	capacity = (capacity_data[1] << 8) | capacity_data[0];
 	return (capacity);

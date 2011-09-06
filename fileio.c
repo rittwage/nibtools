@@ -30,6 +30,11 @@ void parseargs(char *argv[])
 			printf("* Using OpenCBM adapter %s\n", cbm_adapter);
 			break;
 
+		case 's':
+			printf("* Use 1571 SRQ Support\n");
+			use_floppycode_srq = 1; // srq floppy code!
+			break;
+
 		case 'h':
 			track_inc = 1;
 			printf("* Using halftracks\n");
@@ -224,7 +229,7 @@ void parseargs(char *argv[])
 			cap_min_ignore = 1;
 			break;
 
-		case 's':
+		case 'k':
 			if (!(*argv)[2]) usage();
 			if(!ihs) align_disk = 1;
 			skew = atoi(&(*argv)[2]);

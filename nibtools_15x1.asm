@@ -1,19 +1,7 @@
-; Burst Nibbler - main floppy routines
-; V1.0 Assembled code matches original code exactly
+; NIBTOOLS - main floppy routines
 ;
-; Remaining questions (from original analysis):
-;  * _format_track  : Is the SYNC being deleted here?
-;    We write $55 512 times, then write $ff 10 times and then write
-;    $55 again, 7424 times (total 7946 bytes).  This clearly overwrites
-;    all former data on the track including SYNC marks.
-;    ! But, a new SYNC mark is written, one for the whole track
-;
-; (From Pete)
-; It's writing 7696 bytes total at density 3, so it should not overwrite
-; the sync unless the drive motor is really, really fast.  This is standard for 300RPM
-;
-; $c2: current track
-; $c3-$c8: density statistic bins
+; Some of this code may have still have roots in Datel Burstnibbler, but not much 
+; is the same anymore 
 ;
 ; General description of routines
 ; ===============================

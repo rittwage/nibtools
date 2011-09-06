@@ -54,6 +54,7 @@ int presync = 0;
 BYTE fillbyte = 0x55;
 BYTE drive = 8;
 char * cbm_adapter = "";
+int use_floppycode_srq = 0;
 
 /* local prototypes */
 int repair(void);

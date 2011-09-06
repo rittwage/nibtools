@@ -64,7 +64,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	{
 		set_bitrate(fd, density&3);
 		send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
-		density |= cbm_parallel_burst_read(fd);
+		density |= burst_read(fd);
 		if((density & BM_NO_SYNC) || (density & BM_FF_TRACK)) break;
 	}
 
@@ -114,9 +114,9 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			else
 				send_mnib_cmd(fd, FL_READNORMAL, NULL, 0);
 		}
-		cbm_parallel_burst_read(fd);
+		burst_read(fd);
 
-		if (cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
+		if (burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
 			break;
 		else
 		{
@@ -124,10 +124,10 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			printf("!");
 			fprintf(fplog,"(timeout) ");
 			fflush(stdout);
-			cbm_parallel_burst_read(fd);
+			burst_read(fd);
 			//delay(500);
 			//printf("%c ", test_par_port(fd)? '+' : '-');
-			cbm_parallel_burst_read(fd);
+			burst_read(fd);
 		}
 	}
 
@@ -400,19 +400,19 @@ int write_nb2(CBM_FILE fd, char * filename)
 				for (i = 0; i < 10; i++)
 				{
 					send_mnib_cmd(fd, FL_READWOSYNC, NULL, 0);
-					cbm_parallel_burst_read(fd);
+					burst_read(fd);
 
-					if (cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
+					if (burst_read_track(fd, buffer, NIB_TRACK_LENGTH))
 						break;
 					else
 					{
 						// If we got a timeout, reset the port before retrying.
 						//putchar('?');
 						fflush(stdout);
-						cbm_parallel_burst_read(fd);
+						burst_read(fd);
 						//delay(500);
 						//printf("%c ", test_par_port(fd)? '+' : '-');
-						cbm_parallel_burst_read(fd);
+						burst_read(fd);
 					}
 				}
 
@@ -495,7 +495,7 @@ scan_track(CBM_FILE fd, int track)
 	/* Scan for killer track */
 	density = set_default_bitrate(fd, track);
 	send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
-	killer_info = cbm_parallel_burst_read(fd);
+	killer_info = burst_read(fd);
 
 	if (killer_info & BM_FF_TRACK)
 			return (density | killer_info);
@@ -513,14 +513,14 @@ scan_track(CBM_FILE fd, int track)
 
 		for (bin=3; bin>=0; bin--)
 		{
-			count = cbm_parallel_burst_read(fd);
+			count = burst_read(fd);
 
 			if (count >= 0x40)
 				density_major[bin]++;
 
 			density_stats[bin] += count;
 		}
-		cbm_parallel_burst_read(fd);
+		burst_read(fd);
 
 		// calculate
 		iMajorMax = iStatsMax = 0;
@@ -615,16 +615,16 @@ int TrackAlignmentReport(CBM_FILE fd)
 		{
 			memset(buffer, 0x00, NIB_TRACK_LENGTH);
 			send_mnib_cmd(fd, FL_READIHS, NULL, 00);
-			cbm_parallel_burst_read(fd);
+			burst_read(fd);
 
 			res = cbm_parallel_burst_read_track(fd, buffer, NIB_TRACK_LENGTH);
 			if (!res)
 			{
 				printf("(timeout #%d: T%d D%d)", i+1, track, density); // &3
 				fflush(stdout);
-				cbm_parallel_burst_read(fd);
+				burst_read(fd);
 				delay(500);
-				cbm_parallel_burst_read(fd);
+				burst_read(fd);
 			}
 			else
 				break;
@@ -659,7 +659,7 @@ int TrackAlignmentReport(CBM_FILE fd)
 		}
 		else
 		{
-			// Call to "cbm_parallel_burst_read_track" was 10x unsuccessful.
+			// Call to "burst_read_track" was 10x unsuccessful.
 			printf("\nToo many errors.");
 			exit(2);
 		}
