@@ -68,7 +68,8 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	}
 
 	/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
-	replace_bytes(rawtrack, sizeof(rawtrack), 0x00, 0x01);
+	if(!use_floppycode_srq)  // not in srq code
+		replace_bytes(rawtrack, sizeof(rawtrack), 0x00, 0x01);
 
 	/* step to destination track and set density */
 	step_to_halftrack(fd, track);

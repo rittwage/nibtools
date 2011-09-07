@@ -183,10 +183,11 @@ upload_code(CBM_FILE fd, BYTE drive)
 		return -1;
     }
 
-	printf("Uploading floppy-side code...\n");
+	printf("Uploading floppy-side code...");
 	ret = cbm_upload(fd, drive, 0x300, floppy_code, databytes);
-	if (ret < 0) return (ret);
+	if (ret < 0) return ret;
 	floppybytes = databytes;
+	printf("done.\n");
 
 	return 0;
 }
@@ -243,6 +244,8 @@ verify_floppy(CBM_FILE fd)
 	// Check last byte for 0
 	if (testBuf[sizeof(testBuf) - 1] != 0)
 		rv = 0;
+
+	printf("done.\n");
 	return (rv);
 }
 
@@ -371,14 +374,14 @@ init_floppy(CBM_FILE fd, BYTE drive, int bump)
 
 	if(!test_par_port(fd))
 	{
-		printf("\nFailed port transfer test. Check cabling.\n");
+		printf("Failed port transfer test. Check cabling.\n");
 		return 0;
 	}
 	printf("Passed initial communication test.\n");
 
 	if(!verify_floppy(fd))
 	{
-		printf("\nFailed code verification test. Check cabling.\n");
+		printf("Failed code verification test. Check cabling.\n");
 		return 0;
 	}
 	printf("Passed code verification test.\n");
@@ -449,6 +452,9 @@ set_density(CBM_FILE fd, BYTE density)
 		0x9f,
 		bitrate_value[density],
 	};
+
+	if(use_floppycode_srq)
+		cmdArgs[0] = density; // srq code doesn't use branching ilke original bn routines
 
 	send_mnib_cmd(fd, FL_DENSITY, cmdArgs, sizeof(cmdArgs));
 	burst_read(fd);
