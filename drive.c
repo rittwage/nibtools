@@ -143,17 +143,17 @@ upload_code(CBM_FILE fd, BYTE drive)
     switch (drivetype)
     {
     	case 1571:
-			if (use_floppycode_ihs)
-			{
-				// IHS floppy code
-				floppy_code = floppycode1571ihs;
-				databytes = sizeof(floppycode1571ihs);
-			}
-			else if(use_floppycode_srq)
+			if(use_floppycode_srq)
     	    {
 				// srq floppy code
 				floppy_code = floppycode1571srq;
 				databytes = sizeof(floppycode1571srq);
+			}
+			else if (use_floppycode_ihs)
+			{
+				// IHS floppy code
+				floppy_code = floppycode1571ihs;
+				databytes = sizeof(floppycode1571ihs);
 			}
 			else
 			{
