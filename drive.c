@@ -21,7 +21,7 @@ extern CBM_FILE fd;
 extern int use_floppycode_srq;
 
 #ifdef OPENCBM_42
-int CBMAPIDECL
+int
 cbm_parallel_burst_read_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
 	unsigned int count;
@@ -32,7 +32,7 @@ cbm_parallel_burst_read_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 	return 1;
 }
 
-int CBMAPIDECL
+int
 cbm_parallel_burst_write_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
 	unsigned int count;
@@ -46,52 +46,64 @@ cbm_parallel_burst_write_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 
 
 /* Change the burst r/w routines to callbacks to avoid code mess */
-__u_char  CBMAPIDECL
+__u_char
 burst_read(CBM_FILE f)
 {
+#ifndef DJGPP
 	if(use_floppycode_srq)
 		return cbm_srq_burst_read(f);
 	else
+#endif
 		return cbm_parallel_burst_read(f);
 }
-void CBMAPIDECL
+void
 burst_write(CBM_FILE f, __u_char c)
 {
+#ifndef DJGPP
 	if(use_floppycode_srq)
 		cbm_srq_burst_write(f, c);
 	else
+#endif
 		cbm_parallel_burst_write(f, c);
 }
-int CBMAPIDECL
+int
 burst_read_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
+#ifndef DJGPP
 	if(use_floppycode_srq)
 		return cbm_srq_burst_read_n(f, Buffer, Length);
 	else
+#endif
 		return cbm_parallel_burst_read_n(f, Buffer, Length);
 }
-int CBMAPIDECL
+int
 burst_write_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
+#ifndef DJGPP
 	if(use_floppycode_srq)
 		return cbm_srq_burst_write_n(f, Buffer, Length);
 	else
+#endif
 		return cbm_parallel_burst_write_n(f, Buffer, Length);
 }
-int CBMAPIDECL
+int
 burst_read_track(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
+#ifndef DJGPP
 	if(use_floppycode_srq)
 		return cbm_srq_burst_read_track(f, Buffer, Length);
 	else
+#endif
 		return cbm_parallel_burst_read_track(f, Buffer, Length);
 }
-int CBMAPIDECL
+int
 burst_write_track(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
+#ifndef DJGPP
 	if(use_floppycode_srq)
 		return cbm_srq_burst_write_track(f, Buffer, Length);
 	else
+#endif
 		return cbm_parallel_burst_write_track(f, Buffer, Length);
 }
 
@@ -148,18 +160,21 @@ upload_code(CBM_FILE fd, BYTE drive)
 				// srq floppy code
 				floppy_code = floppycode1571srq;
 				databytes = sizeof(floppycode1571srq);
+				printf("Sending 1571 SRQ support code...\n");
 			}
 			else if (use_floppycode_ihs)
 			{
 				// IHS floppy code
 				floppy_code = floppycode1571ihs;
 				databytes = sizeof(floppycode1571ihs);
+				printf("Sending 1571 parallel/IHS support code...\n");
 			}
 			else
 			{
 				// non IHS floppy code
     	    	floppy_code = floppycode1571;
     	    	databytes = sizeof(floppycode1571);
+    	    	printf("Sending 1571 parallel support code...\n");
     	    }
     	    break;
 
@@ -169,12 +184,14 @@ upload_code(CBM_FILE fd, BYTE drive)
 				// non IHS floppy code
 				floppy_code = floppycode1541;
 				databytes = sizeof(floppycode1541);
+				printf("Sending 1541 parallel support code...\n");
 			}
 			else
 			{
 				// IHS floppy code
 				floppy_code = floppycode1541ihs;
 				databytes = sizeof(floppycode1541ihs);
+				printf("Sending 1541 parallel support code...\n");
 			}
     	    break;
 
@@ -299,7 +316,7 @@ reset_floppy(CBM_FILE fd, BYTE drive)
 		return (ret);
 	}
 	cbm_unlisten(fd);
-	burst_read(fd);
+	//burst_read(fd);
 	return (0);
 }
 
