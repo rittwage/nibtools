@@ -471,7 +471,7 @@ set_density(CBM_FILE fd, BYTE density)
 	};
 
 	if(use_floppycode_srq)
-		cmdArgs[0] = density; // srq code doesn't use branching ilke original bn routines
+		cmdArgs[0] = density; // SRQ code doesn't use branching like original routines
 
 	send_mnib_cmd(fd, FL_DENSITY, cmdArgs, sizeof(cmdArgs));
 	burst_read(fd);
