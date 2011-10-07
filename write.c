@@ -74,7 +74,6 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	/* step to destination track and set density */
 	step_to_halftrack(fd, track);
 	set_density(fd, track_density[track]&3);
-	if(use_floppycode_srq) delay(50);
 
 	/* this doesn't work over USB since we aren't in control of timing, I don't think */
 	// try to do track alignment through simple timers
