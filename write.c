@@ -170,6 +170,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		if(badgcr) printf("[badgcr:%lu] ", badgcr);
 
 		master_track(fd, track_buffer, track_density, track, length);
+		if(use_floppycode_srq) delay(500);
 	}
 }
 
