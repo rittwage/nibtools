@@ -48,16 +48,6 @@
         CIA_ICR   = CIA_BASE+$d
         CIA_CRA   = CIA_BASE+$e
 
-.ifndef DRIVE
-        .error "DRIVE must be defined as 1541 or 1571"
-.elseif DRIVE = 1541
-        PP_BASE = $1801
-.elseif DRIVE = 1571
-        PP_BASE = $4001
-.else
-        .error "DRIVE must be 1541 or 1571"
-.endif
-
 .org $300
 
 _flop_main:
@@ -429,65 +419,6 @@ _ftL1:
         RTS
        
        
-.if DRIVE = 1541
-;----------------------------------------
-; write a track on destination
-_write_track:
-        JSR  _read_byte           ; read byte from parallel data port
-        STA  _skipihs+1          ; can change IHS Branch value
-        JSR  _read_byte           ; read byte from parallel data port
-        STA  _wtB1+1              ; can change Sync Branch value
-
-	LDA #$01
-_skipihs:
-        BNE  _wtL1			; default skip IHS	   
-
-_waitihs:
-        JSR _sc_ihs_wait_hole;     ; wait for end of index hole
-        
-_wtL1:
-        BIT  $1c00                ; wait for end of Sync, if writing
-_wtB1:
-        BMI  _wtL1                ;  halftracks, and 'adjust target'
-
-        LDA  #$ce                 
-        STA  $1c0c
-        TYA
-        DEC  $1c03                ; CA data direction head (0->$ff: write)
-        STA  $1800                ; send handshake
-
-        LDX  #$00
-        BEQ _shake
-
-_write:
-        BVC  _write               ; wait for byte ready
-        STX  $1c01                ; write GCR byte to disk
-
-_shake:
-        ; (cycle count - we have ~32 cycles before next byte is ready)
-        CLV                       ; clear byte ready (0+2 = 2)
-        EOR  #$ff                 ; toggle handshake value (2+2 = 4)
-        LDX  PP_BASE              ; get new parallel byte from host (4+4 = 8)
-        STA  $1800                ; send handshake (4+8 = 12)
-        BEQ  _wtL5                ; $00 byte = end of track (2+12 = 14)
-        CPX  #$01                 ; did we get $01 byte? (2+14 = 16)
-        BNE  _write               ; no -> write normal byte ((2+1) + 16 = 20)
-        LDX  #$00                 ; change to $00 byte, weak/bad GCR (2+19 = 21)
-        BEQ  _write               ; always branch back to write it
-                                  ;  ((2+1) + 21 = 24 cycles worst case)
-_wtL5:
-        BVC  _wtL5
-        CLV
-        LDA  #$ee
-        STA  $1c0c
-        STX  $1c03                ; CA data direction head ($ff->0: read)
-        STX  $1800                ; send handshake
-        LDY  #$00
-        JSR _sc_ihs_cleanup
-        RTS
-.endif
-  
-.if DRIVE = 1571
 ;----------------------------------------
 ; write a track, can wait for IHS or sync before start.
 ; 1571-SRQ version without parallel port.
@@ -507,8 +438,9 @@ _write_track:
         STA  $60                  ; wait for IHS? (0=YES)
         JSR  _read_byte_SRQ       ; read byte via SRQ
         STA  $61                  ; wait for SYNC? (0=NO)
-        LDA  #$60
-        AND  $1C00
+ 
+ 	LDA  #$60		  ;  based on density
+        AND  $1C00		  
         LSR
         LSR
         LSR
@@ -589,7 +521,6 @@ _wts_br3:
         INC  $1C03                ; set port A to input
         JSR  _disable_SRQ_read
         RTS
-.endif
 
 ;----------------------------------------
 ; read $1c00 motor/head status

@@ -151,11 +151,14 @@ upload_code(CBM_FILE fd, BYTE drive)
     static BYTE floppycode1571srq[] = {
 		#include "nibtools_1571_srq.inc"
 		};
+    static BYTE floppycode1571srqtest[] = {
+		#include "nibtools_1571_srq_test.inc"
+		};
 
     switch (drivetype)
     {
     	case 1571:
-			if(use_floppycode_srq)
+			if(use_floppycode_srq==1)
     	    {
 				// srq floppy code
 				floppy_code = floppycode1571srq;
@@ -168,6 +171,13 @@ upload_code(CBM_FILE fd, BYTE drive)
 				floppy_code = floppycode1571ihs;
 				databytes = sizeof(floppycode1571ihs);
 				printf("Sending 1571 parallel/IHS support code...\n");
+			}
+			else if (use_floppycode_srq==2)
+			{
+				// SRQ test floppy code
+				floppy_code = floppycode1571srqtest;
+				databytes = sizeof(floppycode1571srqtest);
+				printf("Sending 1571 SRQ test code...\n");
 			}
 			else
 			{
@@ -200,7 +210,7 @@ upload_code(CBM_FILE fd, BYTE drive)
 		return -1;
     }
 
-	printf("Uploading floppy-side code...");
+	printf("Uploading floppy-side code ($%0.4x bytes, $300-$%0.3x)...", databytes, databytes+0x300);
 	ret = cbm_upload(fd, drive, 0x300, floppy_code, databytes);
 	if (ret < 0) return ret;
 	floppybytes = databytes;

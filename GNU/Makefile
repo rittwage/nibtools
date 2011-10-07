@@ -67,21 +67,27 @@ OBJ=gcr.o prot.o fileio.o crc.o md5.o lz.o
 # Objects for just drive access
 NIBREAD_OBJ=nibread.o read.o drive.o ihs.o
 NIBWRITE_OBJ=nibwrite.o write.o drive.o ihs.o
+NIBSRQTEST_OBJ=nibsrqtest.o drive.o
 
-NIBTOOLS_BIN=nibtools_1541.inc nibtools_1571.inc nibtools_1541_ihs.inc nibtools_1571_ihs.inc nibtools_1571_srq.inc
+NIBTOOLS_BIN=nibtools_1541.inc nibtools_1571.inc nibtools_1541_ihs.inc nibtools_1571_ihs.inc nibtools_1571_srq.inc nibtools_1571_srq_test.inc
 
 # All programs to build
-PROG=nibread nibwrite nibscan nibconv nibrepair
+PROG=nibread nibwrite nibscan nibconv nibrepair nibsrqtest
 
 buildall: ${PROG}
 
 nibread: ${OBJ} ${NIBREAD_OBJ} ${NIBTOOLS_BIN} ${ARCH_OBJ}
 	${CC} -o nibread$(EXE) ${OBJ} ${NIBREAD_OBJ} ${ARCH_OBJ} ${LDFLAGS}
+	
+nibsrqtest: ${NIBSRQTEST_OBJ} ${NIBTOOLS_BIN} ${ARCH_OBJ}
+	${CC} -o nibsrqtest$(EXE) ${NIBSRQTEST_OBJ} ${ARCH_OBJ} ${LDFLAGS}
 
 nibwrite: ${OBJ} ${NIBWRITE_OBJ} ${NIBTOOLS_BIN} ${ARCH_OBJ}
 	${CC} -o nibwrite$(EXE) ${OBJ} ${NIBWRITE_OBJ} ${ARCH_OBJ} ${LDFLAGS}
 
 nibread.c: ${NIBTOOLS_BIN} 
+
+nibsrqtest.c: ${NIBTOOLS_BIN} 
 
 nibwrite.c: ${NIBTOOLS_BIN} 
 
@@ -91,7 +97,7 @@ nibconv: ${OBJ} nibconv.o
 nibrepair: ${OBJ} nibrepair.o
 	${CC} -o nibrepair$(EXE) nibrepair.o ${OBJ} $(LDFLAGS)
 
-nibscan:	${OBJ} nibscan.o
+nibscan: ${OBJ} nibscan.o
 	${CC} -o nibscan$(EXE) nibscan.o ${OBJ} $(LDFLAGS)
 
 clean:
@@ -100,7 +106,7 @@ clean:
 distclean: clean
 	${RM} ${PROG} *.exe
 	
-drive.o: nibtools_1541.inc nibtools_1571.inc
+drive.o: nibtools_1541.inc nibtools_1541_ihs.inc nibtools_1571.inc nibtools_1571_ihs.inc nibtools_1571_srq.inc nibtools_1571_srq_test.inc
 
 *.o: gcr.h nibtools.h
 
@@ -121,6 +127,10 @@ nibtools_1571_ihs.bin: nibtools_15x1_ihs.asm
 	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
 	
 nibtools_1571_srq.bin: nibtools_1571_srq.asm
+	$(CA65) $(CA65_FLAGS) -D DRIVE=1571 -o $*.tmp $<
+	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
+
+nibtools_1571_srq_test.bin: nibtools_1571_srq_test.asm
 	$(CA65) $(CA65_FLAGS) -D DRIVE=1571 -o $*.tmp $<
 	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
 	

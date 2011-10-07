@@ -17,7 +17,7 @@ void
 master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t tracklen)
 {
 	int i, leader =  0x20;
-	static size_t skewbytes = 0;
+	static size_t skewbytes = 0, last_density = 0xff;
 	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
 	BYTE tempfillbyte;
 
@@ -73,7 +73,12 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 
 	/* step to destination track and set density */
 	step_to_halftrack(fd, track);
-	set_density(fd, track_density[track]&3);
+
+	/* set density if different than current */
+	if(track_density[track]&3 != last_density)
+		set_density(fd, track_density[track]&3);
+
+	last_density = track_density[track]&3;
 
 	/* this doesn't work over USB since we aren't in control of timing, I don't think */
 	// try to do track alignment through simple timers
