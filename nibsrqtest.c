@@ -123,7 +123,6 @@ main(int argc, char *argv[])
 				printf("%x=%x ",buffer1[m], buffer2[m]);
 		}
 		printf("\nFinished Iteration #%d\n",l);
-		delay(500);
 	}
 
 	printf("\nPassed comm tests");
