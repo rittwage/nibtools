@@ -94,7 +94,10 @@ main(int argc, char *argv[])
 	for(l=0x55;l<=0xAA;l++)
 	{
 		printf("\nSending data interation #%d\n",l);
-		memset(buffer1,l,0xff);
+
+		//memset(buffer1,rand()%255,0xff);
+		for(m=0;m<=0xff;m++) buffer1[m]=rand()%255;
+
 		send_mnib_cmd(fd, FL_WRITE, NULL, 0);
 		if(!burst_write_track(fd,buffer1,0xff+1))
 		{
