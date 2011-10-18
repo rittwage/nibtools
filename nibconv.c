@@ -73,8 +73,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout,
 		"\nnibconv - converts a CBM disk image from one format to another.\n"
-		"(C) C64 Preservation Project\nhttp://c64preservation.com\n"
-		"Revision %d - " VERSION "\n\n", SVN);
+		AUTHOR "Revision %d - " VERSION "\n\n", SVN);
 
 	/* clear heap buffers */
 	memset(compressed_buffer, 0x00, sizeof(compressed_buffer));

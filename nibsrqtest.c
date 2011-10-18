@@ -41,7 +41,8 @@ main(int argc, char *argv[])
 	char cmd[80];
 	int l,m;
 
-	fprintf(stdout,"\nnibsrqtest!\n");
+	fprintf(stdout,"\nnibsrqtest - tests SRQ communication code (with 1571 drive)\n"
+	AUTHOR "Revision %d - " VERSION "\n\n", SVN);
 
 	if(cbm_driver_open_ex(&fd, cbm_adapter) != 0)
 	{
@@ -90,8 +91,7 @@ main(int argc, char *argv[])
 	send_mnib_cmd(fd, FL_MOTOR, cmdArgs, sizeof(cmdArgs));
 	burst_read(fd);
 
-//	l=0xaa;
-	for(l=0x55;l<=0xAA;l++)
+	for(l=1;l<=100;l++)
 	{
 		printf("\nSending data interation #%d\n",l);
 

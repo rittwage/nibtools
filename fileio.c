@@ -632,7 +632,7 @@ int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 	BYTE gcrdata[NIB_TRACK_LENGTH];
 	BYTE errorinfo[MAXBLOCKSONDISK];
 	BYTE id[3] = { 0, 0, 0 };
-	int error, d64size, last_track;
+	int error, d64size, last_track, cur_sector=0;
 	char errorstring[0x1000], tmpstr[8];
 	FILE *fpin;
 
@@ -669,10 +669,14 @@ int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		last_track = 40;
 		break;
 
-	default:
-		rewind(fpin);
-		fprintf(stderr, "Bad d64 image size.\n");
-		return 0;
+	default:  // non-standard images, attempt to load anyway
+		//rewind(fpin);
+		//fprintf(stderr, "Bad d64 image size.\n");
+		//return 0;
+		printf("\nNon-standard D64 image... attempting to load as 40-track anyway\n");
+		printf("%d sectors in file\n", d64size/256);
+		last_track = 40;
+		break;
 	}
 
 	// determine disk id from track 18 (offsets $165A2, $165A3)
@@ -699,11 +703,17 @@ int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 			}
 
 			// read sector from file
-			fread(buffer, 256, 1, fpin); // @@@SRT: check success
+			if(d64size/256 > cur_sector)
+			{
+				fread(buffer, 256, 1, fpin); // @@@SRT: check success
 
-			// convert to gcr
-			convert_sector_to_GCR(buffer,
-			  gcrdata + (sector * SECTOR_SIZE), track, sector, id, error);
+				// convert to gcr
+				convert_sector_to_GCR(buffer, gcrdata + (sector * SECTOR_SIZE), track, sector, id, error);
+			}
+			else
+				memset(buffer, fillbyte, 0x00);
+
+			cur_sector++;
 		}
 
 		// calculate track length
