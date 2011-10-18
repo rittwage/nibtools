@@ -17,7 +17,7 @@ void
 master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t tracklen)
 {
 	int i, leader =  0x20;
-	static size_t skewbytes = 0, last_density = 0xff;
+	static size_t skewbytes = 0;
 	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
 	BYTE tempfillbyte;
 

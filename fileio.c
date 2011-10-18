@@ -229,7 +229,7 @@ void parseargs(char *argv[])
 			cap_min_ignore = 1;
 			break;
 
-		case 'k':
+		case 'T':
 			if (!(*argv)[2]) usage();
 			if(!ihs) align_disk = 1;
 			skew = atoi(&(*argv)[2]);
@@ -301,6 +301,7 @@ void switchusage(void)
  	" -f[n]: Enable level 'n' aggressive bad GCR simulation\n"
 	" -G[n]: Alternate gap match length\n"
 	" -C[n]: Simulate 'n' RPM track capacity\n"
+	" -T[n]: Track skew simulation (in ms, max 200ms)\n"
  	" -g: Enable gap reduction\n"
  	" -0: Enable bad GCR run reduction\n"
  	" -r: Disable automatic sync reduction\n"
