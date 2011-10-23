@@ -360,7 +360,7 @@ compare_disks(void)
 			{
 				gcr_percentage = (gcr_match*100)/track_length[track];
 
-				if (gcr_percentage >= 95)
+				if (gcr_percentage >= 99)
 				{
 					gcr_total++;
 						printf("\n[*%lu%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
@@ -430,7 +430,7 @@ compare_disks(void)
 	}
 
 	printf("\n---------------------------------------------------------------------\n");
-	printf("%lu/%lu tracks had at least 95%% GCR match\n", gcr_total, numtracks);
+	printf("%lu/%lu tracks had at least 99%% GCR match\n", gcr_total, numtracks);
 	//printf("Matches (%s)\n", gcr_matches);
 	//printf("Mismatches (%s)\n", gcr_mismatches);
 	//printf("\n");

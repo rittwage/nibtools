@@ -1248,13 +1248,14 @@ size_t
 compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int same_disk, char *outputstring)
 {
 	size_t match, byte_match, j, k;
-	size_t sync_diff, presync_diff, gap_diff, badgcr_diff, size_diff, byte_diff;
+	size_t sync_diff, shift_diff, presync_diff, gap_diff, badgcr_diff, size_diff, byte_diff;
 	size_t offset;
 	char tmpstr[256];
 
 	byte_match = 0;
 	byte_diff = 0;
 	sync_diff = 0;
+	shift_diff = 0;
 	presync_diff = 0;
 	gap_diff = 0;
 	badgcr_diff = 0;
@@ -1299,6 +1300,14 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 				continue;
 			}
 
+			/* we ignore inert bitshift differences */
+			if ( ((track1[j] == 0x55) && (track2[k] == 0xaa)) || ((track1[j] == 0xaa) && (track2[k] == 0x55)) )
+			{
+				shift_diff++;
+				byte_match++;
+				continue;
+			}
+
 			/* we ignore bad gcr bytes */
 			if (is_bad_gcr(track1, length1, j))
 			{
@@ -1320,8 +1329,8 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 			}
 
 			/* it just didn't work out. :) */
-			if(verbose>2)
-				printf("(%.2x!=%.2x)",track1[j],track2[k]);
+			if(verbose>1)
+				printf("(%.4d:%.2x!=%.2x)\n",j,track1[j],track2[k]);
 
 			byte_diff++;
 		}
@@ -1351,6 +1360,12 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 	if (sync_diff)
 	{
 		sprintf(tmpstr, "(sync:%lu)", sync_diff);
+		strcat(outputstring, tmpstr);
+	}
+
+	if (shift_diff)
+	{
+		sprintf(tmpstr, "(shift:%lu}", shift_diff);
 		strcat(outputstring, tmpstr);
 	}
 
