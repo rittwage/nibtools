@@ -219,12 +219,12 @@ void parseargs(char *argv[])
 			printf("* Verbose mode increased\n");
 			break;
 
-		case 'm':
+		case 'c':
 			auto_capacity_adjust = 0;
 			printf("* Disabled automatic capacity adjustment\n");
 			break;
 
-		case 'e':
+		case 'm':
 			if (!(*argv)[2])
 				extra_capacity_margin = 0;
 			else
@@ -232,10 +232,10 @@ void parseargs(char *argv[])
 			printf("* Changed extra capacity margin to %d\n", extra_capacity_margin);
 			break;
 
-		case 'c':
-			printf("* Minimum capacity ignore on\n");
-			cap_min_ignore = 1;
-			break;
+//		case 'c':
+//			printf("* Minimum capacity ignore on\n");
+//			cap_min_ignore = 1;
+//			break;
 
 		case 'T':
 			if (!(*argv)[2]) usage();

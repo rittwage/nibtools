@@ -489,6 +489,7 @@ void
 usage(void)
 {
 	fprintf(stderr, "usage: nibread [options] <filename>\n\n"
+		 " -@x: Use OpenCBM device 'x' (xa1541, xum1541:0, xum1541:1, etc.)\n"
 	     " -D[n]: Use drive #[n]\n"
 	     " -e[n]: Retry reading tracks with errors [n] times\n"
 	     " -S[n]: Override starting track\n"
@@ -499,7 +500,7 @@ usage(void)
 	     " -d: Force default densities\n"
 	     " -v: Enable track matching (crude read verify)\n"
 	     " -I: Interactive imaging mode\n"
-	     " -m: Disable minimum capacity check\n"
+//	     " -m: Disable minimum capacity check\n"
 	     " -V: Verbose (output more detailed track data)\n"
 	     " -h: Read halftracks\n"
 	     " -t: Extended parallel port tests\n"

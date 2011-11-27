@@ -260,10 +260,12 @@ void
 usage(void)
 {
 	fprintf(stderr, "usage: nibwrite [options] <filename>\n\n"
-	     " -D[n[: Use drive #[n]\n"
+		 " -@x: Use OpenCBM device 'x' (xa1541, xum1541:0, xum1541:1, etc.)\n"
+	     " -D[n]: Use drive #[n]\n"
 	     " -S[n]: Override starting track\n"
 	     " -E[n]: Override ending track\n"
 //	     " -s[n]: Manual track skew (in ms)\n"
+		 " -m[n]: Change extra capacity margin to [n] (default: 0)\n"
 		 " -s: Use SRQ transfer code instead of parallel (1571 only)\n"
 	     " -t: Enable timer-based track alignment\n"
 	     " -c: Disable automatic capacity adjustment\n"
