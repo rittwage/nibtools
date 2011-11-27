@@ -224,6 +224,14 @@ void parseargs(char *argv[])
 			printf("* Disabled automatic capacity adjustment\n");
 			break;
 
+		case 'e':
+			if (!(*argv)[2])
+				extra_capacity_margin = 0;
+			else
+				extra_capacity_margin = atoi(&(*argv)[2]);
+			printf("* Changed extra capacity margin to %d\n", extra_capacity_margin);
+			break;
+
 		case 'c':
 			printf("* Minimum capacity ignore on\n");
 			cap_min_ignore = 1;

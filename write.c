@@ -359,17 +359,17 @@ void adjust_target(CBM_FILE fd)
 				break;
 		}
 
-		capacity[i] -= capacity_margin + EXTRA_CAPACITY_MARGIN;
+		capacity[i] -= capacity_margin + extra_capacity_margin;
 	}
 
-	motor_speed = (float)( (DENSITY3 / (capacity[3] + capacity_margin + EXTRA_CAPACITY_MARGIN)) +
-										   (DENSITY2 / (capacity[2] + capacity_margin + EXTRA_CAPACITY_MARGIN)) +
-										   (DENSITY1 / (capacity[1] + capacity_margin + EXTRA_CAPACITY_MARGIN)) +
-										   (DENSITY0 / (capacity[0] + capacity_margin + EXTRA_CAPACITY_MARGIN)) ) / 4;
+	motor_speed = (float)( (DENSITY3 / (capacity[3] + capacity_margin + extra_capacity_margin)) +
+										   (DENSITY2 / (capacity[2] + capacity_margin + extra_capacity_margin)) +
+										   (DENSITY1 / (capacity[1] + capacity_margin + extra_capacity_margin)) +
+										   (DENSITY0 / (capacity[0] + capacity_margin + extra_capacity_margin)) ) / 4;
 
 	printf("--------------------------------------------------\n");
 	printf("Drive motor speed average: %.2f RPM.\n", motor_speed);
-	printf("Track capacity margin: %d\n", capacity_margin + EXTRA_CAPACITY_MARGIN);
+	printf("Track capacity margin: %d\n", capacity_margin + extra_capacity_margin);
 
 	if( (motor_speed > 320) || (motor_speed < 280))
 	{
@@ -380,10 +380,10 @@ void adjust_target(CBM_FILE fd)
 	if(rpm_real)
 	{
 		printf("\nRPM override to %dRPM specified\n", rpm_real);
-		capacity[0] = (int) (DENSITY0 / rpm_real) + EXTRA_CAPACITY_MARGIN;
-		capacity[1] = (int) (DENSITY1 / rpm_real) + EXTRA_CAPACITY_MARGIN;
-		capacity[2] = (int) (DENSITY2 / rpm_real) + EXTRA_CAPACITY_MARGIN;
-		capacity[3] = (int) (DENSITY3 / rpm_real) + EXTRA_CAPACITY_MARGIN;
+		capacity[0] = (int) (DENSITY0 / rpm_real) - extra_capacity_margin;
+		capacity[1] = (int) (DENSITY1 / rpm_real) - extra_capacity_margin;
+		capacity[2] = (int) (DENSITY2 / rpm_real) - extra_capacity_margin;
+		capacity[3] = (int) (DENSITY3 / rpm_real) - extra_capacity_margin;
 	}
 }
 

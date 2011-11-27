@@ -131,16 +131,18 @@ find_header(BYTE ** gcr_pptr, BYTE * gcr_end)
 {
 	while (1)
 	{
-		if ((*gcr_pptr) + 1 >= gcr_end)
+		if ((*gcr_pptr) + 2 >= gcr_end)
 		{
 			*gcr_pptr = gcr_end;
 			return 0;	/* not found */
 		}
 
-		/* sync flag goes up after the 10th bit, but sometimes they are short */
+		/* hardware sync flag goes up after the 10th bit */
+		//if ( (((*gcr_pptr)[0] & 0x03) == 0x03) && ((*gcr_pptr)[1] == 0xff) )
 		//if ( (((*gcr_pptr)[0] & 0x03) == 0x03) && ((*gcr_pptr)[1] == 0xff) && ((*gcr_pptr)[2] == 0x52) )
-		if ( (((*gcr_pptr)[0] & 0x01) == 0x01) && ((*gcr_pptr)[1] == 0xff) && ((*gcr_pptr)[2] == 0x52) )
-		//if ( ((*gcr_pptr)[0] == 0xff) && ((*gcr_pptr)[1] == 0x52) )
+		/* but sometimes they are short a bit */
+		if ( (((*gcr_pptr)[0] & 0x01) == 0x01) && ((*gcr_pptr)[1] == 0xff) )
+		//if ( (((*gcr_pptr)[0] & 0x01) == 0x01) && ((*gcr_pptr)[1] == 0xff) && ((*gcr_pptr)[2] == 0x52) )
 			break;
 
 		(*gcr_pptr)++;
@@ -1304,7 +1306,6 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 			if ( ((track1[j] == 0x55) && (track2[k] == 0xaa)) || ((track1[j] == 0xaa) && (track2[k] == 0x55)) )
 			{
 				shift_diff++;
-				byte_match++;
 				continue;
 			}
 
@@ -1329,7 +1330,7 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 			}
 
 			/* it just didn't work out. :) */
-			if(verbose>1)
+			if(verbose>2)
 				printf("(%.4d:%.2x!=%.2x)\n",j,track1[j],track2[k]);
 
 			byte_diff++;
@@ -1393,7 +1394,7 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 		strcat(outputstring, tmpstr);
 	}
 
-	return byte_match + sync_diff + presync_diff + gap_diff + badgcr_diff;
+	return byte_match + sync_diff + presync_diff + shift_diff + gap_diff + badgcr_diff;
 }
 
 size_t

@@ -68,6 +68,7 @@ BYTE fillbyte = 0x55;
 BYTE drive = 8;
 char * cbm_adapter = "";
 int use_floppycode_srq = 0;
+int extra_capacity_margin=5;
 
 unsigned char md5_hash_result[16];
 unsigned char md5_dir_hash_result[16];
@@ -360,11 +361,11 @@ compare_disks(void)
 			{
 				gcr_percentage = (gcr_match*100)/track_length[track];
 
-				if (gcr_percentage >= 99)
+				if (gcr_percentage >= 98)
 				{
 					gcr_total++;
-						printf("\n[*%lu%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
-					sprintf(tmpstr, "%d,", track / 2);
+					printf("\n[*%lu%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
+					sprintf(tmpstr, "%d,", track/2);
 					strcat(gcr_matches, tmpstr);
 				}
 				else
@@ -430,7 +431,7 @@ compare_disks(void)
 	}
 
 	printf("\n---------------------------------------------------------------------\n");
-	printf("%lu/%lu tracks had at least 99%% GCR match\n", gcr_total, numtracks);
+	printf("%lu/%lu tracks had at least 98%% GCR match\n", gcr_total, numtracks);
 	//printf("Matches (%s)\n", gcr_matches);
 	//printf("Mismatches (%s)\n", gcr_mismatches);
 	//printf("\n");
