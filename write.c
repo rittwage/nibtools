@@ -68,6 +68,10 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 			tracklen = capacity[track_density[track]&3];
 	}
 
+	/* "fix" for track 18 mastering */
+	if(track==18*2)
+		memcpy(rawtrack + tracklen - 5, "UJMSU", 5);
+
 	/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
 	if(!use_floppycode_srq)  // not in srq code
 		replace_bytes(rawtrack, sizeof(rawtrack), 0x00, 0x01);
