@@ -21,6 +21,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	BYTE density;
     int i, newtrack;
 	static int lasttrack = -1;
+	static BYTE last_density = -1;
 
 	newtrack = (lasttrack == halftrack) ? 0 : 1;
 	lasttrack = halftrack;
@@ -98,7 +99,11 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		return (density);
 	}
 
-	set_density(fd, density&3);
+	if((density&3) != last_density)
+	{
+		set_density(fd, density&3);
+		last_density = density&3;
+	}
 
 	for (i = 0; i < 3; i++)
 	{

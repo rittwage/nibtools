@@ -540,7 +540,7 @@ scandisk(void)
 			}
 
 			// detect bad GCR '000' bits
-			if (fix_gcr)
+			//if (fix_gcr)
 			{
 				badgcr_tracks[track] =
 				  check_bad_gcr(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track]);
