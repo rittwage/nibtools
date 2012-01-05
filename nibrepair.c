@@ -168,9 +168,18 @@ int repair(void)
 	{
 		for (sector = 0; sector < sector_map[track/2]; sector++)
 		{
+				//firstpass
 				errorcode = repair_GCR_sector(track_buffer + (track * NIB_TRACK_LENGTH),
 																		track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
 																		track/2, sector, id);
+
+				//secondpass
+				if(errorcode != SECTOR_OK)
+				{
+					errorcode = repair_GCR_sector(track_buffer + (track * NIB_TRACK_LENGTH),
+																		track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track],
+																		track/2, sector, id);
+				}
 
 				errorinfo[blockindex] = errorcode;
 
@@ -325,11 +334,11 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
 
 	if (blk_chksum != d64_sector[257])
 	{
-		printf("T%dS%d Bad Data Checksum $%.2x != $%.2x - Repair (Y/n)? ", track, sector, blk_chksum, d64_sector[257]);
+		printf("T%dS%d Bad Data Checksum $%.2x != $%.2x - Repair Checksum, Data, or Neither (c/d/N)? ", track, sector, blk_chksum, d64_sector[257]);
 		fflush(stdin);
 		answer = getchar();
 
-		if(answer != 'n')
+		if(answer == 'c')
 		{
 			/* patch back */
 			d64_sector[257] = blk_chksum;
@@ -340,7 +349,23 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
 				gcr_ptr += 5;
 				sectordata += 4;
 			}
-			printf("Repaired\n");
+			printf("Checksum Patched\n");
+		}
+		else if(answer == 'd')
+		{
+			gcr_ptr -= 325;
+			for(j = 0; j < 320; j++)
+			{
+				if (is_bad_gcr(gcr_ptr, 320, j))
+				{
+					printf("pos:%d/%d = "BYTETOBINARYPATTERN" "BYTETOBINARYPATTERN, j-1, j, BYTETOBINARY(gcr_ptr[j-1]), BYTETOBINARY(gcr_ptr[j]));
+					printf("\n");
+				 	gcr_ptr[j] |= 0x80;
+				 	printf("pos:%d/%d = "BYTETOBINARYPATTERN" "BYTETOBINARYPATTERN, j-1, j, BYTETOBINARY(gcr_ptr[j-1]), BYTETOBINARY(gcr_ptr[j]));
+					printf("\n");
+					printf("Bad GCR Patched\n");
+				}
+			}
 		}
 		else
 			printf("Not repaired\n");
