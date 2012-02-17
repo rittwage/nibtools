@@ -10,6 +10,7 @@
 #include <ctype.h>
 
 #include "mnibarch.h"
+#include "gcr.h"
 #include "nibtools.h"
 
 char bitrate_value[4] = { 0x00, 0x20, 0x40, 0x60 };
