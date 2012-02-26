@@ -435,8 +435,10 @@ int disk2file(CBM_FILE fd, char *filename)
 		{
 			for(;;)
 			{
+				motor_off(fd);
 				printf("Swap disk and press a key for next image, or CTRL-C to quit.\n");
 				getchar();
+				motor_on(fd);
 
 				/* create new filename */
 				sprintf(filenum, "%d", ++count);
@@ -463,8 +465,10 @@ int disk2file(CBM_FILE fd, char *filename)
 		{
 			for(;;)
 			{
+				motor_off(fd);
 				printf("Swap disk and press a key for next image, or CTRL-C to quit.\n");
 				getchar();
+				motor_on(fd);
 
 				/* create new filename */
 				sprintf(filenum, "%d", ++count);
