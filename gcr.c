@@ -1501,7 +1501,7 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 					for(i=0;i<256;i++)
 					{
 						if(secbuf1[i] != secbuf2[i])
-							printf("offset $%.2x: $%.2x!=$%.2x (%c!=%c)\n", i, secbuf1[i], secbuf2[i], secbuf1[i], secbuf2[i]);
+							printf("offset $%.2x: $%.2x!=$%.2x\n", i, secbuf1[i], secbuf2[i]);
 					}
 				}
 
