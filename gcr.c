@@ -1474,23 +1474,24 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 
 				printf("T%dS%d converted from GCR:\n", track/2, sector);
 
-				for (i=1; i<=4; i++)
+				/* this prints out sectir contents, which is not always terminal compatible */
+				for (i=0; i<256; i+=32)
 				{
-					printf("($%.2x) 1:", (i-1)*64);
+					printf("($%.2x) 1:", i);
 					for(j=0; j<32; j++)
 					{
-						if(secbuf1[i*j] >= 32)
-							printf("%c", secbuf1[i*j]);
+						if(secbuf1[i+j] >= 32)
+							printf("%c", secbuf1[i+j]);
 						else
-							printf("%c", secbuf1[i*j]+32);
+							printf("%c", secbuf1[i+j]+32);
 					}
-					printf("\n($%.2x) 2:", (i-1)*64);
-					for(k=0;k<32; k++)
+					printf("\n($%.2x) 2:", i);
+					for(k=0; k<32; k++)
 					{
-						if(secbuf2[i*k] >= 32)
-							printf("%c", secbuf2[i*k]);
+						if(secbuf2[i+k] >= 32)
+							printf("%c", secbuf2[i+k]);
 						else
-							printf("%c", secbuf2[i*k]+32);
+							printf("%c", secbuf2[i+k]+32);
 					}
 					printf("\n");
 				}
@@ -1500,7 +1501,7 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 					for(i=0;i<256;i++)
 					{
 						if(secbuf1[i] != secbuf2[i])
-							printf("offset $%.2x: $%.2x!=$%.2x\n", i, secbuf1[i], secbuf2[i]);
+							printf("offset $%.2x: $%.2x!=$%.2x (%c!=%c)\n", i, secbuf1[i], secbuf2[i], secbuf1[i], secbuf2[i]);
 					}
 				}
 
