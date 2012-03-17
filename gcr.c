@@ -1665,7 +1665,7 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 	enum ebadgcr sbadgcr;
 	size_t i, lastpos;
 	size_t total, b_badgcr;
-	//size_t n_badgcr;
+	size_t n_badgcr;
 
 	/* if empty we are all "bad" GCR */
 	if(!length)
@@ -1679,7 +1679,7 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 	for (i = 0; i < length - 1; i++)
 	{
 		b_badgcr = is_bad_gcr(gcrdata, length, i);
-		//n_badgcr = is_bad_gcr(gcrdata, length, i + 1);
+		n_badgcr = is_bad_gcr(gcrdata, length, i + 1);
 
 		switch (sbadgcr)
 		{
@@ -1699,7 +1699,7 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 				break;
 
 			case S_BADGCR_ONCE_BAD:
-				if (b_badgcr) // || n_badgcr)
+				if (b_badgcr || n_badgcr)
 				{
 					total++;
 					sbadgcr = S_BADGCR_LOST;
@@ -1714,7 +1714,7 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 				break;
 
 			case S_BADGCR_LOST:
-				if (b_badgcr) // || n_badgcr)
+				if (b_badgcr || n_badgcr)
 				{
 					total++;
 
