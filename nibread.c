@@ -502,7 +502,7 @@ usage(void)
 	     " -s: Use SRQ transfer code instead of parallel (1571 only)\n"
 	     " -k: Disable reading of 'killer' tracks\n"
 	     " -d: Force default densities\n"
-	     " -v: Enable track matching (crude read verify)\n"
+	     " -v: Disable track matching (crude read verify)\n"
 	     " -I: Interactive imaging mode\n"
 //	     " -m: Disable minimum capacity check\n"
 	     " -V: Verbose (output more detailed track data)\n"
