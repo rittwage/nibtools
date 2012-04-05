@@ -110,7 +110,7 @@ main(int argc, char *argv[])
 	read_killer = 1;
 	error_retries = 10;
 	force_density = 0;
-	track_match = 0;
+	track_match = 1;
 	interactive_mode = 0;
 	verbose = 0;
 	extended_parallel_test = 0;
@@ -188,8 +188,8 @@ main(int argc, char *argv[])
 			break;
 
 		case 'v':
-			track_match = 1;
-			printf("* Simple track match (crude verify)\n");
+			track_match = 0;
+			printf("* Disable track match (crude verify)\n");
 			break;
 
 		case 'n':

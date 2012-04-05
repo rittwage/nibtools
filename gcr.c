@@ -1699,7 +1699,7 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 				break;
 
 			case S_BADGCR_ONCE_BAD:
-				if (b_badgcr || n_badgcr)
+				if ((b_badgcr) || ((fix_gcr>3) && (n_badgcr)) )
 				{
 					total++;
 					sbadgcr = S_BADGCR_LOST;
@@ -1714,7 +1714,7 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 				break;
 
 			case S_BADGCR_LOST:
-				if (b_badgcr || n_badgcr)
+				if ((b_badgcr) || ((fix_gcr>3) && (n_badgcr)) )
 				{
 					total++;
 
