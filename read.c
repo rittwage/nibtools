@@ -299,7 +299,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			gcr_compare = compare_tracks(cbufo, cbufn, leno, lenn, 1, errorstring);
 			gcr_percentage = (gcr_compare*100)/leno;
 			printf("[>%lu%% GCR Match] ", gcr_percentage);
-			fprintf(fplog, "[?%lu%% Raw GCR Match] ", gcr_percentage);
+			fprintf(fplog, "[>%lu%% Raw GCR Match] ", gcr_percentage);
 			if(gcr_percentage >=95)
 				break;
 
