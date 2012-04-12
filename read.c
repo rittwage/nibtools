@@ -102,6 +102,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	if((density&3) != last_density)
 	{
 		set_density(fd, density&3);
+		if(verbose) printf("[+D]");
 		last_density = density&3;
 	}
 

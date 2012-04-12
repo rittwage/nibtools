@@ -1,5 +1,5 @@
 /*
- * Protection handlers for MNIB
+ * Protection handlers and other low-level GCR modifications for NIBTOOLS
  * Copyright Pete Rittwage <peter(at)rittwage(dot)com>
  */
 
@@ -8,6 +8,47 @@
 #include <string.h>
 #include "gcr.h"
 #include "prot.h"
+
+
+/* this routine "fixes" non-sync-byte aligned images created from RAW Kryoflux stream files */
+void sync_align(BYTE *buffer, int length)
+{
+    int i,j;
+    int bytes, bits;
+	BYTE carry;
+
+    // shift buffer left to edge of sync marks
+    for (i = 0; i < length; i++)
+    {
+		if((buffer[i] == 0xff) && (buffer[i+1] != 0xff) && (buffer[i+1] & 0x80) == 0x80) /* at least one bit left over */
+		{
+			i++;  //set first byte to shift
+			bits=bytes=j=0;  //reset byte count
+
+			// find next sync
+			while((buffer[i+(j++)] != 0xff) && (i+j<length)) bytes++;
+			printf("(bytes:%d)",bytes);
+
+			//shift left until MSB cleared
+			while((buffer[i] & 0x80) == 0x80)
+			{
+				bits++;
+				if(bits>7) printf("error shift too long!");
+				for(j=0; j<bytes; j++)
+				{
+					if(i+j>length) goto end;
+					carry = buffer[i+j+1];
+        			buffer[i+j] = (buffer[i+j] << 1)  | (carry >> 7);
+				}
+				buffer[i+j] |= 0x1;
+				printf("[%x]",buffer[i]);
+			}
+			end:;
+			i+=bytes;
+		}
+    }
+    printf("\n");
+}
 
 void shift_buffer_left(BYTE *buffer, int length, int n)
 {

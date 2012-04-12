@@ -47,6 +47,7 @@ BYTE drive = 8;
 char * cbm_adapter = "";
 int use_floppycode_srq = 0;
 int extra_capacity_margin=5;
+int sync_align_buffer=0;
 
 int ARCH_MAINDECL
 main(int argc, char **argv)
@@ -122,6 +123,7 @@ main(int argc, char **argv)
 	else if (compare_extension(inname, "G64"))
 	{
 		if(!(read_g64(inname, track_buffer, track_density, track_length))) exit(0);
+		if(sync_align_buffer) sync_tracks(track_buffer);
 	}
 	else if (compare_extension(inname, "NBZ"))
 	{
@@ -129,7 +131,7 @@ main(int argc, char **argv)
 		if(!(file_buffer_size = load_file(inname, compressed_buffer))) exit(0);
 		if(!(file_buffer_size = LZ_Uncompress(compressed_buffer, file_buffer, file_buffer_size))) exit(0);
 		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) exit(0);
-
+		if(sync_align_buffer) sync_tracks(track_buffer);
 		if( (compare_extension(outname, "G64")) || (compare_extension(outname, "D64")) )
 			align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
@@ -137,7 +139,7 @@ main(int argc, char **argv)
 	{
 		if(!(file_buffer_size = load_file(inname, file_buffer))) exit(0);
 		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) exit(0);
-
+		if(sync_align_buffer) sync_tracks(track_buffer);
 		if( (compare_extension(outname, "G64")) || (compare_extension(outname, "D64")) )
 			align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}

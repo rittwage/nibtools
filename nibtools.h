@@ -104,6 +104,7 @@ extern int align_delay;
 extern int presync;
 extern int use_floppycode_srq;
 extern int extra_capacity_margin;
+extern int sync_align_buffer;
 
 #include "IHS.h"
 
@@ -132,6 +133,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE track_density, size_t track_length);
 int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, BYTE *track_alignment);
+int sync_tracks(BYTE *track_buffer);
 int write_dword(FILE * fd, DWORD * buf, int num);
 unsigned int crc_dir_track(BYTE *track_buffer, size_t *track_length);
 unsigned int crc_all_tracks(BYTE *track_buffer, size_t *track_length);

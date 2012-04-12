@@ -81,6 +81,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	if((track_density[track]&3) != last_density)
 	{
 		set_density(fd, track_density[track]&3);
+		if(verbose) printf("[+D]");
 		last_density = track_density[track]&3;
 	}
 

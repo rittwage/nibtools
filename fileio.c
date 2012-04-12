@@ -15,6 +15,7 @@
 #include "mnibarch.h"
 #include "gcr.h"
 #include "nibtools.h"
+#include "prot.h"
 #include "crc.h"
 #include "md5.h"
 
@@ -28,6 +29,11 @@ void parseargs(char *argv[])
 		case '@':
 			cbm_adapter = &(*argv)[2];
 			printf("* Using OpenCBM adapter %s\n", cbm_adapter);
+			break;
+
+		case '$':
+			sync_align_buffer = 1;
+			printf("* Sync align tracks\n", cbm_adapter);
 			break;
 
 		case 's':
@@ -1180,6 +1186,20 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 	/* write processed track buffer */
 	memcpy(track_buffer, gcrdata, length);
 	return length;
+}
+
+int sync_tracks(BYTE *track_buffer)
+{
+	int track;
+
+	printf("\nByte-syncing tracks...\n");
+	for (track = start_track; track <= end_track; track += track_inc)
+	{
+		printf("%4.1f: ",(float) track / 2);
+		sync_align(track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
+	}
+
+	return 1;
 }
 
 int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, BYTE *track_alignment)
