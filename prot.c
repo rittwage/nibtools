@@ -20,20 +20,21 @@ void sync_align(BYTE *buffer, int length)
     // shift buffer left to edge of sync marks
     for (i = 0; i < length; i++)
     {
-		if((buffer[i] == 0xff) && (buffer[i+1] != 0xff) && (buffer[i+1] & 0x80) == 0x80) /* at least one bit left over */
+		if((buffer[i] == 0xff) && (buffer[i+1] != 0xff) && ((buffer[i+1] & 0x80) == 0x80)) /* at least one bit left over */
 		{
 			i++;  //set first byte to shift
 			bits=bytes=j=0;  //reset byte count
 
 			// find next sync
-			while((buffer[i+(j++)] != 0xff) && (i+j<length)) bytes++;
-			printf("(bytes:%d)",bytes);
+			while(!((buffer[i+j] == 0xff) && ((buffer[i+j+1] & 0x80) == 0x80))) { j++; bytes++; if(i+j>length) break; }
+			printf("(bytes:%d)", bytes);
 
 			//shift left until MSB cleared
 			while((buffer[i] & 0x80) == 0x80)
 			{
-				bits++;
-				if(bits>7) printf("error shift too long!");
+				if(bits++>7)
+					printf("error shift too long!");
+
 				for(j=0; j<bytes; j++)
 				{
 					if(i+j>length) goto end;
