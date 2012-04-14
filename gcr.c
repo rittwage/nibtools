@@ -319,97 +319,75 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 			convert_4bytes_from_GCR(gcr_ptr, header);
 			convert_4bytes_from_GCR(gcr_ptr+5, header+4);
 
-			if ( (header[0] == 0x08) &&
+			if ((header[0] == 0x08) &&
 				(header[2] == sector) &&
-				(header[3] == track) &&
-				(header[4] == id[1]) &&
-				(header[5] == id[0]) )
+				(header[3] == track) )
 			{
 				/* this is the header we are searching for */
 				error_code = SECTOR_OK;
 				break;
 			}
-			else if ( (header[0] != 0x07) &&
-						(header[2] == sector) &&
-						(header[3] == track) )
-			{
-				/* id mismatch, but still correct track and sector */
-				error_code = ID_MISMATCH;
-				break;
-			}
 		}
 	}
 
-	if(error_code == HEADER_NOT_FOUND)
+	if(error_code != SECTOR_OK)
 		return error_code;
 
-	/* Header checksum */
+	/* Header checksum calc */
 	hdr_chksum = 0;
 	for (i = 1; i <= 4; i++)
 		hdr_chksum = hdr_chksum ^ header[i];
 
 	if (hdr_chksum != header[5])
-	{
-		/*if(verbose)*/
-		/*printf("(S%d HEAD_CHKSUM $%.2x != $%.2x)\n", sector, hdr_chksum, header[5]); */
-
 		error_code = (error_code == SECTOR_OK) ? BAD_HEADER_CHECKSUM : error_code;
-	}
+
+	/* check for correct disk ID */
+	if (header[5] != id[0] || header[4] != id[1])
+		error_code = (error_code == SECTOR_OK) ? ID_MISMATCH : error_code;
 
 	/* verify that our header contains no bad GCR, since it can be false positive checksum match */
 	for(j = 0; j < 10; j++)
 	{
 		if (is_bad_gcr(gcr_ptr - 1, 10, j))
-		{
 			error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
-			/*printf("BADGCR in header! ");*/
-		}
 	}
 
-	/* check for data sector */
+	/* done with header checks */
+	if(error_code != SECTOR_OK)
+		return error_code;
+
+	/* check for data sector, it will always be the data following header */
 	if (!find_sync(&gcr_ptr, gcr_end))
 		return (DATA_NOT_FOUND);
 
 	for (i = 0, sectordata = d64_sector; i < 65; i++)
 	{
 		if (gcr_ptr >= gcr_end - 5)
-			return (DATA_NOT_FOUND);
+			return (DATA_NOT_FOUND);  /* we reached the end of the track data we have */
 
 		convert_4bytes_from_GCR(gcr_ptr, sectordata);
 		gcr_ptr += 5;
 		sectordata += 4;
 	}
 
-	/* check for correct disk ID */
-	if (header[5] != id[0] || header[4] != id[1])
-		error_code = (error_code == SECTOR_OK) ? ID_MISMATCH : error_code;
-
 	/* check for Block header mark */
 	if (d64_sector[0] != 0x07)
 		error_code = (error_code == SECTOR_OK) ? DATA_NOT_FOUND : error_code;
 
-	/* Block checksum */
+	/* Block checksum calc */
 	for (i = 1, blk_chksum = 0; i <= 256; i++)
 		blk_chksum ^= d64_sector[i];
 
 	if (blk_chksum != d64_sector[257])
-	{
-		/*if(verbose)*/
-		/*printf("(S%d DATA_CHKSUM $%.2x != $%.2x)\n", sector, blk_chksum, d64_sector[257]);*/
-
 		error_code = (error_code == SECTOR_OK) ? BAD_DATA_CHECKSUM : error_code;
-	}
 
 	/* verify that our data contains no bad GCR, since it can be false positive checksum match */
 	for(j = 0; j < 320; j++)
 	{
 		if (is_bad_gcr(gcr_ptr - 325, 320, j))
-		{
 			error_code = (error_code == SECTOR_OK) ? BAD_GCR_CODE : error_code;
-			/*printf("Bad GCR in data!\n");*/
-		}
 	}
-	return (error_code);
+	return error_code;
 }
 
 void

@@ -193,8 +193,7 @@ main(int argc, char **argv)
 	else if (compare_extension(outname, "NIB"))
 	{
 		if( (compare_extension(inname, "D64")) ||
-			(compare_extension(inname, "G64")) ||
-			(compare_extension(inname, "NIB")))
+			(compare_extension(inname, "G64")))
 		{
 			printf("Output format makes no sense from this input file.\n");
 			exit(0);
