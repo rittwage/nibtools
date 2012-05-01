@@ -172,7 +172,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 			track_density[track], track_length[track]);
 
 		if(increase_sync) printf("[sync:%d] ", added_sync);
-		if(badgcr) printf("[badgcr:%lu] ", badgcr);
+		if(badgcr) printf("[weakgcr:%lu] ", badgcr);
 
 		master_track(fd, track_buffer, track_density, track, length);
 	}

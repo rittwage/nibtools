@@ -111,11 +111,11 @@ main(int argc, char *argv[])
 	read_killer = 1;
 	error_retries = 10;
 	force_density = 0;
-	track_match = 1;
+	track_match = 0;
 	interactive_mode = 0;
 	verbose = 0;
 	extended_parallel_test = 0;
-	force_nosync = 0;
+	force_nosync = 1;
 	align = ALIGN_NONE;
 	gap_match_length = 7;
 	cap_min_ignore = 0;
@@ -189,13 +189,13 @@ main(int argc, char *argv[])
 			break;
 
 		case 'v':
-			track_match = 0;
-			printf("* Disable track match (crude verify)\n");
+			track_match = 1;
+			printf("* Enable track match (crude verify)\n");
 			break;
 
 		case 'n':
-			force_nosync = 1;
-			printf("* Forcing read without regard to sync\n");
+			force_nosync = 0;
+			printf("* Allowing track reads to wait for sync\n");
 			break;
 
 		case 't':
@@ -503,7 +503,7 @@ usage(void)
 	     " -s: Use SRQ transfer code instead of parallel (1571 only)\n"
 	     " -k: Disable reading of 'killer' tracks\n"
 	     " -d: Force default densities\n"
-	     " -v: Disable track matching (crude read verify)\n"
+	     " -v: Enable track matching (crude read verify)\n"
 	     " -I: Interactive imaging mode\n"
 //	     " -m: Disable minimum capacity check\n"
 	     " -V: Verbose (output more detailed track data)\n"

@@ -26,47 +26,35 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	newtrack = (lasttrack == halftrack) ? 0 : 1;
 	lasttrack = halftrack;
 
-	step_to_halftrack(fd, halftrack);
-
 	if(newtrack)
 	{
 		printf("\n%4.1f: ", (float) halftrack / 2);
 		fprintf(fplog, "\n%4.1f: ", (float) halftrack / 2);
-	}
-	else
-	{
-		printf("\n      ");
-		fprintf(fplog, "\n      ");
-	}
 
-	if(halftrack/2 > 35)
-	{
-		density = scan_track(fd, halftrack);
-	}
-	else	 if(force_density)
-	{
-		density = speed_map[halftrack/2];
-		printf("{DEFAULT }");
-	}
-	else if (Use_SCPlus_IHS)
-		// deep scan track density (1541/1571 SC+ compatible IHS)
-		// (IHS presence was initially checked)
-		density = Scan_Track_SCPlus_IHS(fd, halftrack, buffer);
-	else
-	{
-		// we scan for the disk density
-		density = scan_track(fd, halftrack);
-	}
+		step_to_halftrack(fd, halftrack);
 
-	/* Set bitrate to the discovered density and scan 3x again for NOSYNC/KILLER */
-	/* If you don't do this, some 1541-II and 1571 drives can timeout */
-	/* because they see phantom syncs in empty tracks (no flux transitions) */
-	for (i = 0; i < 3; i++)
-	{
+		if(halftrack/2 > 35)
+			density = scan_track(fd, halftrack);
+		else if(force_density)
+			density = speed_map[halftrack/2];
+		else if (Use_SCPlus_IHS)
+			density = Scan_Track_SCPlus_IHS(fd, halftrack, buffer);  // deep scan track density (1541/1571 SC+ compatible IHS was initially checked)
+		else
+			density = scan_track(fd, halftrack);
+
+		/* Set bitrate to the default density and scan for NOSYNC/KILLER */
+		/* If you don't do this, some 1541-II and 1571 drives can timeout */
+		/* because they see phantom syncs in empty tracks (no flux transitions) */
 		set_bitrate(fd, density&3);
 		send_mnib_cmd(fd, FL_SCANKILLER, NULL, 0);
 		density |= burst_read(fd);
-		if((density & BM_NO_SYNC) || (density & BM_FF_TRACK)) break;
+	}
+	else
+	{
+		// this is the same track we just read
+		density = last_density;
+		printf("\n      ");
+		fprintf(fplog, "\n      ");
 	}
 
 	/* output current density */
@@ -99,11 +87,11 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		return (density);
 	}
 
-	if((density&3) != last_density)
+	if((density) != last_density)
 	{
 		set_density(fd, density&3);
 		if(verbose) printf("[+D]");
-		last_density = density&3;
+		last_density = density;
 	}
 
 	for (i = 0; i < 3; i++)
@@ -155,14 +143,14 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	BYTE bbuffer[NIB_TRACK_LENGTH];
 	BYTE *cbufn, *cbufo, *bufn, *bufo;
 	BYTE align;
-	size_t leno, lenn, gcr_compare, gcr_percentage;
+	size_t leno, lenn, gcr_compare, gcr_percentage, gmatch, dmatch;
 	BYTE denso, densn;
 	size_t i, l, badgcr, retries, errors, best;
 	char errorstring[0x1000], diffstr[80];
 
 	badgcr = 0;
 	errors = 0;
-	retries = 1;
+	retries = 3;
 	best = NIB_TRACK_LENGTH;
 	denso = 0;
 	densn = 0;
@@ -241,6 +229,15 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		errors = check_errors(cbufo, leno, halftrack, diskid, errorstring);
 		fprintf(fplog, "%s", errorstring);
 
+		// If there are a lot of errors, the track probably doesn't contain
+		// any CBM sectors (protection)
+		if(!errors)
+			printf("[CBM OK]");
+		else if ((errors == sector_map[halftrack/2]) || (halftrack > 70))
+			printf("[NDOS] ");
+		else
+			printf("%s", errorstring);
+
 		// if we got all good sectors we dont retry
 		if (errors == 0) break;
 
@@ -254,32 +251,28 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		{
 			if(l < (error_retries - 1))	l = error_retries - 1;
 		}
-
-		// If there are a lot of errors, the track probably doesn't contain
-		// any CBM sectors (protection)
-		if ((errors == sector_map[halftrack/2]) || (halftrack > 70))
-			printf("[NDOS] ");
-		else
-			printf("%s", errorstring);
 	}
 
 	/* keep best cycle if ended with none */
 	if((leno == NIB_TRACK_LENGTH) && (best < leno))
 	{
-		printf("(reverted)");
+		printf(" (reverted) ");
 		memcpy(bufo, bbuffer, NIB_TRACK_LENGTH);
 	}
 
 	// Fix bad GCR in track for compare
-	badgcr = check_bad_gcr(cbufo, leno);
+	if (badgcr = check_bad_gcr(cbufo, leno))
+	{
+		printf(" (weakgcr:%lu) ", badgcr);
+		fprintf(fplog, " (weakgcr:%lu) ", badgcr);
+	}
 
 	if(track_match)
 	{
 		// Try to verify our read
 
 		// Don't bother to compare unformatted or bad data
-		if (leno == NIB_TRACK_LENGTH)
-			retries = 0;
+		if (leno == NIB_TRACK_LENGTH) retries = 0;
 
 		// normal data, verify
 		for (i = 0; i < retries; i++)
@@ -293,8 +286,12 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			printf("%lu ", lenn);
 			fprintf(fplog, "%lu ", lenn);
 
-			// fix bad GCR in track for compare
-			badgcr = check_bad_gcr(cbufn, lenn);
+			// Fix bad GCR in track for compare
+			if (badgcr = check_bad_gcr(cbufn, lenn))
+			{
+				//printf("(weakgcr:%lu)", badgcr);
+				//fprintf(fplog, "(weakgcr:%lu) ", badgcr);
+			}
 
 			// compare raw gcr data, unreliable
 			gcr_compare = compare_tracks(cbufo, cbufn, leno, lenn, 1, errorstring);
@@ -312,14 +309,13 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 				break;
 			}
 			else
+			{
+				printf("[NO Data Match] ");
+				fprintf(fplog, "[NO Data Match] ");
 				fprintf(fplog, "%s", errorstring);
+				printf("%s", errorstring);
+			}
 		}
-	}
-
-	if (badgcr)
-	{
-		printf("(bad/weak:%lu)", badgcr);
-		fprintf(fplog, "(bad/weak:%lu) ", badgcr);
 	}
 
 	//printf("\n");

@@ -1362,7 +1362,7 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 
 	if (badgcr_diff)
 	{
-		sprintf(tmpstr, "(badgcr:%lu)", badgcr_diff);
+		sprintf(tmpstr, "(weakgcr:%lu)", badgcr_diff);
 		strcat(outputstring, tmpstr);
 	}
 
