@@ -18,7 +18,7 @@ CBM_WIN_PATH=	../
 
 # Default compile flags.  Be careful with optimization (-O2)
 CFLAGS=${WARNS}
-CFLAGS+=-DSVN=$(shell svn info | grep Revision | sed 's/Revision: //') 
+#CFLAGS+=-DSVN=$(shell svn info | grep Revision | sed 's/Revision: //') 
 #CFLAGS+=-DSVN=$(shell svnversion | sed -e 's/.*://' -e 's/[A-Z]*$//')
 
 # cl65 defs, contributed by Ullrich von Bassewitz <uz(at)musoftware(dot)de>
@@ -135,5 +135,5 @@ nibtools_1571_srq_test.bin: nibtools_1571_srq_test.asm
 	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
 	
 .bin.inc:
-	test -s $< && od -w8 -txC -v -An $< | \
+	test -s $< && od -txC -v -An $< | \
 	sed 's/\([0-9a-f]\{2\}\) */0x\1,/g; $$s/,$$//' > $@
