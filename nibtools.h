@@ -106,7 +106,7 @@ extern int use_floppycode_srq;
 extern int extra_capacity_margin;
 extern int sync_align_buffer;
 
-#include "IHS.h"
+#include "ihs.h"
 
 /* common */
 void usage(void);
