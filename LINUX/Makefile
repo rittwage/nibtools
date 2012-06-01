@@ -5,9 +5,8 @@ include ${RELATIVEPATH}LINUX/config.make
 
 .PHONY: all mrproper clean install uninstall install-files
 
-OBJS = mnib.o read.o write.o gcr.o prot.o
-PROG = mnib n2d n2g pscan pshift
-# MAN1 = mnib.1
+OBJS =  nibread.o nibwrite.o nibscan.o nibconv.o nibrepair.o nibsrqtest.o read.o write.o gcr.o prot.o crc.o drive.o fileio.o ihs.o lz.o md5.o 
+PROG = nibread nibwrite nibscan nibconv nibrepair nibsrqtest
 
 all:
 	make -f GNU/Makefile CBM_LNX_PATH="../" linux
