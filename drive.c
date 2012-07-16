@@ -49,7 +49,7 @@ cbm_parallel_burst_write_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 __u_char
 burst_read(CBM_FILE f)
 {
-#ifndef DJGPP
+#if !defined (DJGPP) && !defined (OPENCBM_42)
 	if(use_floppycode_srq)
 		return cbm_srq_burst_read(f);
 	else
@@ -59,7 +59,7 @@ burst_read(CBM_FILE f)
 void
 burst_write(CBM_FILE f, __u_char c)
 {
-#ifndef DJGPP
+#if !defined (DJGPP) && !defined (OPENCBM_42)
 	if(use_floppycode_srq)
 		cbm_srq_burst_write(f, c);
 	else
@@ -69,7 +69,7 @@ burst_write(CBM_FILE f, __u_char c)
 int
 burst_read_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
-#ifndef DJGPP
+#if !defined (DJGPP) && !defined (OPENCBM_42)
 	if(use_floppycode_srq)
 		return cbm_srq_burst_read_n(f, Buffer, Length);
 	else
@@ -79,7 +79,7 @@ burst_read_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 int
 burst_write_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
-#ifndef DJGPP
+#if !defined (DJGPP) && !defined (OPENCBM_42)
 	if(use_floppycode_srq)
 		return cbm_srq_burst_write_n(f, Buffer, Length);
 	else
@@ -89,7 +89,7 @@ burst_write_n(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 int
 burst_read_track(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
-#ifndef DJGPP
+#if !defined (DJGPP) && !defined (OPENCBM_42)
 	if(use_floppycode_srq)
 		return cbm_srq_burst_read_track(f, Buffer, Length);
 	else
@@ -99,7 +99,7 @@ burst_read_track(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 int
 burst_write_track(CBM_FILE f, __u_char *Buffer, unsigned int Length)
 {
-#ifndef DJGPP
+#if !defined (DJGPP) && !defined (OPENCBM_42)
 	if(use_floppycode_srq)
 		return cbm_srq_burst_write_track(f, Buffer, Length);
 	else

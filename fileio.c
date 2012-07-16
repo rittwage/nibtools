@@ -982,7 +982,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	/* Create G64 header */
 	strcpy((char *) header, "GCR-1541");
 	header[8] = 0;	/* G64 version */
-	header[9] = MAX_HALFTRACKS_1541; // end_track;	/* Number of Halftracks  (VICE can't handle non-84 track images) */
+	header[9] = MAX_HALFTRACKS_1541; // end_track;	/* Number of Halftracks  (VICE <2.2 can't handle non-84 track images) */
 	header[10] = (BYTE) (G64_TRACK_MAXLEN % 256);	/* Size of each stored track */
 	header[11] = (BYTE) (G64_TRACK_MAXLEN / 256);
 
