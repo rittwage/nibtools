@@ -238,10 +238,10 @@ void parseargs(char *argv[])
 			printf("* Changed extra capacity margin to %d\n", extra_capacity_margin);
 			break;
 
-//		case 'c':
-//			printf("* Minimum capacity ignore on\n");
-//			cap_min_ignore = 1;
-//			break;
+		case 'M':
+			printf("* Minimum capacity ignore on\n");
+			cap_min_ignore = 1;
+			break;
 
 		case 'T':
 			if (!(*argv)[2]) usage();

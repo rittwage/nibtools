@@ -362,7 +362,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 
 	for (i = 0, sectordata = d64_sector; i < 65; i++)
 	{
-		if (gcr_ptr >= gcr_end - 5)
+		if (gcr_ptr >= gcr_end - 4)
 			return (DATA_NOT_FOUND);  /* we reached the end of the track data we have */
 
 		convert_4bytes_from_GCR(gcr_ptr, sectordata);
