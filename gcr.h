@@ -39,7 +39,7 @@
 											(SYNC_LENGTH) + (DATA_LENGTH) + (SECTOR_GAP_LENGTH))
 
 /* G64 constants (only needed for current VICE support */
-#define G64_TRACK_MAXLEN 7928
+#define G64_TRACK_MAXLEN 8192
 #define G64_TRACK_LENGTH (G64_TRACK_MAXLEN+2)
 
 /* NIB format constants */

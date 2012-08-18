@@ -494,7 +494,6 @@ _write_track:
 
 _skipihs:
         BNE  _waitsync_start		; default is skip IHS
-
 	JSR _1571_ihs_wait_hole
 	
 _waitsync_start:

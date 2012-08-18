@@ -454,13 +454,15 @@ _wts_wait4srq:
         BIT  CIA_ICR
         BPL  _wts_wait4srq        ; wait for first SRQ data byte (start signal)
 
+;wait for ihs?
         LDA  $60                  ; wait for IHS? (0=YES)
         BNE  _wts_skip_ihs
         JSR  _1571_ihs_wait_hole
-        JMP  _wts_start
+        
 _wts_skip_ihs:
         LDA  $61                  ; wait for SYNC? (0=NO)
         BEQ  _wts_start
+
 _wts_wait4sync:
         BIT  $1C00                ; wait for sync
         BMI  _wts_wait4sync
@@ -470,7 +472,6 @@ _wts_start:
         LDX  #$CE
         DEC  $1C03                ; set port A to output
         STX  $1C0C                ; switch to write
-
         JMP  _wts_write
 
 _wts_L1:
