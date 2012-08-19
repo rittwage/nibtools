@@ -109,9 +109,11 @@ find_sync(BYTE ** gcr_pptr, BYTE * gcr_end)
 			return 0;	/* not found */
 		}
 
-		/* sync flag goes up after the 10th bit, but sometimes they are short */
+		/* sync flag goes up after the 10th bit */
 		//if ( ((*gcr_pptr)[0] & 0x03) == 0x03 && (*gcr_pptr)[1] == 0xff)
+		/* but sometimes they are short a bit */
 		if ( ((*gcr_pptr)[0] & 0x01) == 0x01 && (*gcr_pptr)[1] == 0xff)
+		/* or two */
 		//if ( ((*gcr_pptr)[0] == 0xff) )
 			break;
 
@@ -138,20 +140,17 @@ find_header(BYTE ** gcr_pptr, BYTE * gcr_end)
 		}
 
 		/* hardware sync flag goes up after the 10th bit */
-		//if ( (((*gcr_pptr)[0] & 0x03) == 0x03) && ((*gcr_pptr)[1] == 0xff) )
 		//if ( (((*gcr_pptr)[0] & 0x03) == 0x03) && ((*gcr_pptr)[1] == 0xff) && ((*gcr_pptr)[2] == 0x52) )
 		/* but sometimes they are short a bit */
-		if ( (((*gcr_pptr)[0] & 0x01) == 0x01) && ((*gcr_pptr)[1] == 0xff) )
-		//if ( (((*gcr_pptr)[0] & 0x01) == 0x01) && ((*gcr_pptr)[1] == 0xff) && ((*gcr_pptr)[2] == 0x52) )
+		if ( (((*gcr_pptr)[0] & 0x01) == 0x01) && ((*gcr_pptr)[1] == 0xff) && ((*gcr_pptr)[2] == 0x52) )
+		/* or two */
+		//if ( ((*gcr_pptr)[0] == 0xff) && ((*gcr_pptr)[1] == 0x52) )
 			break;
 
 		(*gcr_pptr)++;
 	}
 
 	(*gcr_pptr)++;
-
-	while (*gcr_pptr < gcr_end && **gcr_pptr == 0xff)
-		(*gcr_pptr)++;
 
 	return (*gcr_pptr < gcr_end);
 }

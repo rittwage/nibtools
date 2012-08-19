@@ -47,9 +47,10 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	}
 
 	/* check for and correct initial too short sync mark */
-	if( ((!(track_density[track] & BM_NO_SYNC)) &&
-		    (track_buffer[track * NIB_TRACK_LENGTH] == 0xff) &&
-		    (track_buffer[(track * NIB_TRACK_LENGTH) + 1] != 0xff)) || (presync) )
+	//if( ((!(track_density[track] & BM_NO_SYNC)) &&
+	//	    (track_buffer[track * NIB_TRACK_LENGTH] == 0xff) &&
+	//	    (track_buffer[(track * NIB_TRACK_LENGTH) + 1] != 0xff)) || (presync) )
+	if(presync)
 	{
 		printf("{presync} ");
 		memset(rawtrack + leader + skewbytes - 2, 0xff, 2);

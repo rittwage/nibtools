@@ -719,15 +719,12 @@ int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 			// read sector from file
 			if(d64size/256 > cur_sector)
-			{
 				fread(buffer, 256, 1, fpin); // @@@SRT: check success
-
-				// convert to gcr
-				convert_sector_to_GCR(buffer, gcrdata + (sector * SECTOR_SIZE), track, sector, id, error);
-			}
 			else
-				memset(buffer, fillbyte, 0x00);
+				memset(buffer, fillbyte, sizeof(buffer));
 
+			// convert to gcr
+			convert_sector_to_GCR(buffer, gcrdata + (sector * SECTOR_SIZE), track, sector, id, error);
 			cur_sector++;
 		}
 

@@ -135,7 +135,7 @@ align_vmax_new(BYTE * work_buffer, size_t tracklen)
 		if ( (*pos == 0x4b) || (*pos == 0x69) || (*pos == 0x49) || (*pos == 0x5a) || (*pos == 0xa5) )
 		{
 			if(run > 2)
-				key_temp = pos - run;
+				key_temp = pos - run+1 ;
 			run++;
 		}
 		else
