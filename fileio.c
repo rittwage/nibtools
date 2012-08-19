@@ -273,7 +273,7 @@ void parseargs(char *argv[])
 
 		case 'P':
 			presync = atoi(&(*argv)[2]);
-			printf("* Add short sync bytes to start of each track:%d",presync);
+			printf("* Add short sync bytes to start of each track:%d\n",presync);
 			break;
 
 		case 'b':
