@@ -33,13 +33,14 @@
 #define HEADER_LENGTH 	10
 #define HEADER_GAP_LENGTH 	9  // this must be 9 or 1541 will corrupt the sector if written
 #define DATA_LENGTH 	325 			// 65 * 5
-#define SECTOR_GAP_LENGTH 		7  // this varies by drive motor speed and sector from 4-19
+#define SECTOR_GAP_LENGTH 		8  // this varies by drive motor speed and sector from 4-19
 
 #define SECTOR_SIZE ((SYNC_LENGTH) + (HEADER_LENGTH) + (HEADER_GAP_LENGTH) + \
 											(SYNC_LENGTH) + (DATA_LENGTH) + (SECTOR_GAP_LENGTH))
 
 /* G64 constants (only needed for current VICE support */
-#define G64_TRACK_MAXLEN 8192
+#define G64_TRACK_MAXLEN 7928
+//#define G64_TRACK_MAXLEN 8192
 #define G64_TRACK_LENGTH (G64_TRACK_MAXLEN+2)
 
 /* NIB format constants */
