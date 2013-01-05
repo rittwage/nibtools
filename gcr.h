@@ -38,11 +38,6 @@
 #define SECTOR_SIZE ((SYNC_LENGTH) + (HEADER_LENGTH) + (HEADER_GAP_LENGTH) + \
 											(SYNC_LENGTH) + (DATA_LENGTH) + (SECTOR_GAP_LENGTH))
 
-/* G64 constants (only needed for current VICE support */
-#define G64_TRACK_MAXLEN 7928
-//#define G64_TRACK_MAXLEN 8192
-#define G64_TRACK_LENGTH (G64_TRACK_MAXLEN+2)
-
 /* NIB format constants */
 #define NIB_TRACK_LENGTH 0x2000
 #define NIB_HEADER_SIZE 0xFF

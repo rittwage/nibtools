@@ -256,7 +256,7 @@ unformat_disk(CBM_FILE fd)
 
 	printf("\nUnformatting...\n\n");
 
-	for (track = start_track; track <= end_track; track += track_inc)
+	for (track = start_track; track <= end_track; track ++)
 	{
 		for(i=0;i<unformat_passes; i++)
 		{

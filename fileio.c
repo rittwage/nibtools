@@ -549,8 +549,8 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 {
 	int track, g64maxtrack, temp_track_inc;
 	int dens_pointer = 0;
-	int g64tracks, g64size, numtracks;
-	BYTE header[0x2ac];
+	int g64tracks, g64size, numtracks, headersize;
+	BYTE header[0x7f0];
 	BYTE length_record[2];
 	FILE *fpin;
 
@@ -570,17 +570,26 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 	if (memcmp(header, "GCR-1541", 8) != 0)
 	{
-		printf("input file %s isn't an G64 data file!\n", filename);
+		printf("input file %s isn't a G64 data file!\n", filename);
 		return 0;
 	}
 
-	g64tracks = (char) header[0x9];
+	if (memcmp(header+0x2ac, "EXT", 3) == 0)
+	{
+		printf("\nExtended SPS G64 detected", filename);
+		headersize=0x7f0;
+	}
+	else
+		headersize=0x2ac;
+
+	g64tracks = (char)header[0x9];
 	g64maxtrack = (BYTE)header[0xb] << 8 | (BYTE)header[0xa];
+	printf("\nMax track size %d\n", g64maxtrack);
 
 	/* Determine number of tracks in image (estimated by filesize) */
 	fseek(fpin, 0, SEEK_END);
 	g64size = ftell(fpin);
-	numtracks = (g64size - sizeof(header)) / (g64maxtrack + 2);
+	numtracks = (g64size - headersize) / (g64maxtrack + 2);
 
 	if(numtracks <= 42)
 	{
@@ -597,16 +606,14 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 		temp_track_inc = 1;
 	}
+	printf("\nG64: %d total bytes = likely %d tracks of %d bytes each\n", g64size, numtracks, g64maxtrack);
 
 	rewind(fpin);
-
-	if (fread(header, sizeof(header), 1, fpin) != 1)
+	if (fread(header, headersize, 1, fpin) != 1)
 	{
 		printf("unable to read G64 header\n");
 		return 0;
 	}
-
-	printf("\nG64: %d total bytes = %d tracks of %d bytes each\n", g64size, numtracks, g64maxtrack);
 
 	for (track = 2; track <= end_track; track += temp_track_inc)
 	{
@@ -952,10 +959,20 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 {
 	/* writes contents of buffers into G64 file, with header and density information */
 
+	/* when writing a G64 file, we don't care about the limitations of drive hardware
+		However, VICE (previous to version 2.2) ignored the G64 header and hardcodes 7928 as the largest
+		track size, and also requires it to be 84 tracks no matter if they're used or not.
+	*/
+
+	//#define G64_TRACK_MAXLEN 7928
+	//#define G64_TRACK_MAXLEN 8192
+	DWORD G64_TRACK_MAXLEN = 7928;  /* now dynamically determined */
+
 	BYTE header[12];
 	DWORD gcr_track_p[MAX_HALFTRACKS_1541];
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
-	BYTE gcr_track[G64_TRACK_MAXLEN + 2];
+	//BYTE gcr_track[G64_TRACK_MAXLEN + 2];
+	BYTE gcr_track[NIB_TRACK_LENGTH + 2];
 	size_t track_len;
 	int track, index, added_sync;
 	size_t badgcr;
@@ -964,11 +981,6 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 
 	printf("\nWriting G64 file...");
 
-	/* when writing a G64 file, we don't care about the limitations of drive hardware
-		However, VICE (as of 2.2) currently ignores G64 header and hardcodes 7928 as the largest
-		track size, and also requires it to be 84 tracks no matter if they're used or not.
-	*/
-
 	fpout = fopen(filename, "wb");
 	if (fpout == NULL)
 	{
@@ -976,10 +988,19 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		return 0;
 	}
 
+	/* determine max track size (VICE <2.2 can't handle) */
+	//for (index= 0; index < MAX_HALFTRACKS_1541; index += track_inc)
+	//{
+	//	if(track_length[index+2] > G64_TRACK_MAXLEN)
+	//		G64_TRACK_MAXLEN = track_length[index+2];
+	//}
+	printf("G64 Track Length = %d", G64_TRACK_MAXLEN);
+
 	/* Create G64 header */
 	strcpy((char *) header, "GCR-1541");
 	header[8] = 0;	/* G64 version */
-	header[9] = MAX_HALFTRACKS_1541; // end_track;	/* Number of Halftracks  (VICE <2.2 can't handle non-84 track images) */
+	header[9] = MAX_HALFTRACKS_1541; /* Number of Halftracks  (VICE <2.2 can't handle non-84 track images) */
+	//header[9] = (unsigned char)end_track;
 	header[10] = (BYTE) (G64_TRACK_MAXLEN % 256);	/* Size of each stored track */
 	header[11] = (BYTE) (G64_TRACK_MAXLEN / 256);
 
@@ -1005,7 +1026,6 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 			gcr_track_p[index] = 12 + (MAX_TRACKS_1541 * 16) + (index * (G64_TRACK_MAXLEN + 2));
 			gcr_speed_p[index] = track_density[index+2] & 3;
 		}
-
 	}
 
 	/* write headers */
