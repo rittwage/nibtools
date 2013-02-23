@@ -33,7 +33,7 @@ void parseargs(char *argv[])
 
 		case '$':
 			sync_align_buffer = 1;
-			printf("* Sync align tracks\n", cbm_adapter);
+			printf("* Sync align tracks\n");
 			break;
 
 		case 's':
@@ -577,7 +577,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 	if (memcmp(header+0x2ac, "EXT", 3) == 0)
 	{
-		printf("\nExtended SPS G64 detected", filename);
+		printf("\nExtended SPS G64 detected");
 		headersize=0x7f0;
 	}
 	else
