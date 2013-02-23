@@ -268,6 +268,7 @@ void parseargs(char *argv[])
 
 		case 'C':
 			rpm_real = atoi(&(*argv)[2]);
+			if(!rpm_real) rpm_real = 297;
 			printf("* Simulate track capacity: %dRPM\n",rpm_real);
 			break;
 
