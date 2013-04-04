@@ -260,7 +260,7 @@ unformat_disk(CBM_FILE fd)
 	{
 		for(i=0;i<unformat_passes; i++)
 		{
-			//kill_track(fd,track);
+			kill_track(fd,track);
 			zero_track(fd, track);
 		}
 		printf("\n%4.1f: UNFORMATTED!",  (float) track/2);

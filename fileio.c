@@ -974,9 +974,8 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
 	//BYTE gcr_track[G64_TRACK_MAXLEN + 2];
 	BYTE gcr_track[NIB_TRACK_LENGTH + 2];
-	size_t track_len;
+	size_t track_len, badgcr, skewbytes=0;
 	int track, index, added_sync;
-	size_t badgcr;
 	FILE * fpout;
 	BYTE buffer[NIB_TRACK_LENGTH], tempfillbyte;
 
@@ -1118,7 +1117,17 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		gcr_track[0] = (BYTE) (track_len % 256);
 		gcr_track[1] = (BYTE) (track_len / 256);
 
-		// copy back our realigned track
+		/* apply skew, if specified */
+		//if(skew)
+		//{
+		//	skewbytes = skew * (capacity[track_density[track]&3] / 200);
+		//	if(skewbytes > track_len)
+		//		skewbytes = skewbytes - track_len;
+		//printf(" {skew=%lu} ", skewbytes);
+		//}
+		//memcpy(gcr_track+2, buffer+skewbytes, track_len-skewbytes);
+		//memcpy(gcr_track+2+track_len-skewbytes, buffer, skewbytes);
+
 		memcpy(gcr_track+2, buffer, track_len);
 
 		if (fwrite(gcr_track, (G64_TRACK_MAXLEN + 2), 1, fpout) != 1)

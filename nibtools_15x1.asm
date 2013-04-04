@@ -117,7 +117,7 @@ _read_after_sync:
 
 _read_in_sync:
         BIT  $1c00
-        BMI  _read_in_sync             ; wait for end of Sync
+        BMI  _read_in_sync             ; wait for Sync
 
 _read_start:
         LDA  #$ff
@@ -436,7 +436,7 @@ _waitihs:
         JSR _sc_ihs_wait_hole;     ; wait for end of index hole
         
 _wtL1:
-        BIT  $1c00                ; wait for end of Sync, if writing
+        BIT  $1c00                ; wait for a Sync
 _wtB1:
         BMI  _wtL1                ;  halftracks, and 'adjust target'
 
@@ -497,7 +497,7 @@ _skipihs:
 	JSR _1571_ihs_wait_hole
 	
 _waitsync_start:
-        BIT  $1c00                ; wait for end of Sync, if writing
+        BIT  $1c00                ; wait for a Sync
 _waitsync:
         BMI  _waitsync_start    ;  
 
