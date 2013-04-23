@@ -948,18 +948,18 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	//#define G64_TRACK_MAXLEN 7928
 	//#define G64_TRACK_MAXLEN 8192
 	DWORD G64_TRACK_MAXLEN = 7928;  /* now dynamically determined */
-
 	BYTE header[12];
-	DWORD gcr_track_p[MAX_HALFTRACKS_1541];
-	DWORD gcr_speed_p[MAX_HALFTRACKS_1541];
+	DWORD gcr_track_p[MAX_HALFTRACKS_1541] = {0};
+	DWORD gcr_speed_p[MAX_HALFTRACKS_1541] = {0};
 	//BYTE gcr_track[G64_TRACK_MAXLEN + 2];
 	BYTE gcr_track[NIB_TRACK_LENGTH + 2];
 	size_t track_len, badgcr, skewbytes=0;
-	int track, index, added_sync;
+	int index=0, track, added_sync;
 	FILE * fpout;
 	BYTE buffer[NIB_TRACK_LENGTH], tempfillbyte;
+	size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
 
-	printf("\nWriting G64 file...");
+	printf("\nWriting G64 file...\n");
 
 	fpout = fopen(filename, "wb");
 	if (fpout == NULL)
@@ -990,22 +990,15 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		return 0;
 	}
 
-	/* Create index and speed tables */
-	for (index= 0; index < MAX_HALFTRACKS_1541; index += track_inc)
+	/* Create track and speed tables */
+	for (track = 0; track < MAX_HALFTRACKS_1541; track ++)
 	{
 		/* calculate track positions and speed zone data */
-		if(track_inc == 2)
-		{
-			gcr_track_p[index] = 12 + (MAX_TRACKS_1541 * 16) + ((index/2) * (G64_TRACK_MAXLEN + 2));
-			gcr_track_p[index+1] = 0;	/* no halftracks */
-			gcr_speed_p[index] = track_density[index+2] & 3;
-			gcr_speed_p[index+1] = 0;
-		}
-		else
-		{
-			gcr_track_p[index] = 12 + (MAX_TRACKS_1541 * 16) + (index * (G64_TRACK_MAXLEN + 2));
-			gcr_speed_p[index] = track_density[index+2] & 3;
-		}
+		if(!track_length[track+2])
+			continue;
+
+		gcr_track_p[track] = 0xc + (MAX_TRACKS_1541 * 16) + (index++ * (G64_TRACK_MAXLEN + 2));
+		gcr_speed_p[track] = track_density[track+2]&3;
 	}
 
 	/* write headers */
@@ -1014,6 +1007,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		printf("Cannot write track header.\n");
 		return 0;
 	}
+
 	if (write_dword(fpout, gcr_speed_p, sizeof(gcr_speed_p)) < 0)
 	{
 		printf("Cannot write speed header.\n");
@@ -1021,9 +1015,10 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	}
 
 	/* shuffle raw GCR between formats */
-	for (track = 2; track <= MAX_HALFTRACKS_1541+1; track += track_inc)
+	for (track = 2; track <= MAX_HALFTRACKS_1541+1; track ++)
 	{
-		size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
+		track_len = track_length[track];
+		if(!track_len) continue;
 
 		/* loop last byte of track data for filler */
 		if(fillbyte == 0xfe) /* $fe is special case for loop */
@@ -1037,62 +1032,50 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		gcr_track[1] = (BYTE) (raw_track_size[speed_map[track/2]] / 256);
 
 		memcpy(buffer, track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
-		track_len = track_length[track];
 
-		if(track_len)
+		/* process/compress GCR data */
+		badgcr = check_bad_gcr(buffer, track_length[track]);
+
+		if(increase_sync)
 		{
-			/* process/compress GCR data */
-			badgcr = check_bad_gcr(buffer, track_length[track]);
+			added_sync = lengthen_sync(track_buffer + (NIB_TRACK_LENGTH * track),
+			track_length[track], NIB_TRACK_LENGTH);
 
-			if(increase_sync)
+			printf(" [sync:%d] ", added_sync);
+			track_length[track] += added_sync;
+		}
+
+		if(rpm_real)
+		{
+			//capacity[speed_map[track/2]] = raw_track_size[speed_map[track/2]];
+			switch (track_density[track])
 			{
-				added_sync = lengthen_sync(track_buffer + (NIB_TRACK_LENGTH * track),
-				track_length[track], NIB_TRACK_LENGTH);
-
-				printf(" [sync:%d] ", added_sync);
-				track_length[track] += added_sync;
+				case 0:
+					capacity[speed_map[track/2]] = (size_t)(DENSITY0/rpm_real);
+					break;
+				case 1:
+					capacity[speed_map[track/2]] = (size_t)(DENSITY1/rpm_real);
+					break;
+				case 2:
+					capacity[speed_map[track/2]] = (size_t)(DENSITY2/rpm_real);
+					break;
+				case 3:
+					capacity[speed_map[track/2]] = (size_t)(DENSITY3/rpm_real);
+				break;
 			}
 
-			if(rpm_real)
-			{
-				//capacity[speed_map[track/2]] = raw_track_size[speed_map[track/2]];
-				switch (track_density[track])
-				{
-					case 0:
-						capacity[speed_map[track/2]] = (size_t)(DENSITY0/rpm_real);
-						break;
-					case 1:
-						capacity[speed_map[track/2]] = (size_t)(DENSITY1/rpm_real);
-						break;
-					case 2:
-						capacity[speed_map[track/2]] = (size_t)(DENSITY2/rpm_real);
-						break;
-					case 3:
-						capacity[speed_map[track/2]] = (size_t)(DENSITY3/rpm_real);
-						break;
-				}
-
-				if(capacity[speed_map[track/2]] > G64_TRACK_MAXLEN)
-					capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
-
-				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
-			}
-			else
-			{
+			if(capacity[speed_map[track/2]] > G64_TRACK_MAXLEN)
 				capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
-				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
-			}
 
-			printf("(fill:$%.2x) ",tempfillbyte);
-			printf("{badgcr:%lu}",badgcr);
+				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 		}
 		else
 		{
-				/* track doesn't exist: write unformatted track */
-				track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
-				track_len = raw_track_size[speed_map[track/2]];
-				memset(buffer, 0, track_len);
+			capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
+			track_len = compress_halftrack(track, buffer, track_density[track], track_length[track]);
 		}
+		printf("(fill:$%.2x) ",tempfillbyte);
+		printf("{badgcr:%lu}",badgcr);
 
 		gcr_track[0] = (BYTE) (track_len % 256);
 		gcr_track[1] = (BYTE) (track_len / 256);
