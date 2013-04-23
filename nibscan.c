@@ -319,7 +319,7 @@ compare_disks(void)
 	if(waitkey) getchar();
 	printf("\nComparing...\n");
 
-	for (track = start_track; track <= end_track; track += track_inc)
+	for (track = start_track; track <= end_track; track ++)
 	{
 		printf("%4.1f, Disk 1: (%d) %lu\n",
 		 	(float)track/2, track_density[track]&3, track_length[track]);
@@ -501,7 +501,7 @@ scandisk(void)
 	if(waitkey) getchar();
 
 	// check each track for various things
-	for (track = start_track; track <= end_track; track += track_inc)
+	for (track = start_track; track <= end_track; track ++)
 	{
 		//printf("-------------------------------------------------\n");
 		printf("%4.1f: ", (float) track/2);

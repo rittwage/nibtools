@@ -548,9 +548,8 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
-	int track, g64maxtrack, temp_track_inc;
-	int dens_pointer = 0;
-	int g64tracks, g64size, numtracks, headersize;
+	int track, g64maxtrack, g64tracks, g64size, numtracks, headersize;
+	int pointer=0;
 	BYTE header[0x7f0];
 	BYTE length_record[2];
 	FILE *fpin;
@@ -585,42 +584,23 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 	g64tracks = (char)header[0x9];
 	g64maxtrack = (BYTE)header[0xb] << 8 | (BYTE)header[0xa];
-	printf("\nMax track size %d\n", g64maxtrack);
-
-	/* Determine number of tracks in image (estimated by filesize) */
-	fseek(fpin, 0, SEEK_END);
-	g64size = ftell(fpin);
-	numtracks = (g64size - headersize) / (g64maxtrack + 2);
-
-	if(numtracks <= 42)
-	{
-		if(numtracks * 2 < end_track)
-			end_track = (numtracks * 2);
-		temp_track_inc = 2;
-	}
-	else
-	{
-		printf("\nImage contains halftracks!\n");
-
-		if(numtracks < end_track)
-			end_track = numtracks;
-
-		temp_track_inc = 1;
-	}
-	printf("\nG64: %d total bytes = likely %d tracks of %d bytes each\n", g64size, numtracks, g64maxtrack);
-
+	printf("\nTracks:%d\nSize:%d\n", g64tracks, g64maxtrack);
 	rewind(fpin);
+
 	if (fread(header, headersize, 1, fpin) != 1)
 	{
 		printf("unable to read G64 header\n");
 		return 0;
 	}
 
-	for (track = 2; track <= end_track; track += temp_track_inc)
+	for (track = 2; track <= g64tracks; track++, pointer += 4)
 	{
+		/* check to see if track exists in file, else skip it */
+		if(!header[0xc + pointer])
+			continue;
+
 		/* get density from header */
-		track_density[track] = header[0x9 + 0x153 + dens_pointer];
-		dens_pointer += (4 * temp_track_inc);
+		track_density[track] = header[0x15c + pointer];
 
 		/* get length */
 		fread(length_record, 2, 1, fpin);
@@ -632,13 +612,13 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		/* output some specs */
 		if(verbose)
 		{
-			printf("%4.1f: (",(float) track / 2);
+			printf("%4.1f: (",(float) track/2);
 			 if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
 
 			printf("%d:%lu) %.1lu%%\n",
-				track_density[track]&3, track_length[track],
-				((track_length[track] / capacity[track_density[track]&3]) * 100));
+				track_density[track], track_length[track],
+				((track_length[track] / capacity[track_density[track]]) * 100));
 		}
 	}
 
