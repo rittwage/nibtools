@@ -33,9 +33,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 		step_to_halftrack(fd, halftrack);
 
-		if(halftrack/2 > 35)
-			density = scan_track(fd, halftrack);
-		else if(force_density)
+		if(force_density)
 			density = speed_map[halftrack/2];
 		else if (Use_SCPlus_IHS)
 			density = Scan_Track_SCPlus_IHS(fd, halftrack, buffer);  // deep scan track density (1541/1571 SC+ compatible IHS was initially checked)
