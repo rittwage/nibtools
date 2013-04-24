@@ -105,6 +105,7 @@ extern int presync;
 extern int use_floppycode_srq;
 extern int extra_capacity_margin;
 extern int sync_align_buffer;
+extern int fattrack;
 
 #include "ihs.h"
 

@@ -46,7 +46,7 @@ void parseargs(char *argv[])
 			printf("* Using halftracks\n");
 			break;
 
-		case 'F':
+		case 'I':
 			increase_sync = 1;
 			printf("* Fix/increase short syncs\n");
 			break;
@@ -270,6 +270,13 @@ void parseargs(char *argv[])
 			rpm_real = atoi(&(*argv)[2]);
 			if(!rpm_real) rpm_real = 297;
 			printf("* Simulate track capacity: %dRPM\n",rpm_real);
+			break;
+
+		case 'F':
+			/* insert halftrack (FAT protection */
+			fattrack = atoi(&(*argv)[2]);
+			printf("* FAT track on %d/%.2f/%d\n",fattrack,fattrack+0.5,fattrack+1);
+			fattrack*=2;
 			break;
 
 		case 'P':
@@ -960,6 +967,24 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
 
 	printf("\nWriting G64 file...\n");
+
+	/* I don't like this hack here, but it is necessary to fix old files that lacked halftracks */
+	if(fattrack)
+	{
+		printf("Handle FAT track on %d\n",fattrack);
+
+		memcpy(track_buffer + ((fattrack+1) * NIB_TRACK_LENGTH),
+			track_buffer + (fattrack * NIB_TRACK_LENGTH),
+			NIB_TRACK_LENGTH);
+
+		memcpy(track_buffer + ((fattrack+2) * NIB_TRACK_LENGTH),
+			track_buffer + (fattrack * NIB_TRACK_LENGTH),
+			NIB_TRACK_LENGTH);
+
+		track_length[fattrack+1] = track_length[fattrack+2] = track_length[fattrack];
+		track_density[fattrack+1] = track_density[fattrack+2] = track_density[fattrack];
+	}
+
 
 	fpout = fopen(filename, "wb");
 	if (fpout == NULL)
