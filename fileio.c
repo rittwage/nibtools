@@ -360,10 +360,9 @@ int load_file(char *filename, BYTE *file_buffer)
 
 int read_nib(BYTE *file_buffer, int file_buffer_size, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
-	int track, numtracks;
-	int t_index=0, h_index=0;
+	int track, t_index=0, h_index=0;
 
-	printf("\nParsing NIB data...");
+	printf("\nParsing NIB data...\n");
 
 	if (memcmp(file_buffer, "MNIB-1541-RAW", 13) != 0)
 	{
@@ -371,7 +370,7 @@ int read_nib(BYTE *file_buffer, int file_buffer_size, BYTE *track_buffer, BYTE *
 		return 0;
 	}
 	else
-		printf("NIB file version %d", file_buffer[13]);
+		printf("NIB file version %d\n", file_buffer[13]);
 
 	while(file_buffer[0x10+h_index])
 	{
@@ -386,7 +385,7 @@ int read_nib(BYTE *file_buffer, int file_buffer_size, BYTE *track_buffer, BYTE *
 		h_index+=2;
 		t_index++;
 	}
-	printf("Successfully parsed NIB data\n");
+	printf("Successfully parsed NIB data for %d tracks\n", t_index);
 	return 1;
 }
 
@@ -1186,7 +1185,7 @@ int sync_tracks(BYTE *track_buffer)
 	int track;
 
 	printf("\nByte-syncing tracks...\n");
-	for (track = start_track; track <= end_track; track += track_inc)
+	for (track = start_track; track <= end_track; track ++)
 	{
 		printf("%4.1f: ",(float) track / 2);
 		sync_align(track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
@@ -1204,7 +1203,7 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 
 	printf("\nAligning tracks...\n");
 
-	for (track = start_track; track <= end_track; track += track_inc)
+	for (track = start_track; track <= end_track; track ++)
 	{
 		memcpy(nibdata,  track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
 		memset(track_buffer + (track * NIB_TRACK_LENGTH), 0x00, NIB_TRACK_LENGTH);
