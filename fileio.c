@@ -360,8 +360,8 @@ int load_file(char *filename, BYTE *file_buffer)
 
 int read_nib(BYTE *file_buffer, int file_buffer_size, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
-	int track, numtracks, temp_track_inc;
-	int header_entry = 0, track_entry = 0;
+	int track, numtracks;
+	int t_index=0, h_index=0;
 
 	printf("\nParsing NIB data...");
 
@@ -373,40 +373,18 @@ int read_nib(BYTE *file_buffer, int file_buffer_size, BYTE *track_buffer, BYTE *
 	else
 		printf("NIB file version %d", file_buffer[13]);
 
-	/* Determine number of tracks in image (estimated by filesize) */
-	numtracks = (file_buffer_size - NIB_HEADER_SIZE) / NIB_TRACK_LENGTH;
-
-	if(numtracks <= 42)
+	while(file_buffer[0x10+h_index])
 	{
-		if(numtracks * 2 < end_track)
-			end_track = (numtracks * 2);
-
-		temp_track_inc = 2;
-	}
-	else
-	{
-		printf("\nImage contains halftracks!\n");
-
-		if(numtracks < end_track)
-			end_track = numtracks;
-
-		temp_track_inc = 1;
-	}
-
-	printf("\n%d track image (filesize = %d bytes)\n", numtracks, file_buffer_size);
-
-	for (track = 2; track <= end_track; track += temp_track_inc)
-	{
-		/* get density from header or use default */
-		track_density[track] = (BYTE)(file_buffer[0x10 + (header_entry * 2) + 1]);
+		track = file_buffer[0x10+h_index];
+		track_density[track] = (BYTE)(file_buffer[0x10 + h_index + 1]);
 		track_density[track] %= BM_MATCH;  	 /* discard unused BM_MATCH mark */
-		header_entry++;
 
-		/* get track from file */
 		memcpy(track_buffer + (track * NIB_TRACK_LENGTH),
-			file_buffer + (track_entry * NIB_TRACK_LENGTH) + 0x100,
+			file_buffer + (t_index * NIB_TRACK_LENGTH) + 0x100,
 			NIB_TRACK_LENGTH);
-		track_entry++;
+
+		h_index+=2;
+		t_index++;
 	}
 	printf("Successfully parsed NIB data\n");
 	return 1;
