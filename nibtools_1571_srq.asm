@@ -236,6 +236,9 @@ _scL1:
         BPL  _scL1                ;
 _sc_retry:
         CLV                       ;
+_sc_skip_sync:
+	BIT  $1c00
+        BPL  _sc_skip_sync             ; make sure we are not in sync area
 _scW1:
         BVC  _scW1                ; wait for GCR byte
         CLV                       ;
