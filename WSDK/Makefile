@@ -1,12 +1,12 @@
 # NIBTOOLS WSDK Makefile
 #
-# Copyright 2010 Arnd Menge <arnd(at)jonnz(dot)de>
+# Copyright 2010-2013 Arnd Menge <arnd(at)jonnz(dot)de>
 #
 # For use with
 #
-#   NIBTOOLS   rev. 502  -- http://www.rittwage.com
-#   OPENCBM    v0.4.3rc2 -- http://opencbm.trikaliotis.net
-#   CC65 Win32 v2.13.2-1 -- http://www.cc65.org
+#   NIBTOOLS   rev. 576   -- http://www.rittwage.com
+#   OpenCBM    v0.4.99.93 -- http://opencbm.trikaliotis.net
+#   CC65 Win32 v2.13.2-1  -- http://www.cc65.org
 #
 # and
 #
@@ -17,7 +17,7 @@
 #
 # Test environment(s):
 #
-#   CPU: Intel T2060 32bit / OS: Microsoft Windows 7 Ultimate 32bit
+#   CPU: Intel T7200 64bit / OS: Microsoft Windows 7 Professional 64bit
 #
 # HOW TO USE this Makefile:
 # =========================
@@ -65,6 +65,14 @@
 #   directory associated with your own platform, and finally run this
 #   Makefile for the target platform.
 #
+#   You can set the NIBTOOLS SVN version below,
+#     e.g. set NIBVER = "SVN=576" for SVN 576.
+#
+#   NIBTOOLS requires you to set OPENCBMVER to the OpenCBM version
+#   you are using:
+#     set OPENCBMVER="OPENCBM_42" for older opencbm versions  < v0.4.99
+#     set OPENCBMVER="OPENCBM_49" for newer opencbm versions >= v0.4.99
+#
 #   "Windows 7" applications may not run on older Windows versions,
 #   "Windows XP SP2" applications may be the most compatible.
 #
@@ -84,6 +92,8 @@
 #   \nibdev\nibtools\fileio.c
 #   \nibdev\nibtools\gcr.c
 #   \nibdev\nibtools\gcr.h
+#   \nibdev\nibtools\ihs.c
+#   \nibdev\nibtools\ihs.h
 #   \nibdev\nibtools\kernel.c
 #   \nibdev\nibtools\lz.c
 #   \nibdev\nibtools\lz.h
@@ -93,9 +103,13 @@
 #   \nibdev\nibtools\nibread.c
 #   \nibdev\nibtools\nibrepair.c
 #   \nibdev\nibtools\nibscan.c
+#   \nibdev\nibtools\nibsrqtest.c
 #   \nibdev\nibtools\nibtls_rt.c
 #   \nibdev\nibtools\nibtools.h
 #   \nibdev\nibtools\nibtools_15x1.asm
+#   \nibdev\nibtools\nibtools_15x1_ihs.asm
+#   \nibdev\nibtools\nibtools_1571_srq.asm
+#   \nibdev\nibtools\nibtools_1571_srq_test.asm
 #   \nibdev\nibtools\nibwrite.c
 #   \nibdev\nibtools\prot.c
 #   \nibdev\nibtools\prot.h
@@ -162,8 +176,14 @@
 # -------------------------------------------------------------------------
 
 !message NIBTOOLS WSDK Makefile
-!message Copyright 2010 Arnd Menge <arnd(at)jonnz(dot)de>
+!message Copyright 2010-2013 Arnd Menge <arnd(at)jonnz(dot)de>
 !message
+
+# -------------------------------------------------------------------------
+# NIBTOOLS SVN version
+# -------------------------------------------------------------------------
+
+NIBVER = "SVN=577"
 
 # -------------------------------------------------------------------------
 # Project directories
@@ -185,9 +205,27 @@ INCLUDE_DIR = ..\include\WINDOWS
 #B2A_DIR = XP32_RETAIL
 B2A_DIR = $(OUTDIR)
 
-# "opencbm.dll" directories
-OPENCBM_DLL_DIR_x86  = ..\..\opencbm-0.4.99.89-i386
-OPENCBM_DLL_DIR_x64  = ..\..\opencbm-0.4.99.89-i386
+# "opencbm.dll" directories and version definition
+#   set OPENCBMVER="OPENCBM_42" for older opencbm versions  < v0.4.99
+#   set OPENCBMVER="OPENCBM_49" for newer opencbm versions >= v0.4.99
+
+#OPENCBMVER = "OPENCBM_42"
+OPENCBMVER = "OPENCBM_49"
+
+#OPENCBM_DLL_DIR_x86  = ..\..\opencbm-0.4.2a
+#OPENCBM_DLL_DIR_x64  = ..\..\opencbm-0.4.2a
+
+#OPENCBM_DLL_DIR_x86  = ..\..\opencbm-0.4.3rc2-i386
+#OPENCBM_DLL_DIR_x64  = ..\..\opencbm-0.4.3rc2-amd64
+
+#OPENCBM_DLL_DIR_x86  = ..\..\opencbm-0.4.99.89-i386
+#OPENCBM_DLL_DIR_x64  = ..\..\opencbm-0.4.99.89-i386
+
+#OPENCBM_DLL_DIR_x86  = ..\..\opencbm_111007_tape-TEST\opencbm\bin\i386
+#OPENCBM_DLL_DIR_x64  = ..\..\opencbm_111007_tape-TEST\opencbm\bin\i386
+
+OPENCBM_DLL_DIR_x86  = ..\..\opencbm-ZoomFloppy-2.0-i386\exe
+OPENCBM_DLL_DIR_x64  = ..\..\opencbm-ZoomFloppy-2.0-i386\exe
 
 # CC65 directory
 CC65_BIN_DIR = ..\..\cc65-win32-2.13.2-1\bin
@@ -200,13 +238,15 @@ all: $(OUTDIR)\nibread.exe   \
      $(OUTDIR)\nibwrite.exe  \
      $(OUTDIR)\nibconv.exe   \
      $(OUTDIR)\nibrepair.exe \
+#    $(OUTDIR)\nibsrqtest.exe \
      $(OUTDIR)\nibscan.exe
 
-nibread  : $(OUTDIR)\nibread.exe
-nibwrite : $(OUTDIR)\nibwrite.exe
-nibconv  : $(OUTDIR)\nibconv.exe
-nibrepair: $(OUTDIR)\nibrepair.exe
-nibscan  : $(OUTDIR)\nibscan.exe
+nibread   : $(OUTDIR)\nibread.exe
+nibwrite  : $(OUTDIR)\nibwrite.exe
+nibconv   : $(OUTDIR)\nibconv.exe
+nibrepair : $(OUTDIR)\nibrepair.exe
+nibscan   : $(OUTDIR)\nibscan.exe
+#nibsrqtest: $(OUTDIR)\nibsrqtest.exe
 
 # -------------------------------------------------------------------------
 # Object lists
@@ -223,16 +263,20 @@ NIBREAD_OBJS = $(BASE_OBJS)          \
                $(OUTDIR)\nibread.obj \
                $(OUTDIR)\drive.obj   \
                $(OUTDIR)\read.obj    \
-               $(OUTDIR)\IHS.obj     \
+               $(OUTDIR)\ihs.obj     \
                $(OUTDIR)\nibread.res
                
-
 NIBWRITE_OBJS = $(BASE_OBJS)           \
                 $(OUTDIR)\nibwrite.obj \
                 $(OUTDIR)\drive.obj    \
                 $(OUTDIR)\write.obj    \
-                $(OUTDIR)\IHS.obj      \
+                $(OUTDIR)\ihs.obj      \
                 $(OUTDIR)\nibwrite.res
+
+NIBSRQTEST_OBJS = $(OUTDIR)\nibsrqtest.obj \
+                  $(OUTDIR)\drive.obj      \
+                  $(OUTDIR)\read.obj       \
+                  $(OUTDIR)\write.obj
 
 # -------------------------------------------------------------------------
 # Set Target Platform
@@ -258,6 +302,8 @@ OPENCBM_DLL_DIR = $(OPENCBM_DLL_DIR_x64)
 !message Configuration: ...................................................
 !message Current Platform: $(PROCESSOR_ARCHITECTURE)
 !message Target Platform: $(TARGET_CPU)
+!message NIBTOOLS version: $(NIBVER)
+!message OpenCBM version: $(OPENCBMVER)
 !message Using "$(OPENCBM_DLL_DIR)\opencbm.dll"
 !message Using "$(B2A_DIR)\bin2array.exe"
 !message ..................................................................
@@ -268,7 +314,7 @@ OPENCBM_DLL_DIR = $(OPENCBM_DLL_DIR_x64)
 # -------------------------------------------------------------------------
 
 CreateDirs:
-    @echo ^ ^ ^ ^ ^ ^ ^ ^ ...... Creating directories .....................................
+    @echo ...... Creating directories ......................................
     if not exist "$(OUTDIR)/$(NULL)" mkdir $(OUTDIR)
 !IF "$(OUTDIR)" != "$(BINDIR)"
     if not exist "$(BINDIR)/$(NULL)" mkdir $(BINDIR)
@@ -280,13 +326,13 @@ CreateDirs:
 
 OpenCBM:
 !IF !EXIST ($(OUTDIR)\opencbm.lib)
-    @echo ^ ^ ^ ^ ^ ^ ^ ^ ...... Rebuilding OPENCBM.LIB ...................................
+    @echo ...... Rebuilding OPENCBM.LIB ...................................
     echo EXPORTS > "$(OUTDIR)\opencbm.def"
     for /f "skip=19 tokens=4" %%i in ('dumpbin /exports "$(OPENCBM_DLL_DIR)\opencbm.dll"') do @echo %%i >> "$(OUTDIR)\opencbm.def"
     lib /machine:$(TARGET_CPU) /def:"$(OUTDIR)\opencbm.def" /out:"$(OUTDIR)\opencbm.lib"
 !ENDIF
 !IF !EXIST ($(BINDIR)\opencbm.dll)
-    @echo ^ ^ ^ ^ ^ ^ ^ ^ ...... Copying OPENCBM.DLL ......................................
+    @echo ...... Copying OPENCBM.DLL ......................................
     copy /y "$(OPENCBM_DLL_DIR)\opencbm.dll" "$(BINDIR)\"
 !ENDIF
 
@@ -295,30 +341,38 @@ OpenCBM:
 # -------------------------------------------------------------------------
 
 $(C_DIR)\DriveCode:
-    @echo ^ ^ ^ ^ ^ ^ ^ ^ ...... Building 1541/1571 drive codes ...........................
+    @echo ...... Building 1541/1571 drive codes ............................
 
 #   Create CC65 compatible assembler source files
     echo DRIVE=1541 > "$(OUTDIR)\nibtools_1541.a65"
     echo DRIVE=1571 > "$(OUTDIR)\nibtools_1571.a65"
     echo DRIVE=1541 > "$(OUTDIR)\nibtools_1541_ihs.a65"
     echo DRIVE=1571 > "$(OUTDIR)\nibtools_1571_ihs.a65"
+    echo DRIVE=1571 > "$(OUTDIR)\nibtools_1571_srq.a65"
+    echo DRIVE=1571 > "$(OUTDIR)\nibtools_1571_srq_test.a65"
     type "$(C_DIR)\nibtools_15x1.asm" >> "$(OUTDIR)\nibtools_1541.a65"
     type "$(C_DIR)\nibtools_15x1.asm" >> "$(OUTDIR)\nibtools_1571.a65"
     type "$(C_DIR)\nibtools_15x1_ihs.asm" >> "$(OUTDIR)\nibtools_1541_ihs.a65"
     type "$(C_DIR)\nibtools_15x1_ihs.asm" >> "$(OUTDIR)\nibtools_1571_ihs.a65"
+    type "$(C_DIR)\nibtools_1571_srq.asm" >> "$(OUTDIR)\nibtools_1571_srq.a65"
+    type "$(C_DIR)\nibtools_1571_srq_test.asm" >> "$(OUTDIR)\nibtools_1571_srq_test.a65"
 
 #   Build 1541/1571 drive code binaries
     "$(CC65_BIN_DIR)\ca65" -t none -l "$(OUTDIR)\nibtools_1541.a65"
     "$(CC65_BIN_DIR)\ca65" -t none -l "$(OUTDIR)\nibtools_1571.a65"
     "$(CC65_BIN_DIR)\ca65" -t none -l "$(OUTDIR)\nibtools_1541_ihs.a65"
     "$(CC65_BIN_DIR)\ca65" -t none -l "$(OUTDIR)\nibtools_1571_ihs.a65"
+    "$(CC65_BIN_DIR)\ca65" -t none -l "$(OUTDIR)\nibtools_1571_srq.a65"
+    "$(CC65_BIN_DIR)\ca65" -t none -l "$(OUTDIR)\nibtools_1571_srq_test.a65"
     "$(CC65_BIN_DIR)\cl65" -t none -o "$(OUTDIR)\nibtools_1541.bin" "$(OUTDIR)\nibtools_1541.o"
     "$(CC65_BIN_DIR)\cl65" -t none -o "$(OUTDIR)\nibtools_1571.bin" "$(OUTDIR)\nibtools_1571.o"
     "$(CC65_BIN_DIR)\cl65" -t none -o "$(OUTDIR)\nibtools_1541_ihs.bin" "$(OUTDIR)\nibtools_1541_ihs.o"
     "$(CC65_BIN_DIR)\cl65" -t none -o "$(OUTDIR)\nibtools_1571_ihs.bin" "$(OUTDIR)\nibtools_1571_ihs.o"
+    "$(CC65_BIN_DIR)\cl65" -t none -o "$(OUTDIR)\nibtools_1571_srq.bin" "$(OUTDIR)\nibtools_1571_srq.o"
+    "$(CC65_BIN_DIR)\cl65" -t none -o "$(OUTDIR)\nibtools_1571_srq_test.bin" "$(OUTDIR)\nibtools_1571_srq_test.o"
 
 #   Build "bin2array.exe" utility
-    $(cc) $(cdebug) $(cflags) $(cvarsdll) /wd4996 /Fo"$(OUTDIR)/" /Fd"$(OUTDIR)/vc90.pdb" bin2array.c
+    $(cc) $(cdebug) $(cflags) $(cvarsdll) /wd4996 /Fo"$(OUTDIR)/" /Fd"$(OUTDIR)\bin2array.pdb" bin2array.c
     $(link) $(ldebug) $(conlflags) $(conlibsdll) -out:"$(OUTDIR)\bin2array.exe" "$(OUTDIR)\bin2array.obj"
     mt.exe -manifest "$(OUTDIR)\bin2array.exe.manifest" -outputresource:"$(OUTDIR)\bin2array.exe";1
 
@@ -327,65 +381,72 @@ $(C_DIR)\DriveCode:
     $(B2A_DIR)\bin2array "$(OUTDIR)\nibtools_1571.bin" "$(C_DIR)\nibtools_1571.inc"
     $(B2A_DIR)\bin2array "$(OUTDIR)\nibtools_1541_ihs.bin" "$(C_DIR)\nibtools_1541_ihs.inc"
     $(B2A_DIR)\bin2array "$(OUTDIR)\nibtools_1571_ihs.bin" "$(C_DIR)\nibtools_1571_ihs.inc"
+    $(B2A_DIR)\bin2array "$(OUTDIR)\nibtools_1571_srq.bin" "$(C_DIR)\nibtools_1571_srq.inc"
+    $(B2A_DIR)\bin2array "$(OUTDIR)\nibtools_1571_srq_test.bin" "$(C_DIR)\nibtools_1571_srq_test.inc"
 
-    @echo ^ ^ ^ ^ ^ ^ ^ ^ .................................................................
-    @echo ^ ^ ^ ^ ^ ^ ^ ^ .................................................................
+    @echo ..................................................................
+    @echo ..................................................................
 
 # -------------------------------------------------------------------------
 # Update the object files if necessary
 # -------------------------------------------------------------------------
 
 {$(C_DIR)}.c{$(OUTDIR)}.obj:
-    $(cc) $(cdebug) $(cflags) $(cvarsmt) /wd4996 /O2 /I"$(INCLUDE_DIR)" /Fo"$(OUTDIR)/" /Fd"$(OUTDIR)/vc90.pdb" $**
-#    $(cc) $(cdebug) $(cflags) $(cvarsdll) /wd4996 /O2 /I"$(INCLUDE_DIR)" /Fo"$(OUTDIR)/" /Fd"$(OUTDIR)/vc90.pdb" $**
+    $(cc) $(cdebug) $(cflags) $(cvarsmt) /D$(OPENCBMVER) /D$(NIBVER) /wd4996 /O2 /I"$(INCLUDE_DIR)" /Fo"$(OUTDIR)/" /Fd"$(OUTDIR)\%|fF.pdb" $**
+#    $(cc) $(cdebug) $(cflags) $(cvarsdll) /wd4996 /O2 /I"$(INCLUDE_DIR)" /Fo"$(OUTDIR)/" /Fd"$(OUTDIR)\%|fF.pdb" $**
 
 # -------------------------------------------------------------------------
 # Update the resource files if necessary
 # -------------------------------------------------------------------------
 
 {..\WINBUILD-nibread}.rc{$(OUTDIR)}.res:
-    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)/%|fF.res" $**
+    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)\%|fF.res" $**
 
 {..\WINBUILD-nibwrite}.rc{$(OUTDIR)}.res:
-    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)/%|fF.res" $**
+    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)\%|fF.res" $**
 
 {..\WINBUILD-nibconv}.rc{$(OUTDIR)}.res:
-    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)/%|fF.res" $**
+    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)\%|fF.res" $**
 
 {..\WINBUILD-nibrepair}.rc{$(OUTDIR)}.res:
-    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)/%|fF.res" $**
+    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)\%|fF.res" $**
 
 {..\WINBUILD-nibscan}.rc{$(OUTDIR)}.res:
-    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)/%|fF.res" $**
+    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)\%|fF.res" $**
 
 # -------------------------------------------------------------------------
 # Update the executable files if necessary
 # -------------------------------------------------------------------------
 
 $(OUTDIR)\nibread.exe: CreateDirs OpenCBM $(C_DIR)\DriveCode $(NIBREAD_OBJS)
-    $(link) $(ldebug) $(conlflags) $(conlibsmt) -out:"$(BINDIR)\nibread.exe" $(NIBREAD_OBJS) "$(OUTDIR)\opencbm.lib"
+    $(link) $(ldebug) $(conlflags) $(conlibsmt) -out:"$(BINDIR)\nibread.exe" -PDB:"$(OUTDIR)\nibread.pdb" $(NIBREAD_OBJS) "$(OUTDIR)\opencbm.lib"
 #    $(link) $(ldebug) $(conlflags) $(conlibsdll) -out:"$(BINDIR)\nibread.exe" $(NIBREAD_OBJS) "$(OUTDIR)\opencbm.lib"
 #    mt.exe -manifest "$(BINDIR)\nibread.exe.manifest" -outputresource:"$(BINDIR)\nibread.exe";1
 
 $(OUTDIR)\nibwrite.exe: CreateDirs OpenCBM $(C_DIR)\DriveCode $(NIBWRITE_OBJS)
-    $(link) $(ldebug) $(conlflags) $(conlibsmt) -out:"$(BINDIR)\nibwrite.exe" $(NIBWRITE_OBJS) "$(OUTDIR)\opencbm.lib"
+    $(link) $(ldebug) $(conlflags) $(conlibsmt) -out:"$(BINDIR)\nibwrite.exe" -PDB:"$(OUTDIR)\nibwrite.pdb" $(NIBWRITE_OBJS) "$(OUTDIR)\opencbm.lib"
 #    $(link) $(ldebug) $(conlflags) $(conlibsdll) -out:"$(BINDIR)\nibwrite.exe" $(NIBWRITE_OBJS) "$(OUTDIR)\opencbm.lib"
 #    mt.exe -manifest "$(BINDIR)\nibwrite.exe.manifest" -outputresource:"$(BINDIR)\nibwrite.exe";1
 
 $(OUTDIR)\nibconv.exe: CreateDirs $(OUTDIR)\nibconv.obj $(OUTDIR)\nibconv.res $(BASE_OBJS)
-    $(link) $(ldebug) $(conlflags) $(conlibsmt) -out:"$(BINDIR)\nibconv.exe" "$(OUTDIR)\nibconv.obj" "$(OUTDIR)\nibconv.res" $(BASE_OBJS)
+    $(link) $(ldebug) $(conlflags) $(conlibsmt) -out:"$(BINDIR)\nibconv.exe" -PDB:"$(OUTDIR)\nibconv.pdb" "$(OUTDIR)\nibconv.obj" "$(OUTDIR)\nibconv.res" $(BASE_OBJS)
 #    $(link) $(ldebug) $(conlflags) $(conlibsdll) -out:"$(BINDIR)\nibconv.exe" "$(OUTDIR)\nibconv.obj" "$(OUTDIR)\nibconv.res" $(BASE_OBJS)
 #    mt.exe -manifest "$(BINDIR)\nibconv.exe.manifest" -outputresource:"$(BINDIR)\nibconv.exe";1
 
 $(OUTDIR)\nibrepair.exe: CreateDirs $(OUTDIR)\nibrepair.obj $(OUTDIR)\nibrepair.res $(BASE_OBJS)
-    $(link) $(ldebug) $(conlflags) $(conlibsmt) -out:"$(BINDIR)\nibrepair.exe" "$(OUTDIR)\nibrepair.obj" "$(OUTDIR)\nibrepair.res" $(BASE_OBJS)
+    $(link) $(ldebug) $(conlflags) $(conlibsmt) -out:"$(BINDIR)\nibrepair.exe" -PDB:"$(OUTDIR)\nibrepair.pdb" "$(OUTDIR)\nibrepair.obj" "$(OUTDIR)\nibrepair.res" $(BASE_OBJS)
 #    $(link) $(ldebug) $(conlflags) $(conlibsdll) -out:"$(BINDIR)\nibrepair.exe" "$(OUTDIR)\nibrepair.obj" "$(OUTDIR)\nibrepair.res" $(BASE_OBJS)
 #    mt.exe -manifest "$(BINDIR)\nibrepair.exe.manifest" -outputresource:"$(BINDIR)\nibrepair.exe";1
 
 $(OUTDIR)\nibscan.exe: CreateDirs $(OUTDIR)\nibscan.obj $(OUTDIR)\nibscan.res $(BASE_OBJS)
-    $(link) $(ldebug) $(conlflags) $(conlibsmt) -out:"$(BINDIR)\nibscan.exe" "$(OUTDIR)\nibscan.obj" "$(OUTDIR)\nibscan.res" $(BASE_OBJS)
+    $(link) $(ldebug) $(conlflags) $(conlibsmt) -out:"$(BINDIR)\nibscan.exe" -PDB:"$(OUTDIR)\nibscan.pdb" "$(OUTDIR)\nibscan.obj" "$(OUTDIR)\nibscan.res" $(BASE_OBJS)
 #    $(link) $(ldebug) $(conlflags) $(conlibsdll) -out:"$(BINDIR)\nibscan.exe" "$(OUTDIR)\nibscan.obj" "$(OUTDIR)\nibscan.res" $(BASE_OBJS)
 #    mt.exe -manifest "$(BINDIR)\nibscan.exe.manifest" -outputresource:"$(BINDIR)\nibscan.exe";1
+
+$(OUTDIR)\nibsrqtest.exe: CreateDirs OpenCBM $(C_DIR)\DriveCode $(OUTDIR)\nibsrqtest.obj $(NIBSRQTEST_OBJS)
+    $(link) $(ldebug) $(conlflags) $(conlibsmt) -out:"$(BINDIR)\nibsrqtest.exe" -PDB:"$(OUTDIR)\nibsrqtest.pdb" $(NIBSRQTEST_OBJS) "$(OUTDIR)\opencbm.lib"
+#    $(link) $(ldebug) $(conlflags) $(conlibsdll) -out:"$(BINDIR)\nibsrqtest.exe" $(NIBSRQTEST_OBJS) "$(OUTDIR)\opencbm.lib"
+#    mt.exe -manifest "$(BINDIR)\nibsrqtest.exe.manifest" -outputresource:"$(BINDIR)\nibsrqtest.exe";1
 
 # -------------------------------------------------------------------------
 # Cleanup
@@ -393,10 +454,12 @@ $(OUTDIR)\nibscan.exe: CreateDirs $(OUTDIR)\nibscan.obj $(OUTDIR)\nibscan.res $(
 
 clean:
     $(CLEANUP)
-    if exist "$(C_DIR)\nibtools_1541.inc"     del "$(C_DIR)\nibtools_1541.inc"
-    if exist "$(C_DIR)\nibtools_1571.inc"     del "$(C_DIR)\nibtools_1571.inc"
-    if exist "$(C_DIR)\nibtools_1541_ihs.inc" del "$(C_DIR)\nibtools_1541_ihs.inc"
-    if exist "$(C_DIR)\nibtools_1571_ihs.inc" del "$(C_DIR)\nibtools_1571_ihs.inc"
+    if exist "$(C_DIR)\nibtools_1541.inc"          del "$(C_DIR)\nibtools_1541.inc"
+    if exist "$(C_DIR)\nibtools_1571.inc"          del "$(C_DIR)\nibtools_1571.inc"
+    if exist "$(C_DIR)\nibtools_1541_ihs.inc"      del "$(C_DIR)\nibtools_1541_ihs.inc"
+    if exist "$(C_DIR)\nibtools_1571_ihs.inc"      del "$(C_DIR)\nibtools_1571_ihs.inc"
+    if exist "$(C_DIR)\nibtools_1571_srq.inc"      del "$(C_DIR)\nibtools_1571_srq.inc"
+    if exist "$(C_DIR)\nibtools_1571_srq_test.inc" del "$(C_DIR)\nibtools_1571_srq_test.inc"
 !IF "$(OUTDIR)" != "$(BINDIR)"
     if exist $(BINDIR)/$(NULL) rd /s /q $(BINDIR)
 !ENDIF
