@@ -326,6 +326,8 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 				error_code = SECTOR_OK;
 				break;
 			}
+			if(verbose) printf("{1:%.2x, 2:%.2x, 3:%.2x, 4:%.2x, 5:%.2x}{I:%.2x, T:%.2d, S:%.2d}\n",
+				gcr_ptr[1], gcr_ptr[2], gcr_ptr[3], gcr_ptr[4], gcr_ptr[5], header[0],header[3],header[2]);
 		}
 	}
 

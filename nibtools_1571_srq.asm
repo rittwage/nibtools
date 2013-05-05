@@ -230,15 +230,16 @@ _step_dest_end:
 ; Density Scan for current track
 _scan_density:
         LDX  #$05                 ;
+        LDY  #$00                 ;
+        STX  $C0                  ; Max timeout count
 _scL1:
         STY  $c3,X                ; reset bit-rate statistic
         DEX                       ;
         BPL  _scL1                ;
 _sc_retry:
+        DEC  $C0                  ; limit number of timeouts
+        BEQ  _scExit             ;
         CLV                       ;
-_sc_skip_sync:
-	BIT  $1c00
-        BPL  _sc_skip_sync             ; make sure we are not in sync area
 _scW1:
         BVC  _scW1                ; wait for GCR byte
         CLV                       ;
@@ -280,7 +281,7 @@ _scJ7:
 .byte $fe,$c3,$00                 ; INC  $00c3,X (not supported by C64asm)
         INY                       ;
         BPL  _scL2                ;
-
+_scExit:
         LDY  #$00                 ;
 _scL3:
         LDA  $00c4,Y              ; transfer density statistic 1-4 to C64
@@ -321,7 +322,6 @@ _set_1c00:
 ;----------------------------------------
 ; detect 'killer tracks' (all SYNC)
 _detect_killer:
-
 	LDX  #$80	;   	
 	STY  $c0		;  y=0
 
