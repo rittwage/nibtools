@@ -141,7 +141,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	BYTE bbuffer[NIB_TRACK_LENGTH];
 	BYTE *cbufn, *cbufo, *bufn, *bufo;
 	BYTE align;
-	size_t leno, lenn, gcr_compare, gcr_percentage, gmatch, dmatch;
+	size_t leno, lenn, gcr_compare, gcr_percentage;
 	BYTE denso, densn;
 	size_t i, l, badgcr, retries, errors, best;
 	char errorstring[0x1000], diffstr[80];

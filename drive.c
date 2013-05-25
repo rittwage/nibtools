@@ -210,7 +210,7 @@ upload_code(CBM_FILE fd, BYTE drive)
 		return -1;
     }
 
-	printf("Uploading floppy-side code ($%0.4x bytes, $300-$%0.3x)...", databytes, databytes+0x300);
+	printf("Uploading floppy-side code ($%.4x bytes, $300-$%.3x)...", databytes, databytes+0x300);
 	ret = cbm_upload(fd, drive, 0x300, floppy_code, databytes);
 	if (ret < 0) return ret;
 	floppybytes = databytes;

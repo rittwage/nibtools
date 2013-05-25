@@ -532,7 +532,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
-	int track, g64maxtrack, g64tracks, g64size, numtracks, headersize;
+	int track, g64maxtrack, g64tracks, headersize;
 	int pointer=0;
 	BYTE header[0x7f0];
 	BYTE length_record[2];
@@ -937,7 +937,8 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541] = {0};
 	//BYTE gcr_track[G64_TRACK_MAXLEN + 2];
 	BYTE gcr_track[NIB_TRACK_LENGTH + 2];
-	size_t track_len, badgcr, skewbytes=0;
+	size_t track_len, badgcr;
+	//size_t skewbytes=0;
 	int index=0, track, added_sync;
 	FILE * fpout;
 	BYTE buffer[NIB_TRACK_LENGTH], tempfillbyte;

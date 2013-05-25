@@ -43,20 +43,20 @@ dos:
 		CFLAGS="-I include/DOS/ $(CFLAGS)" \
 		EXE=".exe" \
 		-f GNU/Makefile \
-		buildall
+		nibread nibwrite nibconv nibscan nibrepair
 
 linux:
 	${MAKE} CFLAGS="-I include/LINUX/ -I ${CBM_LNX_PATH}/include ${CFLAGS}  -std=c99" \
 		LDFLAGS="-L${CBM_LNX_PATH}/lib -lopencbm" \
 		-f GNU/Makefile \
-		buildall
+		nibread nibwrite nibconv nibscan nibrepair nibsrqtest
 
 win32:
 	${MAKE} CFLAGS="-I include/WINDOWS/ -I ${CBM_WIN_PATH}/include -D WIN32 ${CFLAGS} -mno-cygwin -std=c99" \
 		LDFLAGS="-mno-cygwin -L${CBM_WIN_PATH}/bin/i386/ -lopencbm" \
 		EXE=".exe" \
 		-f GNU/Makefile \
-		buildall
+		nibread nibwrite nibconv nibscan nibrepair nibsrqtest
 
 # Warning level.  Don't reduce, fix your new code instead.
 WARNS= -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wpointer-arith 
