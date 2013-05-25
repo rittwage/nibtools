@@ -267,18 +267,37 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
    }
 
 	/* Try to find block header for Track/Sector */
-    gcr_ptr = gcr_start;
-    do
-    {
-        if (!find_sync(&gcr_ptr, gcr_end)) return (HEADER_NOT_FOUND);
-        if (gcr_ptr >= gcr_end - 10) return (HEADER_NOT_FOUND);
-        convert_4bytes_from_GCR(gcr_ptr, header);
-        convert_4bytes_from_GCR(gcr_ptr+5, header+4);
-        gcr_ptr++;
-    } while ((header[0]==0x07) || (header[2]!=sector) || (header[3]!=track));
+	/* Try to find a good block header for Track/Sector */
+	error_code = HEADER_NOT_FOUND;
 
-    if (header[0] != 0x08)
-		error_code = (error_code == SECTOR_OK) ? HEADER_NOT_FOUND : error_code;
+	for (gcr_ptr = gcr_start; gcr_ptr < gcr_end - 10; gcr_ptr++)
+	{
+		if ((gcr_ptr[0] == 0xff) && (gcr_ptr[1] == 0x52))
+		{
+			gcr_ptr++;
+			memset(header, 0, 10);
+			convert_4bytes_from_GCR(gcr_ptr, header);
+			convert_4bytes_from_GCR(gcr_ptr+5, header+4);
+
+			if ((header[0] == 0x08) &&
+				(header[2] == sector) &&
+				(header[3] == track) )
+			{
+				/* this is the header we are searching for */
+				error_code = SECTOR_OK;
+				break;
+			}
+
+			if((header[3]>35)&(verbose)) printf(" Header damaged - Track %d out of range\n", header[3]);
+			if((header[2]>21)&(verbose)) printf(" Header damaged - Sector %d out of range\n", header[2]);
+
+			if(verbose>2) printf("{1:%.2x, 2:%.2x, 3:%.2x, 4:%.2x, 5:%.2x}{I:%.2x, T:%.2d, S:%.2d}\n",
+				gcr_ptr[1], gcr_ptr[2], gcr_ptr[3], gcr_ptr[4], gcr_ptr[5], header[0],header[3],header[2]);
+		}
+	}
+
+	if(error_code != SECTOR_OK)
+		return error_code;
 
 	/* Header checksum */
 	hdr_chksum = 0;
