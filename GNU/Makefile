@@ -112,27 +112,27 @@ drive.o: nibtools_1541.inc nibtools_1541_ihs.inc nibtools_1571.inc nibtools_1571
 
 nibtools_1541.bin: nibtools_15x1.asm
 	$(CA65) $(CA65_FLAGS) -D DRIVE=1541 -o $*.tmp $<
-	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
+	$(LD65) -o $@ --target none $*.tmp && rm -f $*.tmp
 
 nibtools_1571.bin: nibtools_15x1.asm
 	$(CA65) $(CA65_FLAGS) -D DRIVE=1571 -o $*.tmp $<
-	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
+	$(LD65) -o $@ --target none $*.tmp && rm -f $*.tmp
 
 nibtools_1541_ihs.bin: nibtools_15x1_ihs.asm
 	$(CA65) $(CA65_FLAGS) -D DRIVE=1541 -o $*.tmp $<
-	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
+	$(LD65) -o $@ --target none $*.tmp && rm -f $*.tmp
 
 nibtools_1571_ihs.bin: nibtools_15x1_ihs.asm
 	$(CA65) $(CA65_FLAGS) -D DRIVE=1571 -o $*.tmp $<
-	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
+	$(LD65) -o $@ --target none $*.tmp && rm -f $*.tmp
 	
 nibtools_1571_srq.bin: nibtools_1571_srq.asm
 	$(CA65) $(CA65_FLAGS) -D DRIVE=1571 -o $*.tmp $<
-	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
+	$(LD65) -o $@ --target none $*.tmp && rm -f $*.tmp
 
 nibtools_1571_srq_test.bin: nibtools_1571_srq_test.asm
 	$(CA65) $(CA65_FLAGS) -D DRIVE=1571 -o $*.tmp $<
-	$(LD65) --target none -o $@ $*.tmp && rm -f $*.tmp
+	$(LD65) -o $@ --target none $*.tmp && rm -f $*.tmp
 	
 .bin.inc:
 	test -s $< && od -txC -v -An $< | \
