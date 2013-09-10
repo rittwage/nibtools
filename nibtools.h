@@ -27,6 +27,7 @@
 #define FL_ALIGNDISK 		0x0d
 #define FL_VERIFY_CODE 	0x0e
 #define FL_FILLTRACK 		0x0f
+#define FL_READMARKER  0x10
 
 #define DISK_NORMAL    0
 

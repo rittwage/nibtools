@@ -698,6 +698,29 @@ _mt_end:
         
 
 ;----------------------------------------
+; read out track from MARKER BYTE
+_read_from_mark:
+        JSR  _read_byte           ; read byte from parallel data port
+        STA  _marker+1            ; MARKER BYTE
+        JSR  _send_byte           ; parallel-send data byte to C64
+        LDA  #$ff                 ;
+        STA  $1800                ; send handshake
+        LDX  #$20                 ;
+        STX  $c0                  ; read $2000 GCR bytes
+
+_rfm1:
+        CLV                      	 ;
+_rfm2:
+        BVC  _rfm2	              ;
+        LDX  $1c01                ; read GCR byte
+_marker:
+        CPX  #$37                 ; check for MARKER BYTE
+        BNE  _rfm1              ; wrong header mark, repeat
+        JMP  _read_start             ; -> read out track
+
+        
+
+;----------------------------------------
 ; setup 1571 index hole sensor and wait for the hole to appear
 ;-----------------------------------------        
 _1571_ihs_wait_hole:
@@ -769,6 +792,7 @@ _command_table:
 .byte <(_align_disk-1),>(_align_disk-1)           ; align sync on all tracks
 .byte <(_verify_code-1),>(_verify_code-1)         ; send floppy side code back to PC
 .byte <(_fill_track-1),>(_fill_track-1)           ; zero out (unformat) a track
+.byte <(_read_from_mark-1),>(_read_from_mark-1)	; read out track from MARKER BYTE
 
 _command_header:
 .byte $ff,$aa,$55,$00                             ; command header code (reverse order)

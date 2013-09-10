@@ -350,7 +350,7 @@ _dkWait:
 _dk_killer:
         LDY  #$80                 ; track only contains sync
         RTS                       ; -> $80 = killer track (too many syncs)
-
+        
 ;----------------------------------------
 ; read $1c00 motor/head status
 _read_1c00:
@@ -701,6 +701,7 @@ _command_table:
 .byte <(_dbr_analysis-1),>(_dbr_analysis-1)        ; <14> deep bitrate analysis
 .byte <(_read_mem-1),>(_read_mem-1)                ; <15> read memory location
 .byte <(_read_after_ihs4-1),>(_read_after_ihs4-1)  ; <16> read out track after 1541/1571 (SC+ compatible) IHS w/out waiting for Sync
+
 
 _command_header:
 .byte $ff,$aa,$55,$00                             ; command header code (reverse order)
