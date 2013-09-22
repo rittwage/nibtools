@@ -221,6 +221,7 @@ _stepL1:
         STA  $c2                  ; current track = destination
 _step_dest_end:
         RTS
+
 ;----------------------------------------
 ; Density Scan for current track
 _scan_density:

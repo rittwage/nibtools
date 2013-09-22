@@ -116,7 +116,7 @@ main(int argc, char *argv[])
 	interactive_mode = 0;
 	verbose = 0;
 	extended_parallel_test = 0;
-	force_nosync = 1;
+	force_nosync = 0;
 	align = ALIGN_NONE;
 	gap_match_length = 7;
 	cap_min_ignore = 0;
