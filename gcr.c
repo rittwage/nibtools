@@ -235,7 +235,7 @@ extract_id(BYTE * gcr_track, BYTE * id)
 	do
 	{
 		if (!find_sync(&gcr_ptr, gcr_end))
-			return (0);
+			return 0;
 
 		convert_4bytes_from_GCR(gcr_ptr, header);
 		convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
@@ -243,7 +243,7 @@ extract_id(BYTE * gcr_track, BYTE * id)
 
 	id[0] = header[5];
 	id[1] = header[4];
-	return (1);
+	return 1;
 }
 
 int
@@ -261,6 +261,7 @@ extract_cosmetic_id(BYTE * gcr_track, BYTE * id)
 
 	id[0] = secbuf[0xa3];
 	id[1] = secbuf[0xa4];
+
 	return 1;
 }
 
@@ -298,11 +299,11 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 
 	/* setup pointers */
 	track_len = gcr_cycle - gcr_start;
+	gcr_ptr = gcr_start;
 	gcr_end = gcr_start + track_len;
 	error_code = SECTOR_OK;
 
 	/* Check for at least one Sync */
-	gcr_ptr = gcr_start;
 	if (!find_sync(&gcr_ptr, gcr_end))
 		return SYNC_NOT_FOUND;
 
@@ -354,7 +355,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	}
 
 	/* done with header checks */
-	if(error_code != SECTOR_OK)
+	if((error_code != SECTOR_OK) && (error_code != ID_MISMATCH))
 		return error_code;
 
 	/* check for data sector, it will always be the data following header */
@@ -1081,8 +1082,7 @@ lengthen_sync(BYTE * buffer, size_t length, size_t length_max)
 
 	do
 	{
-		if ( ((*(source-1) & 0x01) == 0x01) && (*source == 0xff) && (*(source+1) != 0xff) &&
-			(length+added <= length_max) )
+		if ( ((*(source-1) & 0x01) == 0x01) && (*source == 0xff) && (*(source+1) != 0xff) /*&& (length+added <= length_max)*/ )
 		{
 			*(newp++) = 0xff;
 			added++;

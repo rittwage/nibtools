@@ -52,7 +52,7 @@ linux:
 		nibread nibwrite nibconv nibscan nibrepair nibsrqtest
 
 win32:
-	${MAKE} CFLAGS="-I include/WINDOWS/ -I ${CBM_WIN_PATH}/include -D WIN32 ${CFLAGS} -mno-cygwin -std=c99" \
+	${MAKE} CFLAGS="-I include/WINDOWS/ -I ${CBM_WIN_PATH}/include -D WIN32 ${CFLAGS} -std=c99" \
 		LDFLAGS="-mno-cygwin -L${CBM_WIN_PATH}/bin/i386/ -lopencbm" \
 		EXE=".exe" \
 		-f GNU/Makefile \
