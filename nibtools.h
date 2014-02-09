@@ -8,7 +8,7 @@
 #define AUTHOR "(C) Peter Rittwage and the rest of the C64 Preservation Project team\nhttp://c64preservation.com\n"
 
 #ifndef SVN
-#define SVN 2012
+#define SVN 2014
 #endif
 
 #define FL_STEPTO      			0x00

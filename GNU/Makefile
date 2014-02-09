@@ -7,7 +7,11 @@
 # If building for DOS, change this to the path to your DJGPP install
 DJGPP_PATH=	c:/djgpp
 
-# Recent Cygwin defaults to gcc-4, which has -mno-cygwin removed (among other things)
+# To build standalone 32-bit binaries for Windows using Cygwin, you'll need this
+#CC=i686-w64-mingw32-gcc
+# To build standalone 32-bit binaries for Windows using Cygwin, you'll need this
+#CC=x86_64-w64-mingw32-gcc
+# Stadard BSD/Linux/Mac should be default
 CC=gcc 
 
 # If building for Linux or Windows, change this to the base path to your
@@ -53,7 +57,7 @@ linux:
 
 win32:
 	${MAKE} CFLAGS="-I include/WINDOWS/ -I ${CBM_WIN_PATH}/include -D WIN32 ${CFLAGS} -std=c99" \
-		LDFLAGS="-mno-cygwin -L${CBM_WIN_PATH}/bin/i386/ -lopencbm" \
+		LDFLAGS="-L${CBM_WIN_PATH}/bin/i386/ -lopencbm" \
 		EXE=".exe" \
 		-f GNU/Makefile \
 		nibread nibwrite nibconv nibscan nibrepair nibsrqtest
