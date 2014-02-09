@@ -166,12 +166,12 @@ void kill_track(CBM_FILE fd, int track);
 
 /* drive.c  */
 int compare_extension(char * filename, char * extension);
-__u_char  burst_read(CBM_FILE f);
-void burst_write(CBM_FILE f, __u_char c);
-int burst_read_n(CBM_FILE f, __u_char *Buffer, unsigned int Length);
-int burst_write_n(CBM_FILE f, __u_char *Buffer, unsigned int Length);
-int burst_read_track(CBM_FILE f, __u_char *Buffer, unsigned int Length);
-int burst_write_track(CBM_FILE f, __u_char *Buffer, unsigned int Length);
+unsigned char  burst_read(CBM_FILE f);
+void burst_write(CBM_FILE f, unsigned char c);
+int burst_read_n(CBM_FILE f, unsigned char *Buffer, unsigned int Length);
+int burst_write_n(CBM_FILE f, unsigned char *Buffer, unsigned int Length);
+int burst_read_track(CBM_FILE f, unsigned char *Buffer, unsigned int Length);
+int burst_write_track(CBM_FILE f, unsigned char *Buffer, unsigned int Length);
 void ARCH_SIGNALDECL handle_signals(int sig);
 void ARCH_SIGNALDECL handle_exit(void);
 int upload_code(CBM_FILE fd, BYTE drive);

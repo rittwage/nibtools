@@ -17,25 +17,25 @@
 const char cbm_dev[] = "/dev/cbm";
 
 int
-cbm_listen(int f, __u_char dev, __u_char secadr)
+cbm_listen(int f, unsigned char dev, unsigned char secadr)
 {
 	return cbm_ioctl(f, CBMCTRL_LISTEN, (dev << 8) | secadr);
 }
 
 int
-cbm_talk(int f, __u_char dev, __u_char secadr)
+cbm_talk(int f, unsigned char dev, unsigned char secadr)
 {
 	return cbm_ioctl(f, CBMCTRL_TALK, (dev << 8) | secadr);
 }
 
 int
-cbm_open(int f, __u_char dev, __u_char secadr)
+cbm_open(int f, unsigned char dev, unsigned char secadr)
 {
 	return cbm_ioctl(f, CBMCTRL_OPEN, (dev << 8) | secadr);
 }
 
 int
-cbm_close(int f, __u_char dev, __u_char secadr)
+cbm_close(int f, unsigned char dev, unsigned char secadr)
 {
 	return cbm_ioctl(f, CBMCTRL_CLOSE, (dev << 8) | secadr);
 }
@@ -58,32 +58,32 @@ cbm_reset(int f)
 	return cbm_ioctl(f, CBMCTRL_RESET, 0);
 }
 
-__u_char
+unsigned char
 cbm_pp_read(int f)
 {
 	return cbm_ioctl(f, CBMCTRL_PP_READ, 0);
 }
 
 void
-cbm_pp_write(int f, __u_char c)
+cbm_pp_write(int f, unsigned char c)
 {
 	cbm_ioctl(f, CBMCTRL_PP_WRITE, c);
 }
 
-__u_char
+unsigned char
 cbm_parallel_burst_read(int f)
 {
 	return cbm_ioctl(f, CBMCTRL_PAR_READ, 0);
 }
 
 void
-cbm_parallel_burst_write(int f, __u_char c)
+cbm_parallel_burst_write(int f, unsigned char c)
 {
 	cbm_ioctl(f, CBMCTRL_PAR_WRITE, c);
 }
 
 int
-cbm_parallel_burst_read_n(int f, __u_char *Buffer, unsigned int Length)
+cbm_parallel_burst_read_n(int f, unsigned char *Buffer, unsigned int Length)
 {
 	unsigned int count;
 
@@ -94,7 +94,7 @@ cbm_parallel_burst_read_n(int f, __u_char *Buffer, unsigned int Length)
 }
 
 int
-cbm_parallel_burst_write_n(int f, __u_char *Buffer, unsigned int Length)
+cbm_parallel_burst_write_n(int f, unsigned char *Buffer, unsigned int Length)
 {
 	unsigned int count;
 
@@ -162,7 +162,7 @@ cbm_exec_command(int f, int drv, char *cmd, int len)
 }
 
 int
-cbm_upload(int f, __u_char dev, int adr, __u_char *prog, int size)
+cbm_upload(int f, unsigned char dev, int adr, unsigned char *prog, int size)
 {
 	int c, i, ret, rv;
 	char cmd[40];
