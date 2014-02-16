@@ -738,7 +738,7 @@ size_t check_fat(int track)
 			printf("*FAT Track on T%d, diff=%d*",track/2,diff);
 			return 1;
 		}
-		else if (diff<=30)
+		else if (diff<=35)
 		{
 			printf("*Possible FAT Track on T%d, diff=%d*",track/2,diff);
 			return 1;
