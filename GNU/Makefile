@@ -9,7 +9,7 @@ DJGPP_PATH=	c:/djgpp
 
 # To build standalone 32-bit binaries for Windows using Cygwin, you'll need this
 #CC=i686-w64-mingw32-gcc
-# To build standalone 32-bit binaries for Windows using Cygwin, you'll need this
+# To build standalone 64-bit binaries for Windows using Cygwin, you'll need this
 #CC=x86_64-w64-mingw32-gcc
 # Stadard BSD/Linux/Mac should be default
 CC=gcc 
