@@ -273,10 +273,18 @@ void parseargs(char *argv[])
 			break;
 
 		case 'F':
-			/* insert halftrack (FAT protection */
+			/* insert halftrack (FAT track protection) */
 			fattrack = atoi(&(*argv)[2]);
-			printf("* FAT track on %d/%.2f/%d\n",fattrack,fattrack+0.5,fattrack+1);
-			fattrack*=2;
+			if(!fattrack)
+			{
+				printf("FAT track detection mode");
+				fattrack=99; /*test detect mode*/
+			}
+			else
+			{
+				printf("* FAT track on %d/%.2f/%d\n",fattrack,fattrack+0.5,fattrack+1);
+				fattrack*=2;
+			}
 			break;
 
 		case 'P':
@@ -943,11 +951,46 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	FILE * fpout;
 	BYTE buffer[NIB_TRACK_LENGTH], tempfillbyte;
 	size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
+	char errorstring[0x1000];
+	size_t diff = 0;
 
 	printf("\nWriting G64 file...\n");
 
 	/* I don't like this hack here, but it is necessary to fix old files that lacked halftracks */
-	if(fattrack)
+	if(fattrack==99) /* autodetect fat tracks */
+	{
+		for (track=2; track<=MAX_HALFTRACKS_1541+1; track+=2)
+		{
+			if (track_length[track] > 0 && track_length[track+2] > 0 && track_length[track] != 8192 && track_length[track+2] != 8192)
+			{
+				diff = compare_tracks(
+				  track_buffer + (track * NIB_TRACK_LENGTH),
+				  track_buffer + ((track+2) * NIB_TRACK_LENGTH),
+				  track_length[track],
+				  track_length[track+2], 1, errorstring);
+
+				if (diff<=10)
+				{
+					printf("*FAT Track on T%d, diff=%d*\n",track/2,diff);
+
+					memcpy(track_buffer + ((track+1) * NIB_TRACK_LENGTH),
+						track_buffer + (track * NIB_TRACK_LENGTH),
+						NIB_TRACK_LENGTH);
+
+					track_length[track+1] = track_length[track];
+					track_density[track+1] = track_density[track];
+
+					//memcpy(track_buffer + ((track+2) * NIB_TRACK_LENGTH),
+					//	track_buffer + (track * NIB_TRACK_LENGTH),
+					//	NIB_TRACK_LENGTH);
+
+					//track_length[track+2] = track_length[track];
+					//track_density[track+2] = track_density[track];
+				}
+			}
+		}
+	}
+	else if(fattrack) /* manually input */
 	{
 		printf("Handle FAT track on %d\n",fattrack);
 
@@ -955,12 +998,15 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 			track_buffer + (fattrack * NIB_TRACK_LENGTH),
 			NIB_TRACK_LENGTH);
 
-		memcpy(track_buffer + ((fattrack+2) * NIB_TRACK_LENGTH),
-			track_buffer + (fattrack * NIB_TRACK_LENGTH),
-			NIB_TRACK_LENGTH);
+		track_length[fattrack+1] = track_length[fattrack];
+		track_density[fattrack+1] = track_density[fattrack];
 
-		track_length[fattrack+1] = track_length[fattrack+2] = track_length[fattrack];
-		track_density[fattrack+1] = track_density[fattrack+2] = track_density[fattrack];
+		//memcpy(track_buffer + ((fattrack+2) * NIB_TRACK_LENGTH),
+		//	track_buffer + (fattrack * NIB_TRACK_LENGTH),
+		//	NIB_TRACK_LENGTH);
+
+		//track_length[fattrack+2] = track_length[fattrack];
+		//track_density[fattrack+2] = track_density[fattrack];
 	}
 
 

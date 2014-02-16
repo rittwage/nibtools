@@ -569,13 +569,12 @@ scandisk(void)
 			}
 			*/
 
-			/* check for FAT track
+			/* check for FAT track */
 			if (track < end_track - track_inc)
 			{
 				fat_tracks[track] = check_fat(track);
 				if (fat_tracks[track]) totalfat++;
 			}
-			*/
 
 			/* check for regular disk errors
 				"second half" of fat track will always have header
@@ -721,18 +720,33 @@ raw_track_info(BYTE * gcrdata, size_t length)
 
 size_t check_fat(int track)
 {
-	size_t fat = 0;
+	size_t diff = 0;
 	char errorstring[0x1000];
 
-	if (track_length[track] > 0 && track_length[track+2] > 0)
+	if (track_length[track] > 0 && track_length[track+2] > 0 && track_length[track] != 8192 && track_length[track+2] != 8192)
 	{
-		fat = compare_tracks(track_buffer + (track * NIB_TRACK_LENGTH),
-		  track_buffer + ((track+2) * NIB_TRACK_LENGTH), track_length[track],
+		diff = compare_tracks(
+		  track_buffer + (track * NIB_TRACK_LENGTH),
+		  track_buffer + ((track+2) * NIB_TRACK_LENGTH),
+		  track_length[track],
 		  track_length[track+2], 1, errorstring);
-	}
 
-	if (fat) printf("*FAT* ");
-	return fat;
+		if(verbose) printf("\n%s\n",errorstring);
+
+		if (diff<=10)
+		{
+			printf("*FAT Track on T%d, diff=%d*",track/2,diff);
+			return 1;
+		}
+		else if (diff<=30)
+		{
+			printf("*Possible FAT Track on T%d, diff=%d*",track/2,diff);
+			return 1;
+		}
+		else
+			if(verbose) printf("diff=%d",diff);
+	}
+	return 0;
 }
 
 /*

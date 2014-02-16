@@ -62,6 +62,13 @@ win32:
 		-f GNU/Makefile \
 		nibread nibwrite nibconv nibscan nibrepair nibsrqtest
 
+win64:
+	${MAKE} CFLAGS="-I include/WINDOWS/ -I ${CBM_WIN_PATH}/include -D WIN32 ${CFLAGS} -std=c99" \
+		LDFLAGS="-L${CBM_WIN_PATH}/bin/amd64/ -lopencbm" \
+		EXE=".exe" \
+		-f GNU/Makefile \
+		nibread nibwrite nibconv nibscan nibrepair nibsrqtest
+
 # Warning level.  Don't reduce, fix your new code instead.
 WARNS= -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wpointer-arith 
 
