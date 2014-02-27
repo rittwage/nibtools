@@ -68,7 +68,7 @@ main(int argc, char **argv)
 	gap_match_length = 7;
 	cap_min_ignore = 0;
 	verbose = 0;
-	rpm_real = 0;
+	rpm_real = 296;
 
 	/* default is to reduce sync */
 	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541 + 1);

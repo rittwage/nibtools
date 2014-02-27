@@ -54,7 +54,7 @@ int waitkey = 0;
 int gap_match_length;
 int cap_relax;
 int verbose;
-int rpm_real = 0;
+int rpm_real;
 int auto_capacity_adjust;
 int skew;
 int align_disk;
@@ -98,7 +98,7 @@ main(int argc, char *argv[])
 	reduce_sync = 3;
 	reduce_badgcr = 0;
 	reduce_gap = 0;
-	rpm_real = 0;
+	rpm_real = 296;
 	verbose = 0;
 	cap_min_ignore = 0;
 

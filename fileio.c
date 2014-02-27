@@ -268,21 +268,20 @@ void parseargs(char *argv[])
 
 		case 'C':
 			rpm_real = atoi(&(*argv)[2]);
-			if(!rpm_real) rpm_real = 297;
 			printf("* Simulate track capacity: %dRPM\n",rpm_real);
 			break;
 
 		case 'F':
-			/* insert halftrack (FAT track protection) */
+			/* override FAT track detection */
 			fattrack = atoi(&(*argv)[2]);
 			if(!fattrack)
 			{
-				printf("FAT track detection mode");
-				fattrack=99; /*test detect mode*/
+				printf("* FAT tracks disabled\n");
+				fattrack=99;
 			}
 			else
 			{
-				printf("* FAT track on %d/%.2f/%d\n",fattrack,fattrack+0.5,fattrack+1);
+				printf("* Insert FAT track on %d/%.2f/%d\n",fattrack,fattrack+0.5,fattrack+1);
 				fattrack*=2;
 			}
 			break;
@@ -957,7 +956,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	printf("\nWriting G64 file...\n");
 
 	/* I don't like this hack here, but it is necessary to fix old files that lacked halftracks */
-	if(fattrack==99) /* autodetect fat tracks */
+	if(!fattrack) /* autodetect fat tracks */
 	{
 		for (track=2; track<=MAX_HALFTRACKS_1541+1; track+=2)
 		{
@@ -990,7 +989,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 			}
 		}
 	}
-	else if(fattrack) /* manually input */
+	else	if(fattrack!=99) /* manually overridden */
 	{
 		printf("Handle FAT track on %d\n",fattrack);
 
@@ -1008,7 +1007,6 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		//track_length[fattrack+2] = track_length[fattrack];
 		//track_density[fattrack+2] = track_density[fattrack];
 	}
-
 
 	fpout = fopen(filename, "wb");
 	if (fpout == NULL)

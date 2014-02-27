@@ -386,15 +386,6 @@ void adjust_target(CBM_FILE fd)
 		printf("\n\nERROR!\nDrive speed out of range.\nCheck motor, write-protect, or bad media.\n");
 		exit(0);
 	}
-
-	if(rpm_real)
-	{
-		printf("\nRPM override to %dRPM specified\n", rpm_real);
-		capacity[0] = (int) (DENSITY0 / rpm_real) - extra_capacity_margin;
-		capacity[1] = (int) (DENSITY1 / rpm_real) - extra_capacity_margin;
-		capacity[2] = (int) (DENSITY2 / rpm_real) - extra_capacity_margin;
-		capacity[3] = (int) (DENSITY3 / rpm_real) - extra_capacity_margin;
-	}
 }
 
 void
