@@ -283,10 +283,10 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
     int i, j;
 
 	if (track > MAX_TRACK_D64)
-		return NO_TRACK_DATA;
+		return SYNC_NOT_FOUND; //NO_TRACK_DATA;
 
 	if ((gcr_cycle == NULL) || (gcr_cycle <= gcr_start))
-		return NO_TRACK_DATA;
+		return SYNC_NOT_FOUND; //NO_TRACK_DATA;
 
 	/* initialize sector data with Original Format Pattern */
 	memset(d64_sector, 0x01, 260);
@@ -360,14 +360,21 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 
 	/* check for data sector, it will always be the data following header */
 	if (!find_sync(&gcr_ptr, gcr_end))
-		return (DATA_NOT_FOUND);
+		return DATA_NOT_FOUND;
 
 	for (i = 0, sectordata = d64_sector; i < 65; i++)
 	{
 		if (gcr_ptr >= gcr_end - 4)
-			return (DATA_NOT_FOUND);  /* we reached the end of the track data we have */
+			return DATA_NOT_FOUND;  /* we reached the end of the track data we have */
 
 		convert_4bytes_from_GCR(gcr_ptr, sectordata);
+
+		if(verbose>3)
+			printf("%.4x: %.2x%.2x%.2x%.2x%.2x --- %.2x%.2x%.2x%.2x\n",
+				(i*4),
+				gcr_ptr[0], gcr_ptr[1], gcr_ptr[2], gcr_ptr[3], gcr_ptr[4],
+				sectordata[0], sectordata[1], sectordata[2], sectordata[3]);
+
 		gcr_ptr += 5;
 		sectordata += 4;
 	}

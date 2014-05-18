@@ -938,7 +938,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 
 	//#define G64_TRACK_MAXLEN 7928
 	//#define G64_TRACK_MAXLEN 8192
-	DWORD G64_TRACK_MAXLEN = 7928;  /* now dynamically determined */
+	DWORD G64_TRACK_MAXLEN = 7928;
 	BYTE header[12];
 	DWORD gcr_track_p[MAX_HALFTRACKS_1541] = {0};
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541] = {0};
@@ -1015,7 +1015,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		return 0;
 	}
 
-	/* determine max track size (VICE <2.2 can't handle) */
+	/* determine max track size (VICE still can't handle) */
 	//for (index= 0; index < MAX_HALFTRACKS_1541; index += track_inc)
 	//{
 	//	if(track_length[index+2] > G64_TRACK_MAXLEN)

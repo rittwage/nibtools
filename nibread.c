@@ -191,7 +191,7 @@ main(int argc, char *argv[])
 
 		case 'v':
 			track_match = 1;
-			printf("* Enable track match (crude verify)\n");
+			printf("* Enable track match (low-level verify)\n");
 			break;
 
 		case 'n':

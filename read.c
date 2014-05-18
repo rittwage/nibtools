@@ -295,8 +295,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			gcr_diff = compare_tracks(cbufo, cbufn, leno, lenn, 1, errorstring);
 			printf("[%d GCR Byte Difference] ", gcr_diff);
 			fprintf(fplog, "[%d GCR Byte Difference] ", gcr_diff);
-			if(gcr_diff <= 10)
-				break;
+			//if(gcr_diff <= 10) break;
 
 			// compare sector data
 			if (compare_sectors(cbufo, cbufn, leno, lenn, diskid, diskid, halftrack, errorstring) == sector_map[halftrack/2])
