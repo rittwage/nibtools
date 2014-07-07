@@ -282,11 +282,11 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
     size_t track_len;
     int i, j;
 
-	if (track > MAX_TRACK_D64)
-		return SYNC_NOT_FOUND; //NO_TRACK_DATA;
+	//if (track > MAX_TRACK_D64)
+	//	return SYNC_NOT_FOUND;
 
 	if ((gcr_cycle == NULL) || (gcr_cycle <= gcr_start))
-		return SYNC_NOT_FOUND; //NO_TRACK_DATA;
+		return SYNC_NOT_FOUND;
 
 	/* initialize sector data with Original Format Pattern */
 	memset(d64_sector, 0x01, 260);

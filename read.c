@@ -259,7 +259,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	}
 
 	// Fix bad GCR in track for compare
-	if (badgcr = check_bad_gcr(cbufo, leno))
+	if ((badgcr = check_bad_gcr(cbufo, leno)) != 0)
 	{
 		printf(" (weakgcr:%lu) ", badgcr);
 		fprintf(fplog, " (weakgcr:%lu) ", badgcr);
@@ -285,7 +285,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			fprintf(fplog, "%lu ", lenn);
 
 			// Fix bad GCR in track for compare
-			if (badgcr = check_bad_gcr(cbufn, lenn))
+			if ((badgcr = check_bad_gcr(cbufn, lenn)) != 0)
 			{
 				//printf("(weakgcr:%lu)", badgcr);
 				//fprintf(fplog, "(weakgcr:%lu) ", badgcr);

@@ -27,20 +27,20 @@ int raw_track_info(BYTE *gcrdata, size_t length);
 size_t check_fat(int track);
 size_t check_rapidlok(int track);
 
-BYTE compressed_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
-BYTE file_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
-BYTE track_buffer[(MAX_HALFTRACKS_1541+1) * NIB_TRACK_LENGTH];
-BYTE track_buffer2[(MAX_HALFTRACKS_1541+1) * NIB_TRACK_LENGTH];
-size_t track_length[MAX_HALFTRACKS_1541 + 1];
-size_t track_length2[MAX_HALFTRACKS_1541 + 1];
-BYTE track_density[MAX_HALFTRACKS_1541 + 1];
-BYTE track_density2[MAX_HALFTRACKS_1541 + 1];
-BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
-BYTE track_alignment2[MAX_HALFTRACKS_1541 + 1];
+BYTE compressed_buffer[(MAX_HALFTRACKS_1541 + 2) * NIB_TRACK_LENGTH];
+BYTE file_buffer[(MAX_HALFTRACKS_1541 + 2) * NIB_TRACK_LENGTH];
+BYTE track_buffer[(MAX_HALFTRACKS_1541 + 2) * NIB_TRACK_LENGTH];
+BYTE track_buffer2[(MAX_HALFTRACKS_1541 + 2) * NIB_TRACK_LENGTH];
+size_t track_length[MAX_HALFTRACKS_1541 + 2];
+size_t track_length2[MAX_HALFTRACKS_1541 + 2];
+BYTE track_density[MAX_HALFTRACKS_1541 + 2];
+BYTE track_density2[MAX_HALFTRACKS_1541 + 2];
+BYTE track_alignment[MAX_HALFTRACKS_1541 + 2];
+BYTE track_alignment2[MAX_HALFTRACKS_1541 + 2];
 
-size_t fat_tracks[MAX_HALFTRACKS_1541 + 1];
-size_t rapidlok_tracks[MAX_HALFTRACKS_1541 + 1];
-size_t badgcr_tracks[MAX_HALFTRACKS_1541 + 1];
+size_t fat_tracks[MAX_HALFTRACKS_1541 + 2];
+size_t rapidlok_tracks[MAX_HALFTRACKS_1541 + 2];
+size_t badgcr_tracks[MAX_HALFTRACKS_1541 + 2];
 
 int start_track, end_track, track_inc;
 int imagetype, mode;
@@ -117,7 +117,7 @@ main(int argc, char *argv[])
 	memset(track_buffer2, 0x00, sizeof(track_buffer2));
 
 	/* default is to reduce sync */
-	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+1);
+	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+2);
 
 	while (--argc && (*(++argv)[0] == '-'))
 		parseargs(argv);

@@ -26,12 +26,12 @@
 
 int _dowildcard = 1;
 
-BYTE compressed_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
-BYTE file_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
-BYTE track_buffer[(MAX_HALFTRACKS_1541+1) * NIB_TRACK_LENGTH];
-BYTE track_density[MAX_HALFTRACKS_1541 + 1];
-BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
-size_t track_length[MAX_HALFTRACKS_1541 + 1];
+BYTE compressed_buffer[(MAX_HALFTRACKS_1541 + 2) * NIB_TRACK_LENGTH];
+BYTE file_buffer[(MAX_HALFTRACKS_1541 + 2) * NIB_TRACK_LENGTH];
+BYTE track_buffer[(MAX_HALFTRACKS_1541 + 2) * NIB_TRACK_LENGTH];
+BYTE track_density[MAX_HALFTRACKS_1541 + 2];
+BYTE track_alignment[MAX_HALFTRACKS_1541 + 2];
+size_t track_length[MAX_HALFTRACKS_1541 + 2];
 int file_buffer_size;
 int start_track, end_track, track_inc;
 int reduce_sync, reduce_badgcr, reduce_gap;
@@ -93,7 +93,7 @@ main(int argc, char **argv)
 	memset(track_buffer, 0x00, sizeof(track_buffer));
 
 	/* default is to reduce sync */
-	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+1);
+	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+2);
 
 	while (--argc && (*(++argv)[0] == '-'))
 		parseargs(argv);

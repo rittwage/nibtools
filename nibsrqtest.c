@@ -96,11 +96,12 @@ main(int argc, char *argv[])
 	{
 		printf("\nSending data interation #%d\n",l);
 
-		//memset(buffer1,rand()%255,0xff);
-		for(m=0;m<=0xff;m++) buffer1[m]=rand()%255;
+		//memset(buffer1, rand() % 256, sizeof(buffer1));
+		for (m = 0; m < sizeof(buffer1); m++)
+			buffer1[m] = rand() % 256;
 
 		send_mnib_cmd(fd, FL_WRITE, NULL, 0);
-		if(!burst_write_track(fd,buffer1,0xff+1))
+		if(!burst_write_track(fd, buffer1, sizeof(buffer1)))
 		{
 			printf("timeout error writing");
 			exit(0);
@@ -109,7 +110,7 @@ main(int argc, char *argv[])
 		printf("\nReading data interation #%d\n",l);
 		send_mnib_cmd(fd, FL_READNORMAL, NULL, 0);
 		burst_read(fd);
-		if(!burst_read_track(fd,buffer2,0xff+1))
+		if(!burst_read_track(fd, buffer2, sizeof(buffer2)))
 		{
 			printf("timeout error reading");
 			exit(0);

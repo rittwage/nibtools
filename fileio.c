@@ -88,14 +88,14 @@ void parseargs(char *argv[])
 			{
 				case 'x':
 					printf("V-MAX!\n");
-					memset(align_map, ALIGN_VMAX, MAX_TRACKS_1541+1);
+					memset(align_map, ALIGN_VMAX, MAX_TRACKS_1541+2);
 					fix_gcr = 0;
 					presync = 1;
 					break;
 
 				case 'c':
 					printf("V-MAX! (CINEMAWARE)\n");
-					memset(align_map, ALIGN_VMAX_CW, MAX_TRACKS_1541+1);
+					memset(align_map, ALIGN_VMAX_CW, MAX_TRACKS_1541+2);
 					fix_gcr = 0;
 					presync = 1;
 					break;
@@ -113,7 +113,7 @@ void parseargs(char *argv[])
 
 				case 'v':
 					printf("VORPAL (NEWER)\n");
-					memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541+1);
+					memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541+2);
 					align_map[18] = ALIGN_NONE;
 					break;
 
@@ -121,7 +121,7 @@ void parseargs(char *argv[])
 					printf("RAPIDLOK\n"); /* don't reduce sync, but everything else */
 					//for(count = 1; count <= MAX_TRACKS_1541; count ++)
 					//	reduce_map[count] = REDUCE_BAD | REDUCE_GAP;
-					memset(align_map, ALIGN_RAPIDLOK, MAX_TRACKS_1541+1);
+					memset(align_map, ALIGN_RAPIDLOK, MAX_TRACKS_1541+2);
 					break;
 
 				case'p':
@@ -143,32 +143,32 @@ void parseargs(char *argv[])
 			if ((*argv)[2] == '0')
 			{
 				printf("sector 0\n");
-				memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541+1);
+				memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541+2);
 			}
 			else if ((*argv)[2] == 'g')
 			{
 				printf("gap\n");
-				memset(align_map, ALIGN_GAP, MAX_TRACKS_1541+1);
+				memset(align_map, ALIGN_GAP, MAX_TRACKS_1541+2);
 			}
 			else if ((*argv)[2] == 'w')
 			{
 				printf("longest bad GCR run\n");
-				memset(align_map, ALIGN_BADGCR, MAX_TRACKS_1541+1);
+				memset(align_map, ALIGN_BADGCR, MAX_TRACKS_1541+2);
 			}
 			else if ((*argv)[2] == 's')
 			{
 				printf("longest sync\n");
-				memset(align_map, ALIGN_LONGSYNC, MAX_TRACKS_1541+1);
+				memset(align_map, ALIGN_LONGSYNC, MAX_TRACKS_1541+2);
 			}
 			else if ((*argv)[2] == 'a')
 			{
 				printf("autogap\n");
-				memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541+1);
+				memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541+2);
 			}
 			else if ((*argv)[2] == 'n')
 			{
 				printf("raw (no alignment, use NIB start)\n");
-				memset(align_map, ALIGN_RAW, MAX_TRACKS_1541+1);
+				memset(align_map, ALIGN_RAW, MAX_TRACKS_1541+2);
 			}
 			else
 				printf("Unknown alignment parameter\n");
@@ -496,7 +496,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 			for(pass = 0; pass <= 3; pass ++)
 			{
 				/* get track from file */
-				if( (pass_density == track_density[track]) )
+				if(pass_density == track_density[track])
 				{
 					fread(nibdata, NIB_TRACK_LENGTH, 1, fpin);
 
@@ -875,7 +875,6 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 			}
 			if((track/2 > 35) &&
 				(errorcode != SYNC_NOT_FOUND) &&
-				(errorcode != NO_TRACK_DATA) &&
 				(errorcode != HEADER_NOT_FOUND))
 			{
 				save_40_tracks = 1;

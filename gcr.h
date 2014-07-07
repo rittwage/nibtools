@@ -88,7 +88,6 @@ speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 /*#define GCR_MIN_FORMATTED 64 */	/* chessmaster track 29 */
 
 /* Disk Controller error codes */
-#define NO_TRACK_DATA					0x00	/*not a real CBM error code */
 #define SECTOR_OK								0x01	// 00,OK
 #define HEADER_NOT_FOUND			0x02	// 20,READ ERROR
 #define SYNC_NOT_FOUND				0x03	// 21,READ ERROR

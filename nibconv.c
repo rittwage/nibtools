@@ -17,12 +17,12 @@
 
 int _dowildcard = 1;
 
-BYTE compressed_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
-BYTE file_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
-BYTE track_buffer[(MAX_HALFTRACKS_1541+1) * NIB_TRACK_LENGTH];
-BYTE track_density[MAX_HALFTRACKS_1541 + 1];
-BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
-size_t track_length[MAX_HALFTRACKS_1541 + 1];
+BYTE compressed_buffer[(MAX_HALFTRACKS_1541 + 2) * NIB_TRACK_LENGTH];
+BYTE file_buffer[(MAX_HALFTRACKS_1541 + 2) * NIB_TRACK_LENGTH];
+BYTE track_buffer[(MAX_HALFTRACKS_1541 + 2) * NIB_TRACK_LENGTH];
+BYTE track_density[MAX_HALFTRACKS_1541 + 2];
+BYTE track_alignment[MAX_HALFTRACKS_1541 + 2];
+size_t track_length[MAX_HALFTRACKS_1541 + 2];
 int file_buffer_size;
 int start_track, end_track, track_inc;
 int reduce_sync, reduce_badgcr, reduce_gap;
@@ -56,6 +56,7 @@ main(int argc, char **argv)
 	char inname[256], outname[256];
 	char *dotpos;
 	FILE *fp;
+	int t;
 
 	start_track = 1 * 2;
 	end_track = 42 * 2;
@@ -71,8 +72,10 @@ main(int argc, char **argv)
 	rpm_real = 296;
 
 	/* default is to reduce sync */
-	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541 + 1);
-	memset(track_length, 0x2000, MAX_TRACKS_1541 + 1);
+	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541 + 2);
+	//memset(track_length, 0, MAX_TRACKS_1541 + 2);
+	for(t=0; t<MAX_TRACKS_1541 + 2; t++)
+		track_length[t] = NIB_TRACK_LENGTH; // I do not recall why this was done, but left at MAX
 
 	fprintf(stdout,
 		"\nnibconv - converts a CBM disk image from one format to another.\n"
@@ -82,9 +85,6 @@ main(int argc, char **argv)
 	memset(compressed_buffer, 0x00, sizeof(compressed_buffer));
 	memset(file_buffer, 0x00, sizeof(file_buffer));
 	memset(track_buffer, 0x00, sizeof(track_buffer));
-
-	/* default is to reduce sync */
-	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+1);
 
 	while (--argc && (*(++argv)[0] == '-'))
 		parseargs(argv);

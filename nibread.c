@@ -22,12 +22,12 @@ char bitrate_range[4] = { 43 * 2, 31 * 2, 25 * 2, 18 * 2 };
 char bitrate_value[4] = { 0x00, 0x20, 0x40, 0x60 };
 char density_branch[4] = { 0xb1, 0xb5, 0xb7, 0xb9 };
 
-BYTE compressed_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
-BYTE file_buffer[(MAX_HALFTRACKS_1541+2) * NIB_TRACK_LENGTH];
-BYTE track_buffer[(MAX_HALFTRACKS_1541+1) * NIB_TRACK_LENGTH];
-BYTE track_density[MAX_HALFTRACKS_1541 + 1];
-BYTE track_alignment[MAX_HALFTRACKS_1541 + 1];
-size_t track_length[MAX_HALFTRACKS_1541 + 1];
+BYTE compressed_buffer[(MAX_HALFTRACKS_1541 + 2) * NIB_TRACK_LENGTH];
+BYTE file_buffer[(MAX_HALFTRACKS_1541 + 2) * NIB_TRACK_LENGTH];
+BYTE track_buffer[(MAX_HALFTRACKS_1541 + 2) * NIB_TRACK_LENGTH];
+BYTE track_density[MAX_HALFTRACKS_1541 + 2];
+BYTE track_alignment[MAX_HALFTRACKS_1541 + 2];
+size_t track_length[MAX_HALFTRACKS_1541 + 2];
 
 size_t error_retries;
 int file_buffer_size;
