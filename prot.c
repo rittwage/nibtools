@@ -197,7 +197,7 @@ align_pirateslayer(BYTE * work_buffer, size_t tracklen)
 		{
 			if ( ((pos[0] == 0xd7) && (pos[1] == 0xd7) && (pos[2] == 0xeb) && (pos[3] == 0xcc) && (pos[4] == 0xad)) ||   /* version 1 and version 2 */
 				/* it also looks for another byte pattern just after that: $55 $AE $9B $55 $AD $55 $CB $AE $6B $AB $AD $AF, but we only flag first one */
-				((pos[0] == 0xeb) && (pos[1] == 0xd7) && (pos[2] == 0xaa) && (pos[3] == 0x55)) )  /* version 1 seconday check */
+				((pos[0] == 0xeb) && (pos[1] == 0xd7) && (pos[2] == 0xaa) && (pos[3] == 0x55)) )  /* version 1 secondary check */
 			{
 				return pos - 5;  /* back up a little */
 			}
