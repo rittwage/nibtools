@@ -120,6 +120,7 @@ main(int argc, char **argv)
 	if (compare_extension(inname, "D64"))
 	{
 		if(!(read_d64(inname, track_buffer, track_density, track_length))) exit(0);
+		skip_halftracks=1;
 	}
 	else if (compare_extension(inname, "G64"))
 	{

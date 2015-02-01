@@ -1316,7 +1316,7 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 			}
 
 			/* it just didn't work out. :) */
-			if(verbose>1)
+			if(verbose>2)
 				printf("(%.4d:%.2x!=%.2x)\n",(int)j,track1[j],track2[k]);
 
 			byte_diff++;

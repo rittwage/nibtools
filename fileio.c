@@ -1037,7 +1037,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	}
 
 	/* Create track and speed tables */
-	for (track = 0; track < MAX_HALFTRACKS_1541; track ++)
+	for (track = 0; track < MAX_HALFTRACKS_1541; track += track_inc)
 	{
 		/* calculate track positions and speed zone data */
 		if(!track_length[track+2])
@@ -1061,7 +1061,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	}
 
 	/* shuffle raw GCR between formats */
-	for (track = 2; track <= MAX_HALFTRACKS_1541+1; track ++)
+	for (track = 2; track <= MAX_HALFTRACKS_1541+1; track += track_inc)
 	{
 		track_len = track_length[track];
 		if(!track_len) continue;
