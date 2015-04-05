@@ -24,6 +24,7 @@ int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *
 int compare_disks(void);
 int scandisk(void);
 int raw_track_info(BYTE *gcrdata, size_t length);
+int dump_headers(BYTE * gcrdata, size_t length);
 size_t check_fat(int track);
 size_t check_rapidlok(int track);
 
@@ -602,7 +603,10 @@ scandisk(void)
 			}
 
 			if (verbose>1)
+			{
+					dump_headers(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track]);
 					raw_track_info(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track]);
+			}
 		}
 		printf("\n");
 
@@ -625,6 +629,38 @@ scandisk(void)
 	printf("%d tracks with non-standard density\n", total_wrong_density);
 	return 1;
 }
+
+int
+dump_headers(BYTE * gcrdata, size_t length)
+{
+	BYTE header[10];
+	BYTE *gcr_ptr, *gcr_end;
+
+	gcr_ptr = gcrdata;
+	gcr_end = gcrdata + length;
+
+	do
+	{
+		if (!find_sync(&gcr_ptr, gcr_end))
+			return 0;
+
+		convert_4bytes_from_GCR(gcr_ptr, header);
+		convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
+
+		if(header[0] == 0x08) // only parse headers
+			printf("\n%0.2x %0.2x %0.2x %0.2x = typ:%0.2x -- blh:%0.2x -- trk:%0.2x -- sec:%0.2x -- id:%c%c",
+				*gcr_ptr, *(gcr_ptr+1), *(gcr_ptr+2), *(gcr_ptr+3), header[0], header[1], header[3], header[2], header[5], header[4]);
+		else // data block should follow
+			printf("\n%0.2x %0.2x %0.2x %0.2x = typ:%0.2x",
+				*gcr_ptr, *(gcr_ptr+1), *(gcr_ptr+2), *(gcr_ptr+3), header[0]);
+
+	} while (gcr_ptr < (gcr_end - 10));
+
+	printf("\n");
+
+	return 1;
+}
+
 
 int
 raw_track_info(BYTE * gcrdata, size_t length)

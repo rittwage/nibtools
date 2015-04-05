@@ -11,6 +11,7 @@
 
 
 /* this routine "fixes" non-sync-byte aligned images created from RAW Kryoflux stream files */
+/* PROBLEM: This simple implementation can miss sync like 01111111 11111110 which is 14 bits and valid... */
 void sync_align(BYTE *buffer, int length)
 {
     int i,j;
