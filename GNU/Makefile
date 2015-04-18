@@ -12,7 +12,7 @@ DJGPP_PATH=	c:/djgpp
 # To build standalone 64-bit binaries for Windows using Cygwin, you'll need this
 #CC=x86_64-w64-mingw32-gcc
 # Stadard BSD/Linux/Mac should be default
-CC=gcc 
+CC=gcc
 
 # If building for Linux or Windows, change this to the base path to your
 # opencbm includes and libraries

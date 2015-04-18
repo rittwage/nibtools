@@ -293,8 +293,8 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 			// compare raw gcr data, unreliable
 			gcr_diff = compare_tracks(cbufo, cbufn, leno, lenn, 1, errorstring);
-			printf("[%d GCR Byte Difference] ", gcr_diff);
-			fprintf(fplog, "[%d GCR Byte Difference] ", gcr_diff);
+			printf("[%d GCR Byte Difference] ", (int)gcr_diff);
+			fprintf(fplog, "[%d GCR Byte Difference] ", (int)gcr_diff);
 			//if(gcr_diff <= 10) break;
 
 			// compare sector data

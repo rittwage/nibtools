@@ -972,7 +972,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 
 				if (diff<=10)
 				{
-					printf("*FAT Track on T%d, diff=%d*\n",track/2,diff);
+					printf("*FAT Track on T%d, diff=%d*\n",track/2,(int)diff);
 
 					memcpy(track_buffer + ((track+1) * NIB_TRACK_LENGTH),
 						track_buffer + (track * NIB_TRACK_LENGTH),

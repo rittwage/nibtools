@@ -648,10 +648,10 @@ dump_headers(BYTE * gcrdata, size_t length)
 		convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
 
 		if(header[0] == 0x08) // only parse headers
-			printf("\n%0.2x %0.2x %0.2x %0.2x = typ:%0.2x -- blh:%0.2x -- trk:%0.2x -- sec:%0.2x -- id:%c%c",
+			printf("\n%.2x %.2x %.2x %.2x = typ:%.2x -- blh:%.2x -- trk:%.2x -- sec:%.2x -- id:%c%c",
 				*gcr_ptr, *(gcr_ptr+1), *(gcr_ptr+2), *(gcr_ptr+3), header[0], header[1], header[3], header[2], header[5], header[4]);
 		else // data block should follow
-			printf("\n%0.2x %0.2x %0.2x %0.2x = typ:%0.2x",
+			printf("\n%.2x %.2x %.2x %.2x = typ:%.2x",
 				*gcr_ptr, *(gcr_ptr+1), *(gcr_ptr+2), *(gcr_ptr+3), header[0]);
 
 	} while (gcr_ptr < (gcr_end - 10));
@@ -771,16 +771,16 @@ size_t check_fat(int track)
 
 		if (diff<=10)
 		{
-			printf("*FAT Track on T%d, diff=%d*",track/2,diff);
+			printf("*FAT Track on T%d, diff=%d*",track/2,(int)diff);
 			return 1;
 		}
 		else if (diff<=35)
 		{
-			printf("*Possible FAT Track on T%d, diff=%d*",track/2,diff);
+			printf("*Possible FAT Track on T%d, diff=%d*",track/2,(int)diff);
 			return 1;
 		}
 		else
-			if(verbose) printf("diff=%d",diff);
+			if(verbose) printf("diff=%d",(int)diff);
 	}
 	return 0;
 }

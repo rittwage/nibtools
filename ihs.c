@@ -335,7 +335,7 @@ int DeepBitrateAnalysis(CBM_FILE fd, char *filename, BYTE *buffer, char *logline
 	// Create and init raw bitrate dump files
 	for (density=0; density < 4; density++)
 	{
-		sprintf(fname, "%s.br%d", filename, density);
+		sprintf(fname, "%s.br%d", filename, (int)density);
 		if ((fpout[density] = fopen(fname, "wb")) == NULL)
 		{
 			printf( "Error creating deep scan dump file %s.\n", fname);
@@ -344,7 +344,7 @@ int DeepBitrateAnalysis(CBM_FILE fd, char *filename, BYTE *buffer, char *logline
 
 		// Write initial BRX-header
 		memset(header, 0x00, sizeof(header));
-		sprintf(header, "BR%d-1541", density);
+		sprintf(header, "BR%d-1541",density);
 		header[8] = 0;  // BRX file version number
 		header[9] = (BYTE) 84;  // max number of halftracks
 		header[10] = (BYTE) (NIB_TRACK_LENGTH % 256);   // Size of each stored track = 8KByte
@@ -440,7 +440,7 @@ int DeepBitrateAnalysis(CBM_FILE fd, char *filename, BYTE *buffer, char *logline
 			// Write track to BRX file. Regardless if bitrate data, killer or no sync.
 
 			// Write bitrate track header
-			sprintf(thdr, "[%4.1f]", (float) track/2 );
+			sprintf(thdr, "[%4.1f]", (float)track/2 );
 			if (fwrite(thdr, 6, 1, fpout[density]) != 1)
 			{
 				fprintf(stderr, "Cannot write track [%d] header (BR%d).\n", track, density);
