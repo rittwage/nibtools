@@ -446,9 +446,12 @@ _ftL1:
 ;----------------------------------------
 ; write a track, can wait for IHS or sync before start.
 ; 1571-SRQ version without parallel port.
-; best drive speed is 300.00 rpm
 ;
-; Copyright 2011 Arnd Menge
+; Copyright 2011-2015 Arnd Menge
+;
+; Update 17-05-2015: Workaround for potential CIA 6526 ICR bug.
+;                    Failure still possible if unlucky.
+;                    Replacement by 2MHz 8520/8521 recommended.
 ;
 ; THIS ROUTINE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND
 ; AND/OR FITNESS FOR A PARTICULAR PURPOSE. USE AT YOUR OWN RISK.
@@ -463,7 +466,7 @@ _write_track:
         JSR  _read_byte_SRQ       ; read byte via SRQ
         STA  $61                  ; wait for SYNC? (0=NO)
  
- 	LDA  #$60		  ;  based on density
+        LDA  #$60                 ;  based on density
         AND  $1C00		  
         LSR
         LSR
@@ -499,18 +502,23 @@ _wts_start:
         JMP  _wts_write
 
 _wts_L1:
-        BIT  CIA_ICR              ; check for SRQ byte-ready
-        BMI  _wts_write
+        NOP                       ; timing
+        NOP
+        NOP
 _wts_L2:
-        BIT  CIA_ICR              ; check for SRQ byte-ready
-        BMI  _wts_write
+        NOP                       ; timing
+        NOP
+        NOP
 _wts_L3:
-        BIT  CIA_ICR              ; check for SRQ byte-ready
-        BMI  _wts_write
-        BIT  CIA_ICR              ; check for SRQ byte-ready
-        BMI  _wts_write
-        BIT  CIA_ICR              ; check for SRQ byte-ready
-        BMI  _wts_write
+        NOP                       ; timing
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
         BIT  CIA_ICR              ; check for SRQ byte-ready
         BPL  _wts_exit            ; branch to exit
 

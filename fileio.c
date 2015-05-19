@@ -37,8 +37,8 @@ void parseargs(char *argv[])
 			break;
 
 		case 's':
-			printf("* Use 1571 SRQ Support\n");
-			use_floppycode_srq = 1; // srq floppy code!
+			printf("* Skip 1571 SRQ Support (Use parallel)\n");
+			use_floppycode_srq = 0;
 			break;
 
 		case 'h':
