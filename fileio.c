@@ -795,15 +795,6 @@ int write_nib(BYTE*file_buffer, BYTE *track_buffer, BYTE *track_density, size_t 
 			track_buffer + (NIB_TRACK_LENGTH * track), NIB_TRACK_LENGTH);
 
 		header_entry++;
-
-		/* output some specs */
-		if(verbose)
-		{
-			printf("%4.1f: (",(float) track / 2);
-			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-			printf("%d:%lu)\n", track_density[track]&3, track_length[track]  );
-		}
 	}
 	memcpy(file_buffer, header, sizeof(header));
 	printf("Successfully parsed data to NIB format\n");

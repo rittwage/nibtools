@@ -865,9 +865,11 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 		track_len += (cap_max-cap_min)/2;
 	}
 
+	if(verbose)
+		printf(" ");
+
 	if(verbose>1)
 	{
-		printf(" ");
 		if (track_len > cap_max)
 			printf("[LONG, max=%lu<%lu] ",cap_max, track_len);
 		if(track_len < cap_min)
