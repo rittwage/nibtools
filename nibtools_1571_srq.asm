@@ -87,7 +87,7 @@ _main_loop:
 ; 1571-SRQ version without parallel port.
 ; best drive speed is 300.00 rpm
 ;
-; Copyright 2011 Arnd Menge
+; Copyright 2011-2015 Arnd Menge
 ;
 ; THIS ROUTINE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND
 ; AND/OR FITNESS FOR A PARTICULAR PURPOSE. USE AT YOUR OWN RISK.
@@ -96,6 +96,10 @@ _main_loop:
 
 _read_track:
         JSR  _send_byte_SRQ_on_send ; send data byte to host
+
+        LDY  #$20
+        STY  $60
+        LDY  #$00                 ; Read NIB_TRACK_LENGTH = 0x2000 bytes
 
         LDA  #$04
 _rt_L1:
@@ -133,11 +137,14 @@ _rt_L6:
         BIT  $180F
         BPL  _read_1
         STX  CIA_SDR              ; send byte
-        BIT  $1800
-        BEQ  _read_end            ; break if SLOW CLK = 0
-        BIT  $1800
+        INY                       ; update byte count
+        BEQ  _rts1
+        LDX  $60
+        JMP  _rtp1
+_rts1:
+        DEC  $60
 _rtp1:
-        BNE  _rt_L2               ; loop while SLOW CLK = 1
+        BNE  _rt_L2               ; loop while count < 0x2000
         BEQ  _read_end
         NOP                       ; timing
         NOP
@@ -150,17 +157,23 @@ _rtp1:
         JMP  _rt_L6               ; timing
 _read_1:
         LDX  $1C01                ; read data byte
-        PHA
-        PLA
-        PHA                       ; timing
-        PLA
-        BIT  $EA
-        NOP
-        STX  CIA_SDR              ; send byte
+        INY                       ; update byte count
+        BNE  _rts2
+        DEC  $60
+        JMP  _rts3
+_rts2:
         NOP                       ; timing
-        BIT  $1800
+        NOP
+        BIT  $EA
+_rts3:
+        NOP                       ; timing
+        NOP
+        BIT  $EA
+        STX  CIA_SDR              ; send byte
+        BIT  $EA                  ; timing
+        LDX  $60
 _rtp2:
-        BNE  _rt_L2               ; loop while SLOW CLK = 1
+        BNE  _rt_L2               ; loop while count < 0x2000
         BEQ  _read_end
         NOP                       ; timing
         NOP
@@ -216,6 +229,7 @@ _step_loop:
         LDA  #$00                 ; busy wait $0400 times
         STA  $c0                  ;
 _stepL1:
+;	NOP			; ** PAGE BOUNDARY ADJUST**
         DEC  $c0                  ;
         BNE  _stepL1              ;
         DEC  $c1                  ;

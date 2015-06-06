@@ -225,6 +225,11 @@ void parseargs(char *argv[])
 			printf("* Verbose mode increased\n");
 			break;
 
+		case 'V':
+			track_match = 1;
+			printf("* Enable track match (low-level verify)\n");
+			break;
+
 		case 'c':
 			auto_capacity_adjust = 0;
 			printf("* Disabled automatic capacity adjustment\n");
@@ -1248,14 +1253,14 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 
 	memset(nibdata, 0, sizeof(nibdata));
 
-	printf("\nAligning tracks...\n");
+	printf("Aligning tracks...\n");
 
 	for (track = start_track; track <= end_track; track ++)
 	{
 		memcpy(nibdata,  track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
 		memset(track_buffer + (track * NIB_TRACK_LENGTH), 0x00, NIB_TRACK_LENGTH);
 
-		printf("%4.1f: ",(float) track / 2);
+		if(verbose) printf("%4.1f: ",(float) track / 2);
 
 		/* process track cycle */
 		track_length[track] = extract_GCR_track(
@@ -1268,11 +1273,14 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 		);
 
 		/* output some specs */
-		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC:");
-		if(track_density[track] & BM_FF_TRACK) printf("KILLER:");
-		printf("(%d:", track_density[track]&3);
-		printf("%lu) ", track_length[track]);
-		printf("[align=%s]\n",alignments[track_alignment[track]]);
+		if(verbose)
+		{
+			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC:");
+			if(track_density[track] & BM_FF_TRACK) printf("KILLER:");
+			printf("(%d:", track_density[track]&3);
+			printf("%lu) ", track_length[track]);
+			printf("[align=%s]\n",alignments[track_alignment[track]]);
+		}
 	}
 	return 1;
 }

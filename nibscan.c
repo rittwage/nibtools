@@ -73,6 +73,7 @@ int use_floppycode_srq = 0;
 int extra_capacity_margin=5;
 int sync_align_buffer=0;
 int fattrack=0;
+int track_match=0;
 
 unsigned char md5_hash_result[16];
 unsigned char md5_dir_hash_result[16];

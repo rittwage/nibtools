@@ -291,25 +291,28 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 				//fprintf(fplog, "(weakgcr:%lu) ", badgcr);
 			}
 
-			// compare raw gcr data, unreliable
+			// compare raw gcr data
 			gcr_diff = compare_tracks(cbufo, cbufn, leno, lenn, 1, errorstring);
-			printf("[%d GCR Byte Difference] ", (int)gcr_diff);
-			fprintf(fplog, "[%d GCR Byte Difference] ", (int)gcr_diff);
+			printf("VERIFY: %d byte diff ", (int)gcr_diff);
+			fprintf(fplog, "VERIFY: %d byte diff ", (int)gcr_diff);
 			//if(gcr_diff <= 10) break;
 
 			// compare sector data
-			if (compare_sectors(cbufo, cbufn, leno, lenn, diskid, diskid, halftrack, errorstring) == sector_map[halftrack/2])
+			if(gcr_diff<=10)
 			{
-				printf("[Data Match] ");
-				fprintf(fplog, "[Data Match] ");
-				break;
-			}
-			else
-			{
-				printf("[NO Data Match] ");
-				fprintf(fplog, "[NO Data Match] ");
-				fprintf(fplog, "%s", errorstring);
-				printf("%s", errorstring);
+				if (compare_sectors(cbufo, cbufn, leno, lenn, diskid, diskid, halftrack, errorstring) == sector_map[halftrack/2])
+				{
+					printf(" - sector match ");
+					fprintf(fplog, " - sector match ");
+					break;
+				}
+				else
+				{
+					printf(" - NO sector match ");
+					fprintf(fplog, " - NO sector match ");
+					fprintf(fplog, "%s", errorstring);
+					printf("%s", errorstring);
+				}
 			}
 		}
 	}
@@ -504,8 +507,8 @@ scan_track(CBM_FILE fd, int track)
 		memset(density_stats, 0, sizeof(density_stats));
 
 		/* Use medium bitrate for scan */
-		set_bitrate(fd, 2);
-		//set_bitrate(fd, (track/2 < 25) ? 2 : 1);
+		//set_bitrate(fd, 2);
+		set_bitrate(fd, (track/2 < 25) ? 2 : 1);
 		send_mnib_cmd(fd, FL_SCANDENSITY, NULL, 0);
 
 		for (bin=3; bin>=0; bin--)

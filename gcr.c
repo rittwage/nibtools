@@ -829,7 +829,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	/* if this track is all sync, return */
 	if(check_sync_flags(source, fake_density, NIB_TRACK_LENGTH) & BM_FF_TRACK)
 	{
-		printf("KILLER! ");
+		if(verbose) printf("KILLER! ");
 		memcpy(destination, source, NIB_TRACK_LENGTH);
 		return NIB_TRACK_LENGTH;
 	}
@@ -839,14 +839,14 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	memcpy(work_buffer, cycle_start, NIB_TRACK_LENGTH);
 
 	/* find cycle */
-	printf("H");
+	if(verbose) printf("H");
 	find_track_cycle_headers(&cycle_start, &cycle_stop, cap_min, cap_max);
 	track_len = cycle_stop - cycle_start;
 
 	/* second pass to find a cycle in track w/non-standard headers */
 	if ((track_len > cap_max) || (track_len < cap_min))
 	{
-		printf("/S");
+		if(verbose) printf("/S");
 		find_track_cycle_syncs(&cycle_start, &cycle_stop, cap_min, cap_max);
 		track_len = cycle_stop - cycle_start;
 	}
@@ -854,21 +854,20 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	/* third pass to find a cycle in track w/non-standard headers */
 	if ((track_len > cap_max) || (track_len < cap_min))
 	{
-		printf("/R");
+		if(verbose) printf("/R");
 		find_track_cycle_raw(&cycle_start, &cycle_stop, cap_min, cap_max);
 		track_len = cycle_stop - cycle_start;
 	}
 
 	if (track_len <= cap_min)
 	{
+		if(verbose) printf("/+");
 		track_len += (cap_max-cap_min)/2;
-		printf("/+");
 	}
 
-	printf(" ");
-
-	if(verbose)
+	if(verbose>1)
 	{
+		printf(" ");
 		if (track_len > cap_max)
 			printf("[LONG, max=%lu<%lu] ",cap_max, track_len);
 		if(track_len < cap_min)
@@ -885,7 +884,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	memcpy(work_buffer + track_len, cycle_start, track_len);
 
 	/* print sector0 offset from beginning of data (for index hole check) */
-	if(verbose)
+	if(verbose>1)
 	{
 		sector0_pos = find_sector0(work_buffer, track_len, &sector0_len);
 		printf("{sec0=%.4d;len=%lu} ",(int)(sector0_pos - work_buffer), sector0_len);
@@ -991,11 +990,11 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	sector0_pos = find_sector0(work_buffer, track_len, &sector0_len);
 	sectorgap_pos = find_sector_gap(work_buffer, track_len, &sectorgap_len);
 
-	if(verbose)
+	if(verbose>1)
 		printf("{gap=%.4d;len=%d) ", (int)(sectorgap_pos-work_buffer), (int)sectorgap_len);
 
 	if((sectorgap_pos-work_buffer == sector0_pos-work_buffer) &&
-		(sectorgap_pos != NULL) &&	(sector0_pos != NULL) && verbose)
+		(sectorgap_pos != NULL) &&	(sector0_pos != NULL) && (verbose>1))
 		printf("(sec0=gap) ");
 
 	/* if (sectorgap_len >= sector0_len + 0x40) */ /* Burstnibbler's calc */
@@ -1047,7 +1046,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 
 aligned:
 	i=j=0;
-	if(verbose)
+	if(verbose>1)
 	{
 		printf("{align:");
 		while((i<gap_match_length) && (i<(int)track_len))

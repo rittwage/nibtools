@@ -189,7 +189,7 @@ main(int argc, char *argv[])
 			ihs = 1;
 			break;
 
-		case 'v':
+		case 'V':
 			track_match = 1;
 			printf("* Enable track match (low-level verify)\n");
 			break;
@@ -245,7 +245,7 @@ main(int argc, char *argv[])
 			printf("* Gap match length set to %d\n", gap_match_length);
 			break;
 
-		case 'V':
+		case 'v':
 			verbose++;
 			printf("* Verbose mode on\n");
 			break;

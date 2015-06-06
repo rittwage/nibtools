@@ -127,14 +127,16 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		printf("\n\nNo good write of track due to timeouts.  Aborting!\n");
 		exit(1);
 	}
-
 }
 
 void
 master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
 	int track, added_sync = 0;
-	size_t badgcr, length;
+	size_t badgcr, length, verlen;
+	BYTE verbuf1[NIB_TRACK_LENGTH], verbuf2[NIB_TRACK_LENGTH], align;
+	size_t gcr_diff, errors;
+	char errorstring[0x1000], diffstr[80];
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
@@ -175,6 +177,47 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		if(badgcr) printf("[weakgcr:%lu] ", badgcr);
 
 		master_track(fd, track_buffer, track_density, track, length);
+
+		if(track_match)	// Try to verify our write
+		{
+			// Don't bother to compare unformatted or bad data
+			if (length == NIB_TRACK_LENGTH) break;
+
+			// read back track
+			memset(verbuf1, 0, NIB_TRACK_LENGTH);
+			if((ihs) && (!(track_density[track] & BM_NO_SYNC)))
+				send_mnib_cmd(fd, FL_READIHS, NULL, 0);
+			else if (Use_SCPlus_IHS) // "-j"
+				send_mnib_cmd(fd, FL_IHS_READ_SCP, NULL, 0);
+			else
+			{
+				if ((track_density[track] & BM_NO_SYNC) || (track_density[track] & BM_FF_TRACK))
+					send_mnib_cmd(fd, FL_READWOSYNC, NULL, 0);
+				else
+					send_mnib_cmd(fd, FL_READNORMAL, NULL, 0);
+			}
+			burst_read(fd);
+			burst_read_track(fd, verbuf1, NIB_TRACK_LENGTH);
+
+			memset(verbuf2, 0, NIB_TRACK_LENGTH);
+			verlen = extract_GCR_track(verbuf2, verbuf1, &align, track/2, track_length[track], track_length[track]);
+
+			printf("\n      (%d:%lu) ", track_density[track], verlen);
+			fprintf(fplog, "\n      (%d:%lu) ", track_density[track], verlen);
+
+			// Fix bad GCR in track for compare
+			if ((badgcr = check_bad_gcr(verbuf2, verlen)) != 0)
+			{
+				//printf("(weakgcr:%lu)", badgcr);
+				//fprintf(fplog, "(weakgcr:%lu) ", badgcr);
+			}
+
+			// compare raw gcr data
+			gcr_diff = compare_tracks(track_buffer+(track * NIB_TRACK_LENGTH), verbuf2, track_length[track], verlen, 1, errorstring);
+			printf("VERIFY:%d byte diff", (int)gcr_diff);
+			fprintf(fplog, "VERIFY:%d byte diff ", (int)gcr_diff);
+			//if(gcr_diff <= 10) break;
+		}
 	}
 }
 
