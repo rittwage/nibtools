@@ -135,8 +135,8 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 	int track, added_sync = 0;
 	size_t badgcr, length, verlen;
 	BYTE verbuf1[NIB_TRACK_LENGTH], verbuf2[NIB_TRACK_LENGTH], align;
-	size_t gcr_diff, errors;
-	char errorstring[0x1000], diffstr[80];
+	size_t gcr_diff;
+	char errorstring[0x1000];
 
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
