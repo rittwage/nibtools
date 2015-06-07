@@ -214,9 +214,9 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 
 			// compare raw gcr data
 			gcr_diff = compare_tracks(track_buffer+(track * NIB_TRACK_LENGTH), verbuf2, track_length[track], verlen, 1, errorstring);
-			printf("VERIFY:%d byte diff", (int)gcr_diff);
-			fprintf(fplog, "VERIFY:%d byte diff ", (int)gcr_diff);
-			//if(gcr_diff <= 10) break;
+			printf("VERIFY: (diff:%d) ", (int)gcr_diff);
+			fprintf(fplog, "VERIFY: (diff:%d) ", (int)gcr_diff);
+			if(gcr_diff <= 10) printf("OK ");
 		}
 	}
 }
