@@ -143,9 +143,12 @@ main(int argc, char *argv[])
 			printf("* Using OpenCBM adapter %s\n", cbm_adapter);
 			break;
 
-		case 's':
+		case 'P':
 			printf("* Skip 1571 SRQ Support (Use parallel)\n");
 			use_floppycode_srq = 0;
+			break;
+
+		case 's':
 			break;
 
 		case 'j':

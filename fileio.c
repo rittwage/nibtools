@@ -36,9 +36,12 @@ void parseargs(char *argv[])
 			printf("* Sync align tracks\n");
 			break;
 
-		case 's':
+		case 'P':
 			printf("* Skip 1571 SRQ Support (Use parallel)\n");
 			use_floppycode_srq = 0;
+			break;
+
+		case 's':
 			break;
 
 		case 'h':
@@ -291,10 +294,10 @@ void parseargs(char *argv[])
 			}
 			break;
 
-		case 'P':
-			presync = atoi(&(*argv)[2]);
-			printf("* Add short sync bytes to start of each track:%d\n",presync);
-			break;
+//		case 'P':
+//			presync = atoi(&(*argv)[2]);
+//			printf("* Add short sync bytes to start of each track:%d\n",presync);
+//			break;
 
 		case 'b':
 			// custom fillbyte
