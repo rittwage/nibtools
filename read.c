@@ -144,7 +144,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	size_t leno, lenn, gcr_diff;
 	BYTE denso, densn;
 	size_t i, l, badgcr, retries, errors, best;
-	char errorstring[0x1000], diffstr[80];
+	char errorstring[0x1000];
 
 	badgcr = 0;
 	errors = 0;
@@ -159,7 +159,6 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	cbufn = cbuffer1;
 	cbufo = cbuffer2;
 
-	diffstr[0] = '\0';
 	errorstring[0] = '\0';
 
 	// First pass at normal track read
@@ -172,7 +171,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		if(denso & BM_FF_TRACK)
 		{
 			printf("[Killer Track] ");
-			fprintf(fplog, "[Killer Track] %s (%lu)", errorstring, leno);
+			fprintf(fplog, "[Killer Track] %s (%d)", errorstring, leno);
 			memcpy(buffer, bufo, NIB_TRACK_LENGTH);
 			return (denso);
 		}
@@ -181,14 +180,14 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		memset(cbufo, 0, NIB_TRACK_LENGTH);
 		leno = extract_GCR_track(cbufo, bufo, &align, halftrack/2, capacity_min[denso & 3], capacity_max[denso & 3]);
 
-		printf("%lu ", leno);
-		fprintf(fplog, "%lu ", leno);
+		printf("%d ", leno);
+		fprintf(fplog, "%d ", leno);
 
 		// If we get nothing we are on an empty track (unformatted)
 		if (!leno)
 		{
 			printf("[Unformatted Track] ");
-			fprintf(fplog, "[Unformatted Track] %s (%lu)", errorstring, leno);
+			fprintf(fplog, "[Unformatted Track] %s (%d)", errorstring, leno);
 			memcpy(buffer, bufo, NIB_TRACK_LENGTH);
 			return (denso);
 		}
@@ -208,7 +207,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		if (leno < capacity_min[denso & 3] - CAP_ALLOWANCE)
 		{
 			printf("Short Read! ");
-			fprintf(fplog, "[%lu<%lu!] ", leno, capacity_min[denso & 3] - CAP_ALLOWANCE);
+			fprintf(fplog, "[%d<%d!] ", leno, capacity_min[denso & 3] - CAP_ALLOWANCE);
 			//if(l < (error_retries - 3)) l = error_retries - 3;
 			//continue;
 		}
@@ -218,7 +217,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		if (leno > capacity_max[denso & 3] + CAP_ALLOWANCE)
 		{
 			printf("Long Read! ");
-			fprintf(fplog, "[%lu>%lu!] ", leno, capacity_max[denso & 3] + CAP_ALLOWANCE);
+			fprintf(fplog, "[%d>%d!] ", leno, capacity_max[denso & 3] + CAP_ALLOWANCE);
 			//if(l < (error_retries - 3)) l = error_retries - 3;
 			//continue;
 		}
@@ -261,8 +260,8 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	// Fix bad GCR in track for compare
 	if ((badgcr = check_bad_gcr(cbufo, leno)) != 0)
 	{
-		printf(" (weakgcr:%lu) ", badgcr);
-		fprintf(fplog, " (weakgcr:%lu) ", badgcr);
+		printf(" (weakgcr:%d) ", badgcr);
+		fprintf(fplog, " (weakgcr:%d) ", badgcr);
 	}
 
 	if(track_match)
@@ -281,14 +280,14 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			memset(cbufn, 0, NIB_TRACK_LENGTH);
 			lenn = extract_GCR_track(cbufn, bufn, &align, halftrack/2, capacity_min[densn & 3], capacity_max[densn & 3]);
 
-			printf("%lu ", lenn);
-			fprintf(fplog, "%lu ", lenn);
+			printf("%d ", lenn);
+			fprintf(fplog, "%d ", lenn);
 
 			// Fix bad GCR in track for compare
 			if ((badgcr = check_bad_gcr(cbufn, lenn)) != 0)
 			{
-				//printf("(weakgcr:%lu)", badgcr);
-				//fprintf(fplog, "(weakgcr:%lu) ", badgcr);
+				//printf("(weakgcr:%d)", badgcr);
+				//fprintf(fplog, "(weakgcr:%d) ", badgcr);
 			}
 
 			// compare raw gcr data
@@ -319,7 +318,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	}
 
 	//printf("\n");
-	fprintf(fplog, "%s (%lu)", errorstring, leno);
+	fprintf(fplog, "%s (%d)", errorstring, leno);
 	memcpy(buffer, bufo, NIB_TRACK_LENGTH);
 	return denso;
 }
@@ -448,11 +447,10 @@ int write_nb2(CBM_FILE fd, char * filename)
 
 void get_disk_id(CBM_FILE fd)
 {
-		int density;
 		BYTE buffer[NIB_TRACK_LENGTH];
 
 		/* read track 18 for ID checks*/
-		density = read_halftrack(fd, 18 * 2, buffer);
+		read_halftrack(fd, 18 * 2, buffer);
 
 		/* print cosmetic disk id */
 		memset(diskid, 0, sizeof(diskid));

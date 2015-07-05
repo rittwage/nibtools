@@ -43,7 +43,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		if(skewbytes > NIB_TRACK_LENGTH)
 			skewbytes = skewbytes - NIB_TRACK_LENGTH;
 
-		printf(" {skew=%lu} ", skewbytes);
+		printf(" {skew=%d} ", skewbytes);
 	}
 
 	/* check for and correct initial too short sync mark */
@@ -65,7 +65,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	/* handle short tracks */
 	if(tracklen < capacity[track_density[track]&3])
 	{
-			printf("[pad:%lu]", capacity[track_density[track]&3] - tracklen);
+			printf("[pad:%d]", capacity[track_density[track]&3] - tracklen);
 			tracklen = capacity[track_density[track]&3];
 	}
 
@@ -174,7 +174,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 			track_density[track], track_length[track]);
 
 		if(increase_sync) printf("[sync:%d] ", added_sync);
-		if(badgcr) printf("[weakgcr:%lu] ", badgcr);
+		if(badgcr) printf("[weakgcr:%d] ", badgcr);
 
 		master_track(fd, track_buffer, track_density, track, length);
 
@@ -202,14 +202,14 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 			memset(verbuf2, 0, NIB_TRACK_LENGTH);
 			verlen = extract_GCR_track(verbuf2, verbuf1, &align, track/2, track_length[track], track_length[track]);
 
-			printf("\n      (%d:%lu) ", track_density[track], verlen);
-			fprintf(fplog, "\n      (%d:%lu) ", track_density[track], verlen);
+			printf("\n      (%d:%d) ", track_density[track], verlen);
+			fprintf(fplog, "\n      (%d:%d) ", track_density[track], verlen);
 
 			// Fix bad GCR in track for compare
 			if ((badgcr = check_bad_gcr(verbuf2, verlen)) != 0)
 			{
-				//printf("(weakgcr:%lu)", badgcr);
-				//fprintf(fplog, "(weakgcr:%lu) ", badgcr);
+				//printf("(weakgcr:%d)", badgcr);
+				//fprintf(fplog, "(weakgcr:%d) ", badgcr);
 			}
 
 			// compare raw gcr data
@@ -271,12 +271,12 @@ master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 					printf(":NOSYNC");
 			else if (track_density[track] & BM_FF_TRACK)
 				printf(":KILLER");
-			printf(") (%lu) ", length);
+			printf(") (%d) ", length);
 
 			/* truncate the end if needed (reduce tail) */
 			if (length > capacity[density & 3])
 			{
-				printf(" (trunc:%lu) ",  length - capacity[density & 3]);
+				printf(" (trunc:%d) ",  length - capacity[density & 3]);
 				length = capacity[density & 3];
 			}
 			master_track(fd, track_buffer, track_density, track, length);

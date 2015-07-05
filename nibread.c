@@ -62,7 +62,8 @@ int presync = 0;
 BYTE fillbyte = 0x55;
 BYTE drive = 8;
 char * cbm_adapter = "";
-int use_floppycode_srq = 1;
+int use_floppycode_srq = 0;
+int override_srq = 0;
 int extra_capacity_margin=5;
 int sync_align_buffer=0;
 int fattrack=0;
@@ -145,7 +146,7 @@ main(int argc, char *argv[])
 
 		case 'P':
 			printf("* Skip 1571 SRQ Support (Use parallel)\n");
-			use_floppycode_srq = 0;
+			override_srq = 1;
 			break;
 
 		case 's':
@@ -256,7 +257,7 @@ main(int argc, char *argv[])
 		case 'e':	// change read retries
 			if (!(*argv)[2]) usage();
 			error_retries = atoi(&(*argv)[2]);
-			printf("* Read retries set to %lu\n", error_retries);
+			printf("* Read retries set to %d\n", error_retries);
 			break;
 
 		case 'm':

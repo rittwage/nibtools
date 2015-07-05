@@ -104,6 +104,7 @@ extern int unformat_passes;
 extern int align_delay;
 extern int presync;
 extern int use_floppycode_srq;
+extern int override_srq;
 extern int extra_capacity_margin;
 extern int sync_align_buffer;
 extern int fattrack;
@@ -165,7 +166,7 @@ void speed_adjust(CBM_FILE fd);
 void kill_track(CBM_FILE fd, int track);
 
 /* drive.c  */
-int compare_extension(char * filename, char * extension);
+int compare_extension(unsigned char * filename, unsigned char * extension);
 unsigned char  burst_read(CBM_FILE f);
 void burst_write(CBM_FILE f, unsigned char c);
 int burst_read_n(CBM_FILE f, unsigned char *Buffer, unsigned int Length);

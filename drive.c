@@ -353,7 +353,11 @@ init_floppy(CBM_FILE fd, BYTE drive, int bump)
 	}
 
 	if (error[18] == '7')
+	{
 		drivetype = 1571;
+		if(!override_srq)
+			use_floppycode_srq = 1;
+	}
 	else
 		drivetype = 1541;	/* if unknown drive, use 1541 code */
 

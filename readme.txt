@@ -134,7 +134,7 @@ Writing back disk images to a real disk:
 
    -E[n] : Ending Track (default 41)
 
-   -s    : Use SRQ code instead of parallel (1571 only)
+   -P    : Use parallel instead of SRQ code (1571 only)
 
    -T    : Track skew in microseconds - Some protections depend on data being perfectly aligned from
            track to track.  Some depend on them being skewed a specific amount from each other.  You 

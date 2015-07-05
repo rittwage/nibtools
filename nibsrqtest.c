@@ -29,6 +29,7 @@ BYTE drive = 8;
 char * cbm_adapter = "";
 int use_floppycode_srq=2;
 int use_floppycode_ihs=0;
+int override_srq=0;
 int drivetype=1571;
 CBM_FILE fd;
 
@@ -40,7 +41,7 @@ main(int argc, char *argv[])
 	BYTE buffer1[0xff+1];
 	BYTE buffer2[0xff+1];
 	char cmd[80];
-	int l,m;
+	size_t l,m;
 
 	fprintf(stdout,"\nnibsrqtest - tests SRQ communication code (with 1571 drive)\n"
 	AUTHOR "Revision %d - " VERSION "\n\n", SVN);
