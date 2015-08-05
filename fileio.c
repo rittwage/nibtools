@@ -443,32 +443,12 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 	fseek(fpin, 0, SEEK_END);
 	nibsize = ftell(fpin);
 	numtracks = (nibsize - NIB_HEADER_SIZE) / (NIB_TRACK_LENGTH * 16);
-
-	if(numtracks <= 42)
-	{
-		if(numtracks * 2 < end_track)
-			end_track = (numtracks * 2);
-
-		temp_track_inc = 2;
-	}
-	else
-	{
-		printf("\nImage contains halftracks!\n");
-
-		if(numtracks < end_track)
-			end_track = numtracks;
-
-		temp_track_inc = 1;
-	}
+	temp_track_inc = 1;
 	printf("\n%d track image (filesize = %d bytes)\n", numtracks, nibsize);
 
 	/* get disk id */
 	rewind(fpin);
-	if(temp_track_inc == 2)
-		fseek(fpin, sizeof(header) + (17 * NIB_TRACK_LENGTH * 16) + (8 * NIB_TRACK_LENGTH), SEEK_SET);
-	else
-		fseek(fpin, sizeof(header) + (17 * 2 * NIB_TRACK_LENGTH * 16) + (8 * NIB_TRACK_LENGTH), SEEK_SET);
-
+	fseek(fpin, sizeof(header) + (17 * 2 * NIB_TRACK_LENGTH * 16) + (8 * NIB_TRACK_LENGTH), SEEK_SET);
 	fread(tmpdata, NIB_TRACK_LENGTH, 1, fpin);
 
 	if (!extract_id(tmpdata, diskid))
@@ -516,7 +496,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 					errors = check_errors(tmpdata, length, track, diskid, errorstring);
 
-					if( (pass == 0) || (errors < best_err) )
+					if( (pass == 1) || (errors < best_err) )
 					{
 						//track_length[track] = 0x2000;
 						memcpy(track_buffer + (track * NIB_TRACK_LENGTH), nibdata, NIB_TRACK_LENGTH);
