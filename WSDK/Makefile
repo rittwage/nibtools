@@ -1,10 +1,10 @@
 # NIBTOOLS WSDK Makefile
 #
-# Copyright 2010-2013 Arnd Menge <arnd(at)jonnz(dot)de>
+# Copyright 2010-2015 Arnd Menge <arnd(at)jonnz(dot)de>
 #
 # For use with
 #
-#   NIBTOOLS   rev. 576   -- http://www.rittwage.com
+#   NIBTOOLS   rev. 614   -- http://www.rittwage.com
 #   OpenCBM    v0.4.99.93 -- http://opencbm.trikaliotis.net
 #   CC65 Win32 v2.13.2-1  -- http://www.cc65.org
 #
@@ -66,7 +66,7 @@
 #   Makefile for the target platform.
 #
 #   You can set the NIBTOOLS SVN version below,
-#     e.g. set NIBVER = "SVN=576" for SVN 576.
+#     e.g. set NIBVER = "SVN=614" for SVN 614.
 #
 #   NIBTOOLS requires you to set OPENCBMVER to the OpenCBM version
 #   you are using:
@@ -124,6 +124,7 @@
 #   \nibdev\nibtools\include\LINUX\mnibarch.h
 #   \nibdev\nibtools\include\WINDOWS\mnibarch.h
 #   \nibdev\nibtools\include\WINDOWS\opencbm.h
+#   \nibdev\nibtools\include\WINDOWS\version.h
 #   \nibdev\nibtools\LINUX\Makefile
 #   \nibdev\nibtools\WINBUILD-nibconv\Makefile
 #   \nibdev\nibtools\WINBUILD-nibconv\nibconv.dsp
@@ -149,7 +150,6 @@
 #   \nibdev\nibtools\WINBUILD-nibwrite\sources
 #   \nibdev\nibtools\WSDK\bin2array.c
 #   \nibdev\nibtools\WSDK\Makefile
-#   \nibdev\nibtools\WSDK\version.h
 # 
 #   \nibdev\cc65-win32-2.13.2-1\bin\ca65.exe
 #   \nibdev\cc65-win32-2.13.2-1\bin\cl65.exe
@@ -176,14 +176,14 @@
 # -------------------------------------------------------------------------
 
 !message NIBTOOLS WSDK Makefile
-!message Copyright 2010-2013 Arnd Menge <arnd(at)jonnz(dot)de>
+!message Copyright 2010-2015 Arnd Menge <arnd(at)jonnz(dot)de>
 !message
 
 # -------------------------------------------------------------------------
 # NIBTOOLS SVN version
 # -------------------------------------------------------------------------
 
-NIBVER = "SVN=577"
+NIBVER = "SVN=614"
 
 # -------------------------------------------------------------------------
 # Project directories
@@ -220,9 +220,6 @@ OPENCBMVER = "OPENCBM_49"
 
 #OPENCBM_DLL_DIR_x86  = ..\..\opencbm-0.4.99.89-i386
 #OPENCBM_DLL_DIR_x64  = ..\..\opencbm-0.4.99.89-i386
-
-#OPENCBM_DLL_DIR_x86  = ..\..\opencbm_111007_tape-TEST\opencbm\bin\i386
-#OPENCBM_DLL_DIR_x64  = ..\..\opencbm_111007_tape-TEST\opencbm\bin\i386
 
 OPENCBM_DLL_DIR_x86  = ..\..\opencbm-ZoomFloppy-2.0-i386\exe
 OPENCBM_DLL_DIR_x64  = ..\..\opencbm-ZoomFloppy-2.0-i386\exe
@@ -400,19 +397,19 @@ $(C_DIR)\DriveCode:
 # -------------------------------------------------------------------------
 
 {..\WINBUILD-nibread}.rc{$(OUTDIR)}.res:
-    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)\%|fF.res" $**
+    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /I"..\include\WINDOWS" /Fo"$(OUTDIR)\%|fF.res" $**
 
 {..\WINBUILD-nibwrite}.rc{$(OUTDIR)}.res:
-    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)\%|fF.res" $**
+    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /I"..\include\WINDOWS" /Fo"$(OUTDIR)\%|fF.res" $**
 
 {..\WINBUILD-nibconv}.rc{$(OUTDIR)}.res:
-    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)\%|fF.res" $**
+    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /I"..\include\WINDOWS" /Fo"$(OUTDIR)\%|fF.res" $**
 
 {..\WINBUILD-nibrepair}.rc{$(OUTDIR)}.res:
-    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)\%|fF.res" $**
+    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /I"..\include\WINDOWS" /Fo"$(OUTDIR)\%|fF.res" $**
 
 {..\WINBUILD-nibscan}.rc{$(OUTDIR)}.res:
-    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /Fo"$(OUTDIR)\%|fF.res" $**
+    $(rc) $(rcflags) $(rcvars) /I"$(C_DIR)" /I"..\include\WINDOWS" /Fo"$(OUTDIR)\%|fF.res" $**
 
 # -------------------------------------------------------------------------
 # Update the executable files if necessary
