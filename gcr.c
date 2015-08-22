@@ -1463,18 +1463,27 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 				printf("T%dS%d converted from GCR:\n", track/2, sector);
 
 				/* this prints out sectir contents, which is not always terminal compatible */
-				for (i=0; i<256; i+=32)
+				for (i=0; i<256; i+=16)
 				{
 					printf("($%.2x) 1:", i);
-					for(j=0; j<32; j++)
+
+					for(j=0; j<16; j++)
+						printf("%.2x ", secbuf1[i+j]);
+
+					for(j=0; j<16; j++)
 					{
 						if(secbuf1[i+j] >= 32)
 							printf("%c", secbuf1[i+j]);
 						else
 							printf("%c", secbuf1[i+j]+32);
 					}
+
 					printf("\n($%.2x) 2:", i);
-					for(k=0; k<32; k++)
+
+					for(k=0; k<16; k++)
+						printf("%.2x ", secbuf2[i+k]);
+
+					for(k=0; k<16; k++)
 					{
 						if(secbuf2[i+k] >= 32)
 							printf("%c", secbuf2[i+k]);
