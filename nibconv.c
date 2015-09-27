@@ -14,6 +14,7 @@
 #include "gcr.h"
 #include "nibtools.h"
 #include "lz.h"
+#include "prot.h"
 
 int _dowildcard = 1;
 
@@ -50,6 +51,7 @@ int extra_capacity_margin=5;
 int sync_align_buffer=0;
 int fattrack=0;
 int track_match=0;
+int old_g64=0;
 
 int ARCH_MAINDECL
 main(int argc, char **argv)
@@ -137,6 +139,7 @@ main(int argc, char **argv)
 		if(sync_align_buffer) sync_tracks(track_buffer);
 		if( (compare_extension(outname, "G64")) || (compare_extension(outname, "D64")) )
 			align_tracks(track_buffer, track_density, track_length, track_alignment);
+		search_fat_tracks(track_buffer, track_density, track_length);
 	}
 	else if (compare_extension(inname, "NIB"))
 	{
@@ -145,13 +148,14 @@ main(int argc, char **argv)
 		if(sync_align_buffer) sync_tracks(track_buffer);
 		if( (compare_extension(outname, "G64")) || (compare_extension(outname, "D64")) )
 			align_tracks(track_buffer, track_density, track_length, track_alignment);
+		search_fat_tracks(track_buffer, track_density, track_length);
 	}
 	else if (compare_extension(inname, "NB2"))
 	{
 		if(!(read_nb2(inname, track_buffer, track_density, track_length))) exit(0);
-
 		if( (compare_extension(outname, "G64")) || (compare_extension(outname, "D64")) )
 			align_tracks(track_buffer, track_density, track_length, track_alignment);
+		search_fat_tracks(track_buffer, track_density, track_length);
 	}
 	else
 	{

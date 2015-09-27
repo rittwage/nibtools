@@ -60,6 +60,7 @@ int extra_capacity_margin=5;
 int sync_align_buffer=0;
 int fattrack=0;
 int track_match=0;
+int old_g64=0;
 
 /* local prototypes */
 int repair(void);

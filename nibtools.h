@@ -108,6 +108,7 @@ extern int override_srq;
 extern int extra_capacity_margin;
 extern int sync_align_buffer;
 extern int fattrack;
+extern int old_g64;
 
 #include "ihs.h"
 

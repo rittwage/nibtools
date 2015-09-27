@@ -74,6 +74,7 @@ int extra_capacity_margin=5;
 int sync_align_buffer=0;
 int fattrack=0;
 int track_match=0;
+int old_g64=0;
 
 unsigned char md5_hash_result[16];
 unsigned char md5_dir_hash_result[16];
@@ -255,6 +256,7 @@ int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *
 		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) return 0;
 		if(sync_align_buffer) sync_tracks(track_buffer);
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
+		search_fat_tracks(track_buffer, track_density, track_length);
 	}
 	else if (compare_extension(filename, "NIB"))
 	{
@@ -262,11 +264,13 @@ int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *
 		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) return 0;
 		if(sync_align_buffer) sync_tracks(track_buffer);
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
+		search_fat_tracks(track_buffer, track_density, track_length);
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
 		if(!(read_nb2(filename, track_buffer, track_density, track_length))) return 0;
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
+		search_fat_tracks(track_buffer, track_density, track_length);
 	}
 	else
 	{

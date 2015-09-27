@@ -251,6 +251,11 @@ void parseargs(char *argv[])
 			cap_min_ignore = 1;
 			break;
 
+		case 'o':
+			printf("* Use old hard-coded G64 format\n");
+			old_g64 = 1;
+			break;
+
 		case 'T':
 			if (!(*argv)[2]) usage();
 			if(!ihs) align_disk = 1;
@@ -917,8 +922,9 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		track size, and also requires it to be 84 tracks no matter if they're used or not.
 	*/
 
-	//#define G64_TRACK_MAXLEN 8192
-	DWORD G64_TRACK_MAXLEN = 7928;
+	#define OLD_G64_TRACK_MAXLEN 8192
+	#define G64_TRACK_MAXLEN 7928
+
 	BYTE header[12];
 	DWORD gcr_track_p[MAX_HALFTRACKS_1541] = {0};
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541] = {0};
@@ -931,62 +937,8 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	BYTE buffer[NIB_TRACK_LENGTH], tempfillbyte;
 	size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
 	char errorstring[0x1000];
-	size_t diff = 0;
 
 	printf("\nWriting G64 file...\n");
-
-	/* I don't like this hack here, but it is necessary to fix old files that lacked halftracks */
-	if(!fattrack) /* autodetect fat tracks */
-	{
-		for (track=2; track<=MAX_HALFTRACKS_1541+1; track+=2)
-		{
-			if (track_length[track] > 0 && track_length[track+2] > 0 && track_length[track] != 8192 && track_length[track+2] != 8192)
-			{
-				diff = compare_tracks(
-				  track_buffer + (track * NIB_TRACK_LENGTH),
-				  track_buffer + ((track+2) * NIB_TRACK_LENGTH),
-				  track_length[track],
-				  track_length[track+2], 1, errorstring);
-
-				if (diff<=10)
-				{
-					printf("*FAT Track on T%d, diff=%d*\n",track/2,(int)diff);
-
-					memcpy(track_buffer + ((track+1) * NIB_TRACK_LENGTH),
-						track_buffer + (track * NIB_TRACK_LENGTH),
-						NIB_TRACK_LENGTH);
-
-					track_length[track+1] = track_length[track];
-					track_density[track+1] = track_density[track];
-
-					//memcpy(track_buffer + ((track+2) * NIB_TRACK_LENGTH),
-					//	track_buffer + (track * NIB_TRACK_LENGTH),
-					//	NIB_TRACK_LENGTH);
-
-					//track_length[track+2] = track_length[track];
-					//track_density[track+2] = track_density[track];
-				}
-			}
-		}
-	}
-	else	if(fattrack!=99) /* manually overridden */
-	{
-		printf("Handle FAT track on %d\n",fattrack);
-
-		memcpy(track_buffer + ((fattrack+1) * NIB_TRACK_LENGTH),
-			track_buffer + (fattrack * NIB_TRACK_LENGTH),
-			NIB_TRACK_LENGTH);
-
-		track_length[fattrack+1] = track_length[fattrack];
-		track_density[fattrack+1] = track_density[fattrack];
-
-		//memcpy(track_buffer + ((fattrack+2) * NIB_TRACK_LENGTH),
-		//	track_buffer + (fattrack * NIB_TRACK_LENGTH),
-		//	NIB_TRACK_LENGTH);
-
-		//track_length[fattrack+2] = track_length[fattrack];
-		//track_density[fattrack+2] = track_density[fattrack];
-	}
 
 	fpout = fopen(filename, "wb");
 	if (fpout == NULL)
@@ -1021,8 +973,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	for (track = 0; track < MAX_HALFTRACKS_1541; track ++)
 	{
 		/* calculate track positions and speed zone data */
-		if(!track_length[track+2])
-			continue;
+		if((!old_g64)&&(!track_length[track+2])) continue;
 
 		gcr_track_p[track] = 0xc + (MAX_TRACKS_1541 * 16) + (index++ * (G64_TRACK_MAXLEN + 2));
 		gcr_speed_p[track] = track_density[track+2]&3;
@@ -1045,7 +996,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	for (track = 2; track <= MAX_HALFTRACKS_1541+1; track ++)
 	{
 		track_len = track_length[track];
-		if(!track_len) continue;
+		if((!old_g64)&&(!track_len)) continue;
 
 		/* loop last byte of track data for filler */
 		if(fillbyte == 0xfe) /* $fe is special case for loop */

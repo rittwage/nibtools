@@ -9,6 +9,70 @@
 #include "gcr.h"
 #include "prot.h"
 
+extern int fattrack;
+
+
+/* I don't like this kludge, but it is necessary to fix old files that lacked halftracks */
+void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length)
+{
+	int track;
+	size_t diff = 0;
+	char errorstring[0x1000];
+
+	printf("Searching for fat tracks...\n");
+
+	if(!fattrack) /* autodetect fat tracks */
+	{
+		for (track=2; track<=MAX_HALFTRACKS_1541+1; track+=2)
+		{
+			if (track_length[track] > 0 && track_length[track+2] > 0 && track_length[track] != 8192 && track_length[track+2] != 8192)
+			{
+				diff = compare_tracks(
+				  track_buffer + (track * NIB_TRACK_LENGTH),
+				  track_buffer + ((track+2) * NIB_TRACK_LENGTH),
+				  track_length[track],
+				  track_length[track+2], 1, errorstring);
+
+				if (diff<=10)
+				{
+					printf("Fat track found on T%d (diff=%d)\n",track/2,(int)diff);
+
+					memcpy(track_buffer + ((track+1) * NIB_TRACK_LENGTH),
+						track_buffer + (track * NIB_TRACK_LENGTH),
+						NIB_TRACK_LENGTH);
+
+					track_length[track+1] = track_length[track];
+					track_density[track+1] = track_density[track];
+
+					//memcpy(track_buffer + ((track+2) * NIB_TRACK_LENGTH),
+					//	track_buffer + (track * NIB_TRACK_LENGTH),
+					//	NIB_TRACK_LENGTH);
+
+					//track_length[track+2] = track_length[track];
+					//track_density[track+2] = track_density[track];
+				}
+			}
+		}
+	}
+	else	if(fattrack!=99) /* manually overridden */
+	{
+		printf("Handle FAT track on %d\n",fattrack);
+
+		memcpy(track_buffer + ((fattrack+1) * NIB_TRACK_LENGTH),
+			track_buffer + (fattrack * NIB_TRACK_LENGTH),
+			NIB_TRACK_LENGTH);
+
+		track_length[fattrack+1] = track_length[fattrack];
+		track_density[fattrack+1] = track_density[fattrack];
+
+		//memcpy(track_buffer + ((fattrack+2) * NIB_TRACK_LENGTH),
+		//	track_buffer + (fattrack * NIB_TRACK_LENGTH),
+		//	NIB_TRACK_LENGTH);
+
+		//track_length[fattrack+2] = track_length[fattrack];
+		//track_density[fattrack+2] = track_density[fattrack];
+	}
+}
 
 /* this routine "fixes" non-sync-byte aligned images created from RAW Kryoflux stream files */
 /* PROBLEM: This simple implementation can miss sync like 01111111 11111110 which is 14 bits and valid... */

@@ -67,6 +67,7 @@ int override_srq = 0;
 int extra_capacity_margin=5;
 int sync_align_buffer=0;
 int fattrack=0;
+int old_g64=0;
 
 BYTE density_map;
 float motor_speed;
