@@ -1170,12 +1170,11 @@ int sync_tracks(BYTE *track_buffer, size_t *track_length)
 	printf("\nByte-syncing tracks...\n");
 	for (track = start_track; track <= end_track; track ++)
 	{
-		if(verbose) printf("\n%4.1f: (%d) ",(float) track/2, track_length[track]);
-
 		if(track_length[track])
+		{
+			if(verbose) printf("\n%4.1f: (%d) ",(float) track/2, track_length[track]);
 			sync_align(track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
-		else
-			printf("Unformatted");
+		}
 	}
 
 	return 1;
