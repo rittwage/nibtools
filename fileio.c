@@ -581,7 +581,10 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 	{
 		/* check to see if track exists in file, else skip it */
 		if(!header[0xc + pointer])
+		{
+			track_length[track]=0;
 			continue;
+		}
 
 		/* get density from header */
 		track_density[track] = header[0x15c + pointer];
@@ -1160,15 +1163,19 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 	return length;
 }
 
-int sync_tracks(BYTE *track_buffer)
+int sync_tracks(BYTE *track_buffer, size_t *track_length)
 {
 	int track;
 
 	printf("\nByte-syncing tracks...\n");
 	for (track = start_track; track <= end_track; track ++)
 	{
-		if(verbose) printf("%4.1f: ",(float) track / 2);
-		sync_align(track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
+		if(verbose) printf("\n%4.1f: (%d) ",(float) track/2, track_length[track]);
+
+		if(track_length[track])
+			sync_align(track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
+		else
+			printf("Unformatted");
 	}
 
 	return 1;
