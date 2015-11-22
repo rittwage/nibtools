@@ -117,7 +117,7 @@ void sync_align(BYTE *buffer, int length)
 			i+=bytes;
 		}
     }
-    printf("shifted\n");
+    if(verbose) printf("shifted\n");
 }
 
 void shift_buffer_left(BYTE *buffer, int length, int n)

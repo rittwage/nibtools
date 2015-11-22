@@ -28,7 +28,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	else
 		tempfillbyte = fillbyte;
 
-	printf("(fill:$%.2x) ",tempfillbyte);
+	if(verbose) printf("(fill:$%.2x) ",tempfillbyte);
 
 	if(track_density[track] & BM_NO_SYNC)
 		memset(rawtrack, 0x55, sizeof(rawtrack));
@@ -43,7 +43,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		if(skewbytes > NIB_TRACK_LENGTH)
 			skewbytes = skewbytes - NIB_TRACK_LENGTH;
 
-		printf(" {skew=%d} ", skewbytes);
+		if(verbose) printf(" {skew=%d} ", skewbytes);
 	}
 
 	/* check for and correct initial too short sync mark */
@@ -52,7 +52,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	//	    (track_buffer[(track * NIB_TRACK_LENGTH) + 1] != 0xff)) || (presync) )
 	if(presync)
 	{
-		printf("{presync} ");
+		if(verbose) printf("{presync} ");
 		memset(rawtrack + leader + skewbytes - 2, 0xff, 2);
 	}
 
@@ -65,7 +65,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	/* handle short tracks */
 	if(tracklen < capacity[track_density[track]&3])
 	{
-			printf("[pad:%d]", capacity[track_density[track]&3] - tracklen);
+			if(verbose) printf("[pad:%d] ", capacity[track_density[track]&3] - tracklen);
 			tracklen = capacity[track_density[track]&3];
 	}
 
@@ -148,7 +148,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		if(track_density[track] & BM_FF_TRACK)
 		{
 				kill_track(fd, track);
-				printf("\n%4.1f: KILLED!",  (float) track / 2);
+				if(verbose) printf("\n%4.1f: KILLED!",  (float) track / 2);
 				continue;
 		}
 
@@ -156,7 +156,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
 		{
 				zero_track(fd, track);
-				printf("\n%4.1f: UNFORMATTED!",  (float) track / 2);
+				if(verbose) printf("\n%4.1f: UNFORMATTED!",  (float) track / 2);
 				continue;
 		}
 
@@ -173,8 +173,8 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH),
 			track_density[track], track_length[track]);
 
-		if(increase_sync) printf("[sync:%d] ", added_sync);
-		if(badgcr) printf("[weakgcr:%d] ", badgcr);
+		if(increase_sync) { if(verbose) printf("[sync:%d] ", added_sync); }
+		if(badgcr) { if(verbose) printf("[weakgcr:%d] ", badgcr); }
 
 		master_track(fd, track_buffer, track_density, track, length);
 
@@ -202,7 +202,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 			memset(verbuf2, 0, NIB_TRACK_LENGTH);
 			verlen = extract_GCR_track(verbuf2, verbuf1, &align, track/2, track_length[track], track_length[track]);
 
-			printf("\n      (%d:%d) ", track_density[track], verlen);
+			if(verbose) printf("\n      (%d:%d) ", track_density[track], verlen);
 			fprintf(fplog, "\n      (%d:%d) ", track_density[track], verlen);
 
 			// Fix bad GCR in track for compare
@@ -214,9 +214,10 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 
 			// compare raw gcr data
 			gcr_diff = compare_tracks(track_buffer+(track * NIB_TRACK_LENGTH), verbuf2, track_length[track], verlen, 1, errorstring);
-			printf("VERIFY: (diff:%d) ", (int)gcr_diff);
+			if(verbose) printf("VERIFY: (diff:%d) ", (int)gcr_diff);
 			fprintf(fplog, "VERIFY: (diff:%d) ", (int)gcr_diff);
-			if(gcr_diff <= 10) printf("OK ");
+			if(gcr_diff <= 10) { if(verbose) printf("OK "); }
+			else printf("GCR MISMATCH - Odd data or bad media! ");
 		}
 	}
 }
@@ -241,7 +242,7 @@ master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 			if( (trkin = fopen(testfilename, "rb")) )
 			{
-				printf(" [%s] ", testfilename);
+				if(verbose) printf(" [%s] ", testfilename);
 				break;
 			}
 		}
@@ -306,7 +307,7 @@ unformat_disk(CBM_FILE fd)
 			kill_track(fd,track);
 			zero_track(fd, track);
 		}
-		printf("\n%4.1f: UNFORMATTED!",  (float) track/2);
+		if(verbose) printf("\n%4.1f: UNFORMATTED!",  (float) track/2);
 	}
 }
 

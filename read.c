@@ -292,27 +292,27 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 			// compare raw gcr data
 			gcr_diff = compare_tracks(cbufo, cbufn, leno, lenn, 1, errorstring);
-			printf("VERIFY: diff:%d ", (int)gcr_diff);
+			if(verbose) printf("VERIFY: diff:%d ", (int)gcr_diff);
 			fprintf(fplog, "VERIFY: diff:%d ", (int)gcr_diff);
-			if(gcr_diff <= 10) printf("OK ");
-			if(gcr_diff <= 10) break;
+			if(gcr_diff <= 10)
+			{
+				if(verbose) printf("OK ");
+				break;
+			}
 
 			// compare sector data
-			if(gcr_diff<=10)
+			if (compare_sectors(cbufo, cbufn, leno, lenn, diskid, diskid, halftrack, errorstring) == sector_map[halftrack/2])
 			{
-				if (compare_sectors(cbufo, cbufn, leno, lenn, diskid, diskid, halftrack, errorstring) == sector_map[halftrack/2])
-				{
-					printf(" - sector match ");
-					fprintf(fplog, " - sector match ");
-					break;
-				}
-				else
-				{
-					printf(" - NO sector match ");
-					fprintf(fplog, " - NO sector match ");
-					fprintf(fplog, "%s", errorstring);
-					printf("%s", errorstring);
-				}
+				if(verbose) printf(" - sector match ");
+				fprintf(fplog, " - sector match ");
+				break;
+			}
+			else
+			{
+				if(verbose) printf(" - NO sector match ");
+				fprintf(fplog, " - NO sector match ");
+				fprintf(fplog, "%s", errorstring);
+				if(verbose) printf("%s", errorstring);
 			}
 		}
 	}
