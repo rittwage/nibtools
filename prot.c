@@ -11,7 +11,6 @@
 
 extern int fattrack;
 
-
 /* I don't like this kludge, but it is necessary to fix old files that lacked halftracks */
 void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {

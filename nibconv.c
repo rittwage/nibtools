@@ -63,7 +63,7 @@ main(int argc, char **argv)
 
 	start_track = 1 * 2;
 	end_track = 42 * 2;
-	track_inc = 2;
+	track_inc = 1;
 	fix_gcr = 1;
 	reduce_sync = 3;
 	skip_halftracks = 0;
@@ -71,7 +71,7 @@ main(int argc, char **argv)
 	force_align = ALIGN_NONE;
 	gap_match_length = 7;
 	cap_min_ignore = 0;
-	verbose = 0;
+	verbose = 1;
 	rpm_real = 296;
 
 	/* default is to reduce sync */

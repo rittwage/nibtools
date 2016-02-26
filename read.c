@@ -88,7 +88,7 @@ BYTE read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	if((density) != last_density)
 	{
 		set_density(fd, density&3);
-		if(verbose) printf("[+D]");
+		if(verbose>1) printf("[+D]");
 		last_density = density;
 	}
 
@@ -292,8 +292,8 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 
 			// compare raw gcr data
 			gcr_diff = compare_tracks(cbufo, cbufn, leno, lenn, 1, errorstring);
-			if(verbose) printf("VERIFY: diff:%d ", (int)gcr_diff);
-			fprintf(fplog, "VERIFY: diff:%d ", (int)gcr_diff);
+			if(verbose) printf("VERIFY: diff:%.4d ", (int)gcr_diff);
+			fprintf(fplog, "VERIFY: diff:%.4d ", (int)gcr_diff);
 			if(gcr_diff <= 10)
 			{
 				if(verbose) printf("OK ");

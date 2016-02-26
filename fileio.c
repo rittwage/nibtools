@@ -45,8 +45,8 @@ void parseargs(char *argv[])
 			break;
 
 		case 'h':
-			track_inc = 1;
-			printf("* Using halftracks\n");
+			track_inc = 2;
+			printf("* Disable halftracks\n");
 			break;
 
 		case 'I':
@@ -972,7 +972,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	}
 
 	/* Create track and speed tables */
-	for (track = 0; track < MAX_HALFTRACKS_1541; track ++)
+	for (track = 0; track < MAX_HALFTRACKS_1541; track +=track_inc)
 	{
 		/* calculate track positions and speed zone data */
 		if((!old_g64)&&(!track_length[track+2])) continue;
@@ -995,7 +995,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	}
 
 	/* shuffle raw GCR between formats */
-	for (track = 2; track <= MAX_HALFTRACKS_1541+1; track ++)
+	for (track = 2; track <= MAX_HALFTRACKS_1541+1; track +=track_inc)
 	{
 		track_len = track_length[track];
 		if(track_len>G64_TRACK_MAXLEN) track_len=G64_TRACK_MAXLEN;
@@ -1056,8 +1056,8 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 			capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
 			track_len = compress_halftrack(track, buffer, track_density[track], track_len);
 		}
-		if(verbose) printf("(fill:$%.2x) ",tempfillbyte);
-		if(verbose) printf("{badgcr:%d}",badgcr);
+		if(verbose>1) printf("(fill:$%.2x) ",tempfillbyte);
+		if(verbose>1) printf("{badgcr:%d}",badgcr);
 
 		gcr_track[0] = (BYTE) (track_len % 256);
 		gcr_track[1] = (BYTE) (track_len / 256);
@@ -1119,7 +1119,7 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 		{
 			/* reduce sync marks within the track */
 			length = reduce_runs(gcrdata, length, capacity[density&3], reduce_sync, 0xff);
-			if(verbose) printf("rsync:%d ", orglen - length);
+			if(verbose>1) printf("rsync:%d ", orglen - length);
 		}
 
 		/* reduce bad GCR runs */
@@ -1145,7 +1145,7 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 		if (length > capacity[density&3])
 		{
 			length = capacity[density&3];
-			if(verbose) printf("trunc:%d ", orglen - length);
+			if(verbose>1) printf("trunc:%d ", orglen - length);
 		}
 	}
 

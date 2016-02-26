@@ -28,7 +28,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	else
 		tempfillbyte = fillbyte;
 
-	if(verbose) printf("(fill:$%.2x) ",tempfillbyte);
+	if(verbose>1) printf("(fill:$%.2x) ",tempfillbyte);
 
 	if(track_density[track] & BM_NO_SYNC)
 		memset(rawtrack, 0x55, sizeof(rawtrack));
@@ -65,7 +65,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	/* handle short tracks */
 	if(tracklen < capacity[track_density[track]&3])
 	{
-			if(verbose) printf("[pad:%d] ", capacity[track_density[track]&3] - tracklen);
+			if(verbose>1) printf("[pad:%d] ", capacity[track_density[track]&3] - tracklen);
 			tracklen = capacity[track_density[track]&3];
 	}
 
@@ -132,7 +132,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 void
 master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
-	int track, added_sync = 0;
+	int track, verified, retries, added_sync = 0;
 	size_t badgcr, length, verlen;
 	BYTE verbuf1[NIB_TRACK_LENGTH], verbuf2[NIB_TRACK_LENGTH], align;
 	size_t gcr_diff;
@@ -180,48 +180,66 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 
 		if(track_match)	// Try to verify our write
 		{
-			// Don't bother to compare unformatted or bad data
-			if (length == NIB_TRACK_LENGTH) break;
-
-			// read back track
-			memset(verbuf1, 0, NIB_TRACK_LENGTH);
-			if((ihs) && (!(track_density[track] & BM_NO_SYNC)))
-				send_mnib_cmd(fd, FL_READIHS, NULL, 0);
-			else if (Use_SCPlus_IHS) // "-j"
-				send_mnib_cmd(fd, FL_IHS_READ_SCP, NULL, 0);
-			else
+			verified=retries=0;
+			while(!verified)
 			{
-				if ((track_density[track] & BM_NO_SYNC) || (track_density[track] & BM_FF_TRACK))
-					send_mnib_cmd(fd, FL_READWOSYNC, NULL, 0);
+				// Don't bother to compare unformatted or bad data
+				if (length == NIB_TRACK_LENGTH) break;
+
+				// read back track
+				memset(verbuf1, 0, NIB_TRACK_LENGTH);
+				if((ihs) && (!(track_density[track] & BM_NO_SYNC)))
+					send_mnib_cmd(fd, FL_READIHS, NULL, 0);
+				else if (Use_SCPlus_IHS) // "-j"
+					send_mnib_cmd(fd, FL_IHS_READ_SCP, NULL, 0);
 				else
-					send_mnib_cmd(fd, FL_READNORMAL, NULL, 0);
+				{
+					if ((track_density[track] & BM_NO_SYNC) || (track_density[track] & BM_FF_TRACK))
+						send_mnib_cmd(fd, FL_READWOSYNC, NULL, 0);
+					else
+						send_mnib_cmd(fd, FL_READNORMAL, NULL, 0);
+				}
+				burst_read(fd);
+				burst_read_track(fd, verbuf1, NIB_TRACK_LENGTH);
+
+				memset(verbuf2, 0, NIB_TRACK_LENGTH);
+				verlen = extract_GCR_track(verbuf2, verbuf1, &align, track/2, track_length[track], track_length[track]);
+
+				if(verbose) printf("\n      (%d:%d) ", track_density[track], verlen);
+				fprintf(fplog, "\n      (%d:%d) ", track_density[track], verlen);
+
+				// Fix bad GCR in track for compare
+				if ((badgcr = check_bad_gcr(verbuf2, verlen)) != 0)
+				{
+					//printf("(weakgcr:%d)", badgcr);
+					//fprintf(fplog, "(weakgcr:%d) ", badgcr);
+				}
+
+				// compare raw gcr data
+				gcr_diff = compare_tracks(track_buffer+(track * NIB_TRACK_LENGTH), verbuf2, track_length[track], verlen, 1, errorstring);
+				if(verbose) printf("VERIFY: (diff:%.4d) ", (int)gcr_diff);
+				fprintf(fplog, "VERIFY: (diff:%.4d) ", (int)gcr_diff);
+				if(gcr_diff <= 10)
+				{
+					printf("OK ");
+					verified=1;
+				}
+				else
+				{
+					retries++;
+					printf(" [Retry %d] ", retries);
+					zero_track(fd, track);
+					master_track(fd, track_buffer, track_density, track, length);
+				}
+				if(retries>=10)
+				{
+					printf("\nWrite verify FAILED - Odd data or bad media! ");
+					verified=1;
+				}
 			}
-			burst_read(fd);
-			burst_read_track(fd, verbuf1, NIB_TRACK_LENGTH);
-
-			memset(verbuf2, 0, NIB_TRACK_LENGTH);
-			verlen = extract_GCR_track(verbuf2, verbuf1, &align, track/2, track_length[track], track_length[track]);
-
-			if(verbose) printf("\n      (%d:%d) ", track_density[track], verlen);
-			fprintf(fplog, "\n      (%d:%d) ", track_density[track], verlen);
-
-			// Fix bad GCR in track for compare
-			if ((badgcr = check_bad_gcr(verbuf2, verlen)) != 0)
-			{
-				//printf("(weakgcr:%d)", badgcr);
-				//fprintf(fplog, "(weakgcr:%d) ", badgcr);
-			}
-
-			// compare raw gcr data
-			gcr_diff = compare_tracks(track_buffer+(track * NIB_TRACK_LENGTH), verbuf2, track_length[track], verlen, 1, errorstring);
-			if(verbose) printf("VERIFY: (diff:%d) ", (int)gcr_diff);
-			fprintf(fplog, "VERIFY: (diff:%d) ", (int)gcr_diff);
-			if(gcr_diff <= 10) { if(verbose) printf("OK "); }
-			else printf("GCR MISMATCH - Odd data or bad media! ");
 		}
 	}
 }
-
 void
 master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {

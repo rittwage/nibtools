@@ -98,7 +98,7 @@ main(int argc, char *argv[])
 	fix_gcr = 1;
 	align_disk = 0;
 	auto_capacity_adjust = 1;
-	verbose = 0;
+	verbose = 1;
 	gap_match_length = 7;
 	cap_min_ignore = 0;
 	motor_speed = 300;

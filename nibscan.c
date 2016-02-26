@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 	reduce_badgcr = 0;
 	reduce_gap = 0;
 	rpm_real = 296;
-	verbose = 0;
+	verbose = 1;
 	cap_min_ignore = 0;
 
 	fprintf(stdout,
@@ -416,13 +416,13 @@ compare_disks(void)
 				if (sec_match == sector_map[track/2])
 				{
 					trk_total++;
-					printf("[*DATA MATCH*]\n");
+					printf("[*Data MATCH*]\n");
 					sprintf(tmpstr, "%d,", track / 2);
 					strcat(sec_matches, tmpstr);
 				}
 				else
 				{
-					printf("[*NO DATA MATCH*]\n");
+					printf("[*Data MISmatch*]\n");
 					sprintf(tmpstr, "%d,", track / 2);
 					strcat(sec_mismatches, tmpstr);
 				}
@@ -514,7 +514,7 @@ scandisk(void)
 		printf("%4.1f: ", (float) track/2);
 
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
-			printf("UNFORMATTED!");
+			printf("UNFORMATTED");
 		else
 			printf("%d", track_length[track]);
 
@@ -559,7 +559,7 @@ scandisk(void)
 
 				if (badgcr_tracks[track])
 				{
-					printf("badgcr:%d ", badgcr_tracks[track]);
+					//printf("weak:%d ", badgcr_tracks[track]);
 					totalgcr += badgcr_tracks[track];
 				}
 			}
@@ -596,7 +596,7 @@ scandisk(void)
 			if (temp_errors)
 			{
 				errors += temp_errors;
-				printf("\n%s", errorstring);
+				printf(" %s", errorstring);
 				if(waitkey) getchar();
 			}
 
@@ -604,7 +604,7 @@ scandisk(void)
 			if (temp_empty)
 			{
 				empty += temp_empty;
-				if(verbose>1) printf("\n%s", errorstring);
+				if(verbose>1) printf(" %s", errorstring);
 			}
 
 			if (verbose>1)
@@ -772,7 +772,7 @@ size_t check_fat(int track)
 		  track_length[track],
 		  track_length[track+2], 1, errorstring);
 
-		if(verbose) printf("\n%s\n",errorstring);
+		if(verbose) printf("%s",errorstring);
 
 		if (diff<=10)
 		{
@@ -785,7 +785,7 @@ size_t check_fat(int track)
 			return 1;
 		}
 		else
-			if(verbose) printf("diff=%d",(int)diff);
+			if(verbose>1) printf("diff=%d",(int)diff);
 	}
 	return 0;
 }

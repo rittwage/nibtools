@@ -116,7 +116,7 @@ main(int argc, char *argv[])
 	force_density = 0;
 	track_match = 0;
 	interactive_mode = 0;
-	verbose = 0;
+	verbose = 1;
 	extended_parallel_test = 0;
 	force_nosync = 0;
 	align = ALIGN_NONE;
