@@ -839,14 +839,14 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	memcpy(work_buffer, cycle_start, NIB_TRACK_LENGTH);
 
 	/* find cycle */
-	if(verbose) printf("H");
+	if(verbose>1) printf("H");
 	find_track_cycle_headers(&cycle_start, &cycle_stop, cap_min, cap_max);
 	track_len = cycle_stop - cycle_start;
 
 	/* second pass to find a cycle in track w/non-standard headers */
 	if ((track_len > cap_max) || (track_len < cap_min))
 	{
-		if(verbose) printf("/S");
+		if(verbose>1) printf("/S");
 		find_track_cycle_syncs(&cycle_start, &cycle_stop, cap_min, cap_max);
 		track_len = cycle_stop - cycle_start;
 	}
@@ -854,21 +854,18 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	/* third pass to find a cycle in track w/non-standard headers */
 	if ((track_len > cap_max) || (track_len < cap_min))
 	{
-		if(verbose) printf("/R");
+		if(verbose>1) printf("/R");
 		find_track_cycle_raw(&cycle_start, &cycle_stop, cap_min, cap_max);
 		track_len = cycle_stop - cycle_start;
 	}
 
 	if (track_len <= cap_min)
 	{
-		if(verbose) printf("/+");
+		if(verbose>1) printf("/+");
 		track_len += (cap_max-cap_min)/2;
 	}
 
-	if(verbose)
-		printf(" ");
-
-	if(verbose>1)
+	if(verbose>2)
 	{
 		if (track_len > cap_max)
 			printf("[LONG, max=%d<%d] ",cap_max, track_len);
@@ -1050,12 +1047,12 @@ aligned:
 	i=j=0;
 	if(verbose>1)
 	{
-		printf("{align:");
+		if(verbose>1) printf("{align:");
 		while((i<gap_match_length) && (i<(int)track_len))
 		{
 			if(destination[j] != 0xff)
 			{
-				printf("%.2x",destination[j]);
+				if(verbose>1) printf("%.2x",destination[j]);
 				j++; i++;
 			}
 			else j++;

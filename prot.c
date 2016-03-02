@@ -95,7 +95,7 @@ void sync_align(BYTE *buffer, int length)
 				bytes++;
 				if(i+bytes>length) break;
 			}
-			if(verbose) printf("(bytes:%d)", bytes);
+			if(verbose) printf("(%d)", bytes);
 
 			//shift left until MSB cleared
 			while((buffer[i] & 0x80) == 0x80)
