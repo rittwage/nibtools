@@ -579,8 +579,11 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 	for (track = 2; track <= g64tracks; track++, pointer += 4)
 	{
+		int pointer2 = *(int*)(header+0xc+pointer);
+		int tmpLength;
+
 		/* check to see if track exists in file, else skip it */
-		if(!header[0xc + pointer])
+		if(!pointer2)
 		{
 			track_length[track]=0;
 			continue;
@@ -589,12 +592,15 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		/* get density from header */
 		track_density[track] = header[0x15c + pointer];
 
+		fseek(fpin, pointer2, SEEK_SET);
+
 		/* get length */
 		fread(length_record, 2, 1, fpin);
-		track_length[track] = length_record[1] << 8 | length_record[0];
+		tmpLength = length_record[1] << 8 | length_record[0];
+		track_length[track] = tmpLength;
 
 		/* get track from file */
-		fread(track_buffer + (track * NIB_TRACK_LENGTH), g64maxtrack, 1, fpin);
+		fread(track_buffer + (track * NIB_TRACK_LENGTH), tmpLength, 1, fpin);
 
 		/* output some specs */
 		if(verbose)
@@ -727,7 +733,6 @@ int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 			track_length[track] = 0;
 		}
 	}
-
 	fclose(fpin);
 	printf("\nSuccessfully loaded D64 file\n");
 	return 1;

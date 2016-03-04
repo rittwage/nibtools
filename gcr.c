@@ -224,6 +224,7 @@ int
 extract_id(BYTE * gcr_track, BYTE * id)
 {
 	BYTE header[10];
+	BYTE buffer[11];
 	BYTE *gcr_ptr, *gcr_end;
 	int track, sector;
 
@@ -237,8 +238,16 @@ extract_id(BYTE * gcr_track, BYTE * id)
 		if (!find_sync(&gcr_ptr, gcr_end))
 			return 0;
 
-		convert_4bytes_from_GCR(gcr_ptr, header);
-		convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
+            memcpy( buffer, gcr_ptr, 11 );
+	        while (buffer[0] & 128)
+	        {
+		        int i;
+		        for (i=0; i<10; i++)
+			        buffer[i] = (buffer[i] << 1) | ((buffer[i+1] & 128) >> 7);
+	        }
+
+		convert_4bytes_from_GCR(buffer, header);
+		convert_4bytes_from_GCR(buffer + 5, header + 4);
 	} while (header[0] != 0x08 || header[2] != sector || header[3] != track);
 
 	id[0] = header[5];
@@ -268,12 +277,12 @@ extract_cosmetic_id(BYTE * gcr_track, BYTE * id)
 BYTE
 convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track, int sector, BYTE *id)
 {
-
 	/* we should later try to repair some common GCR errors
 			1) tri-bit error, in which 01110 is misinterpreted as 01000
 			2) low frequency error, in which 10010 is misinterpreted as 11000
 	*/
 	BYTE header[10];	/* block header */
+	BYTE buffer[326];
 	BYTE hdr_chksum;	/* header checksum */
 	BYTE blk_chksum;	/* block  checksum */
 	BYTE *gcr_ptr, *gcr_end;
@@ -310,14 +319,32 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	/* Try to find a good block header for Track/Sector */
 	error_code = HEADER_NOT_FOUND;
 
-	for (gcr_ptr = gcr_start; gcr_ptr < gcr_end - 10; gcr_ptr++)
+	for (gcr_ptr = gcr_start; gcr_ptr < gcr_end-1; gcr_ptr++)
 	{
-		if ((gcr_ptr[0] == 0xff) && (gcr_ptr[1] == 0x52))
+		//FIXME: Ein sync koennte genau den Warparounf bilden und am Trackanfang nicht lang genug sein, um als Sync erkannt zu werden:
+		if ((gcr_ptr[0] == 0xff) && (gcr_ptr[1] != 0xff))
 		{
 			gcr_ptr++;
 			memset(header, 0, 10);
-			convert_4bytes_from_GCR(gcr_ptr, header);
-			convert_4bytes_from_GCR(gcr_ptr+5, header+4);
+
+			if (gcr_ptr + 11 < gcr_end)
+				memcpy( buffer, gcr_ptr, 11 );
+			else
+			{
+				int len1 = gcr_end-gcr_ptr;
+				memcpy( buffer, gcr_ptr, len1 );
+				memcpy( buffer+len1, gcr_start, 11-len1);
+			}
+			// align end of sync to byte boundary
+	        while (buffer[0] & 128)
+	        {
+		        int i;
+		        for (i=0; i<10; i++)
+			        buffer[i] = (buffer[i] << 1) | ((buffer[i+1] & 128) >> 7);
+	        }
+
+			convert_4bytes_from_GCR(buffer, header);
+			convert_4bytes_from_GCR(buffer+5, header+4);
 
 			if ((header[0] == 0x08) &&
 				(header[2] == sector) &&
@@ -360,13 +387,32 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 
 	/* check for data sector, it will always be the data following header */
 	if (!find_sync(&gcr_ptr, gcr_end))
-		return DATA_NOT_FOUND;
+	{
+		gcr_ptr = gcr_start;
+		if (!find_sync(&gcr_ptr, gcr_end))
+		   return DATA_NOT_FOUND;
+	}
 
+	// End of sync does not need to be byte aligned, make a copy and align it in "buffer":
+	if (gcr_ptr + 326 < gcr_end)
+	   memcpy( buffer, gcr_ptr, 326 );
+	else
+	{
+	   int len1 = gcr_end-gcr_ptr;
+	   memcpy( buffer, gcr_ptr, len1 );
+	   memcpy( buffer+len1, gcr_start, 326-len1);
+	}
+	gcr_ptr = buffer;
+
+	while (buffer[0] & 128)
+	{
+		int i;
+		for (i=0; i<325; i++)
+			buffer[i] = (buffer[i] << 1) | ((buffer[i+1] & 128) >> 7);
+	}
+	
 	for (i = 0, sectordata = d64_sector; i < 65; i++)
 	{
-		if (gcr_ptr >= gcr_end - 4)
-			return DATA_NOT_FOUND;  /* we reached the end of the track data we have */
-
 		convert_4bytes_from_GCR(gcr_ptr, sectordata);
 
 		if(verbose>3)
@@ -390,7 +436,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	if (blk_chksum != d64_sector[257])
 		error_code = (error_code == SECTOR_OK) ? BAD_DATA_CHECKSUM : error_code;
 
-	/* verify that our data contains no bad GCR, since it can be false positive checksum match */
+/* verify that our data contains no bad GCR, since it can be false positive checksum match */
 	for(j = 0; j < 320; j++)
 	{
 		if (is_bad_gcr(gcr_ptr - 325, 320, j))
@@ -437,13 +483,11 @@ convert_sector_to_GCR(BYTE * buffer, BYTE * ptr, int track, int sector, BYTE * d
 
 		convert_4bytes_to_GCR(buf, ptr);
 		ptr += 5;
-
 		buf[0] = tempID[1];
 		buf[1] = tempID[0];
 		buf[2] = buf[3] = 0x0f;
 		convert_4bytes_to_GCR(buf, ptr);
 		ptr += 5;
-
 		memset(ptr, 0x55, HEADER_GAP_LENGTH);	/* Header Gap */
 		ptr += HEADER_GAP_LENGTH;
 	}
