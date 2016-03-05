@@ -230,7 +230,7 @@ void parseargs(char *argv[])
 
 		case 'V':
 			track_match = 1;
-			printf("* Enable track match (low-level verify)\n");
+			printf("* Enable track match verify\n");
 			break;
 
 		case 'c':

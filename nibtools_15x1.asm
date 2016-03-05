@@ -390,6 +390,7 @@ _delay_loop:
      	DEC $cf
 	DEC $cf
 	LDA $cf
+	CMP #$01
 	BNE _admain 
 	
         LDA  #$ee

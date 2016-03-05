@@ -198,7 +198,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 			while(!verified)
 			{
 				// Don't bother to compare unformatted or bad data
-				if (length == NIB_TRACK_LENGTH) break;
+				if (track_length[track] == NIB_TRACK_LENGTH) break;
 
 				memset(verbuf1, 0, NIB_TRACK_LENGTH);
 				if((ihs) && (!(track_density[track] & BM_NO_SYNC)))
