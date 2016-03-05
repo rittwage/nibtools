@@ -107,7 +107,7 @@ main(int argc, char *argv[])
 	end_track = 41 * 2;
 	track_inc = 2;
 
-	reduce_sync = 1;
+	reduce_sync = 4;
 	reduce_badgcr = 0;
 	reduce_gap = 0;
 	fix_gcr = 0;

@@ -65,7 +65,7 @@ main(int argc, char **argv)
 	end_track = 42 * 2;
 	track_inc = 1;
 	fix_gcr = 1;
-	reduce_sync = 3;
+	reduce_sync = 4;
 	skip_halftracks = 0;
 	align = ALIGN_NONE;
 	force_align = ALIGN_NONE;

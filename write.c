@@ -28,7 +28,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	else
 		tempfillbyte = fillbyte;
 
-	if(verbose>1) printf("(fill:$%.2x) ",tempfillbyte);
+	if(verbose>2) printf("(fill:$%.2x)",tempfillbyte);
 
 	if(track_density[track] & BM_NO_SYNC)
 		memset(rawtrack, 0x55, sizeof(rawtrack));
@@ -43,7 +43,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		if(skewbytes > NIB_TRACK_LENGTH)
 			skewbytes = skewbytes - NIB_TRACK_LENGTH;
 
-		if(verbose>1) printf(" {skew=%d} ", skewbytes);
+		if(verbose>1) printf("{skew=%d}", skewbytes);
 	}
 
 	/* check for and correct initial too short sync mark */
@@ -52,7 +52,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	//	    (track_buffer[(track * NIB_TRACK_LENGTH) + 1] != 0xff)) || (presync) )
 	if(presync)
 	{
-		if(verbose>1) printf("{presync} ");
+		if(verbose>1) printf("{presync}");
 		memset(rawtrack + leader + skewbytes - 2, 0xff, 2);
 	}
 
@@ -65,7 +65,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	/* handle short tracks */
 	if(tracklen < capacity[track_density[track]&3])
 	{
-			if(verbose>1) printf("[pad:%d] ", capacity[track_density[track]&3] - tracklen);
+			if(verbose>1) printf("[pad:%d]", capacity[track_density[track]&3] - tracklen);
 			tracklen = capacity[track_density[track]&3];
 	}
 
@@ -82,7 +82,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	if((track_density[track]&3) != last_density)
 	{
 		set_density(fd, track_density[track]&3);
-		if(verbose>1) printf("[+D]");
+		if(verbose>2) printf("[D]");
 		last_density = track_density[track]&3;
 	}
 
@@ -160,6 +160,18 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 				continue;
 		}
 
+		/* user display */
+		if(verbose)
+		{
+			printf("\n%4.1f: (", (float)track/2);
+			printf("%d", track_density[track]&3);
+			if ( (track_density[track]&3) != speed_map[track/2]) printf("!");
+			printf(":%d) ", track_length[track]);
+			if (track_density[track] & BM_NO_SYNC) printf("NOSYNC ");
+			if (track_density[track] & BM_FF_TRACK) printf("KILLER ");
+			printf("WRITE ");
+		}
+
 		badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
 
 		if(increase_sync)
@@ -170,25 +182,11 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 			track_length[track] += added_sync;
 		}
 
-		/* user display */
-		if(verbose)
-		{
-			printf("\n%4.1f: (", (float)track/2);
-			printf("%d", track_density[track]&3);
-			if ( (track_density[track]&3) != speed_map[track/2]) printf("!");
-			printf(":%d) ", track_length[track]);
-			if (track_density[track] & BM_NO_SYNC) printf("NOSYNC ");
-			if (track_density[track] & BM_FF_TRACK) printf("KILLER ");
-			printf("WRITE  ");
-		}
+		if(increase_sync) { if(verbose) printf("[+sync:%d]", added_sync); }
+		if(badgcr) { if(verbose) printf("[weak:%d]", badgcr); }
 
 		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH),
 			track_density[track], track_length[track]);
-
-		if(verbose) printf("(len:%d)", length);
-
-		if(increase_sync) { if(verbose>1) printf("[sync:%d] ", added_sync); }
-		if(badgcr) { if(verbose>1) printf("[weakgcr:%d] ", badgcr); }
 
 		master_track(fd, track_buffer, track_density, track, length);
 
@@ -220,8 +218,8 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 				verlen   = extract_GCR_track(verbuf2, verbuf1, &align, track/2, track_length[track], track_length[track]);
 				verlen2 = extract_GCR_track(verbuf3, track_buffer+(track * NIB_TRACK_LENGTH), &align, track/2, track_length[track], track_length[track]);
 
-				if(verbose) printf("\n      (%d:%d) VERIFY", track_density[track]&3, verlen);
-				fprintf(fplog, "\n      (%d:%d) VERIFY", track_density[track]&3, verlen);
+				if(verbose) printf("\n      (%d:%d) VERIF", track_density[track]&3, verlen);
+				fprintf(fplog, "\n      (%d:%d) VERIF", track_density[track]&3, verlen);
 
 				// Fix bad GCR in tracks for compare
 				badgcr = check_bad_gcr(verbuf2, track_length[track]);
@@ -231,8 +229,8 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 
 				// compare raw gcr data
 				gcr_diff = compare_tracks(verbuf3, verbuf2, verlen, verlen, 1, errorstring);
-				if(verbose) printf(" (dif:%.4d) ", (int)gcr_diff);
-				fprintf(fplog, " (dif:%.4d) ", (int)gcr_diff);
+				if(verbose) printf(" (diff:%.4d) ", (int)gcr_diff);
+				fprintf(fplog, " (diff:%.4d) ", (int)gcr_diff);
 
 				if(gcr_diff <= 10)
 				{

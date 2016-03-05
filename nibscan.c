@@ -98,7 +98,7 @@ main(int argc, char *argv[])
 	gap_match_length = 7;
 	cap_relax = 0;
 	mode = 0;
-	reduce_sync = 3;
+	reduce_sync = 4;
 	reduce_badgcr = 0;
 	reduce_gap = 0;
 	rpm_real = 296;

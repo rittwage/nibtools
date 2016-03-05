@@ -1373,13 +1373,13 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 
 	if(byte_match)
 	{
-			sprintf(tmpstr, "(mat:%d)", byte_match);
+			sprintf(tmpstr, "(match:%d)", byte_match);
 			strcat(outputstring, tmpstr);
 	}
 
 	if(byte_diff)
 	{
-			sprintf(tmpstr, "(dif:%d)", byte_diff);
+			sprintf(tmpstr, "(diff:%d)", byte_diff);
 			strcat(outputstring, tmpstr);
 	}
 	else
@@ -1393,13 +1393,13 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 
 	if (shift_diff)
 	{
-		sprintf(tmpstr, "(shft:%d)", shift_diff);
+		sprintf(tmpstr, "(shift:%d)", shift_diff);
 		strcat(outputstring, tmpstr);
 	}
 
 	if (presync_diff)
 	{
-		sprintf(tmpstr, "(pre:%d}", presync_diff);
+		sprintf(tmpstr, "(presync:%d}", presync_diff);
 		strcat(outputstring, tmpstr);
 	}
 
@@ -1417,7 +1417,7 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 
 	if (size_diff)
 	{
-		sprintf(tmpstr, "(siz:%d)", size_diff);
+		sprintf(tmpstr, "(size:%d)", size_diff);
 		strcat(outputstring, tmpstr);
 	}
 
