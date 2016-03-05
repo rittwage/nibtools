@@ -232,7 +232,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 				if(verbose) printf(" (diff:%.4d) ", (int)gcr_diff);
 				fprintf(fplog, " (diff:%.4d) ", (int)gcr_diff);
 
-				if(gcr_diff <= 10)
+				if(gcr_diff <= (size_t)sector_map[track/2]+10)
 				{
 					printf("OK ");
 					verified=1;
