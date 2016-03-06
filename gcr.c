@@ -222,7 +222,6 @@ int
 extract_id(BYTE * gcr_track, BYTE * id)
 {
 	BYTE header[10];
-	BYTE buffer[11];
 	BYTE *gcr_ptr, *gcr_end;
 	int track, sector;
 
@@ -236,16 +235,8 @@ extract_id(BYTE * gcr_track, BYTE * id)
 		if (!find_sync(&gcr_ptr, gcr_end))
 			return 0;
 
-     	memcpy( buffer, gcr_ptr, 11 );
-	 	while (buffer[0] & 128)
-	 	{
-			int i;
-			for (i=0; i<10; i++)
-				buffer[i] = (buffer[i] << 1) | ((buffer[i+1] & 128) >> 7);
-		}
-
-		convert_4bytes_from_GCR(buffer, header);
-		convert_4bytes_from_GCR(buffer + 5, header + 4);
+		convert_4bytes_from_GCR(gcr_ptr, header);
+		convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
 
 	} while (header[0] != 0x08 || header[2] != sector || header[3] != track);
 
@@ -265,7 +256,10 @@ extract_cosmetic_id(BYTE * gcr_track, BYTE * id)
 
 	/* no valid 18,0 sector */
 	if((error != SECTOR_OK) && (error != ID_MISMATCH))
+	{
+		//printf("could not find directory sector!");
 		return 0;
+	}
 
 	id[0] = secbuf[0xa3];
 	id[1] = secbuf[0xa4];
@@ -281,7 +275,6 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 			2) low frequency error, in which 10010 is misinterpreted as 11000
 	*/
 	BYTE header[10];	/* block header */
-	BYTE buffer[326];
 	BYTE hdr_chksum;	/* header checksum */
 	BYTE blk_chksum;	/* block  checksum */
 	BYTE *gcr_ptr, *gcr_end;
@@ -289,9 +282,6 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	BYTE error_code;
     size_t track_len;
     int i, j;
-
-	//if (track > MAX_TRACK_D64)
-	//	return SYNC_NOT_FOUND;
 
 	if ((gcr_cycle == NULL) || (gcr_cycle <= gcr_start))
 		return SYNC_NOT_FOUND;
@@ -327,25 +317,8 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 			gcr_ptr++;
 			memset(header, 0, 10);
 
-			if (gcr_ptr + 11 < gcr_end)
-				memcpy( buffer, gcr_ptr, 11 );
-			else
-			{
-				int len1 = gcr_end-gcr_ptr;
-				memcpy( buffer, gcr_ptr, len1 );
-				memcpy( buffer+len1, gcr_start, 11-len1);
-			}
-
-			// align end of sync to byte boundary
-	        while (buffer[0] & 128)
-	        {
-		        int i;
-		        for (i=0; i<10; i++)
-			        buffer[i] = (buffer[i] << 1) | ((buffer[i+1] & 128) >> 7);
-	        }
-
-			convert_4bytes_from_GCR(buffer, header);
-			convert_4bytes_from_GCR(buffer+5, header+4);
+			convert_4bytes_from_GCR(gcr_ptr, header);
+			convert_4bytes_from_GCR(gcr_ptr+5, header+4);
 
 			if ((header[0] == 0x08) && (header[2] == sector) && (header[3] == track) )
 			{
@@ -390,24 +363,6 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 		gcr_ptr = gcr_start;
 		if (!find_sync(&gcr_ptr, gcr_end))
 		   return DATA_NOT_FOUND;
-	}
-
-	// End of sync does not need to be byte aligned, make a copy and align it in "buffer":
-	if (gcr_ptr + 326 < gcr_end)
-	   memcpy( buffer, gcr_ptr, 326 );
-	else
-	{
-	   int len1 = gcr_end-gcr_ptr;
-	   memcpy( buffer, gcr_ptr, len1 );
-	   memcpy( buffer+len1, gcr_start, 326-len1);
-	}
-	gcr_ptr = buffer;
-
-	while (buffer[0] & 128)
-	{
-		int i;
-		for (i=0; i<325; i++)
-			buffer[i] = (buffer[i] << 1) | ((buffer[i+1] & 128) >> 7);
 	}
 
 	for (i = 0, sectordata = d64_sector; i < 65; i++)
@@ -1358,7 +1313,7 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 
 			/* it just didn't work out. :) */
 			if(verbose>2)
-				printf("(%.4d:%.2x!=%.2x)\n",(int)j,track1[j],track2[k]);
+				printf("(%.4d:%.2x!=%.2x)",(int)j,track1[j],track2[k]);
 
 			byte_diff++;
 		}

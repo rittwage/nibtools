@@ -246,7 +246,7 @@ int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *
 	else if (compare_extension(filename, "G64"))
 	{
 		if(!(read_g64(filename, track_buffer, track_density, track_length))) return 0;
-		if(sync_align_buffer) sync_tracks(track_buffer, track_length);
+		if(sync_align_buffer)	sync_tracks(track_buffer, track_length);
 	}
 	else if (compare_extension(filename, "NBZ"))
 	{
@@ -254,7 +254,6 @@ int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *
 		if(!(file_buffer_size = load_file(filename, compressed_buffer))) return 0;
 		if(!(file_buffer_size = LZ_Uncompress(compressed_buffer, file_buffer, file_buffer_size))) return 0;
 		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) return 0;
-		if(sync_align_buffer) sync_tracks(track_buffer, track_length);
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
 		search_fat_tracks(track_buffer, track_density, track_length);
 	}
@@ -262,7 +261,6 @@ int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *
 	{
 		if(!(file_buffer_size = load_file(filename, file_buffer))) return 0;
 		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) return 0;
-		if(sync_align_buffer) sync_tracks(track_buffer, track_length);
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
 		search_fat_tracks(track_buffer, track_density, track_length);
 	}

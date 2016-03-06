@@ -42,13 +42,6 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 
 					track_length[track+1] = track_length[track];
 					track_density[track+1] = track_density[track];
-
-					//memcpy(track_buffer + ((track+2) * NIB_TRACK_LENGTH),
-					//	track_buffer + (track * NIB_TRACK_LENGTH),
-					//	NIB_TRACK_LENGTH);
-
-					//track_length[track+2] = track_length[track];
-					//track_density[track+2] = track_density[track];
 				}
 			}
 		}
@@ -63,34 +56,52 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 
 		track_length[fattrack+1] = track_length[fattrack];
 		track_density[fattrack+1] = track_density[fattrack];
-
-		//memcpy(track_buffer + ((fattrack+2) * NIB_TRACK_LENGTH),
-		//	track_buffer + (fattrack * NIB_TRACK_LENGTH),
-		//	NIB_TRACK_LENGTH);
-
-		//track_length[fattrack+2] = track_length[fattrack];
-		//track_density[fattrack+2] = track_density[fattrack];
 	}
 }
 
-/* this routine "fixes" non-sync-byte aligned images created from RAW Kryoflux stream files */
+/* this routine tries to "fix" non-sync aligned images created from RAW Kryoflux stream files */
 /* PROBLEM: This simple implementation can miss sync like 01111111 11111110 which is 14 bits and valid... */
+/* PROBLEM: Many KF G64s begin the track in the middle of a sector, and is missed by this routine also */
 void sync_align(BYTE *buffer, int length)
 {
-    int i,j;
+    int i, j;
     int bytes, bits;
-	BYTE carry;
+	BYTE temp_buffer[NIB_TRACK_LENGTH];
+	BYTE *marker_pos;
+
+	memset(temp_buffer, 0x00, NIB_TRACK_LENGTH);
+
+    // first align buffer to a sync, shuffling
+    i=0;
+    while(!((buffer[i]==0xff) && (buffer[i+1]&0x80)))
+	{
+    	i++;
+    	if(i>length) break;
+	}
+	if(i<15) // header, skip that also
+	{
+		while(!((buffer[i]==0xff) && (buffer[i+1]&0x80)))
+		{
+		    	i++;
+		    	if(i>length) break;
+		}
+	}
+	memcpy(temp_buffer, buffer+i, length-i);
+	memcpy(temp_buffer+length-i, buffer, i);
+    memcpy(buffer, temp_buffer, length);
+    if(verbose) printf("{shuff:%d}", i);
 
     // shift buffer left to edge of sync marks
     for (i=0; i<length; i++)
     {
-		if((buffer[i] == 0xff) && (buffer[i+1] != 0xff) && ((buffer[i+1] & 0x80) == 0x80)) /* at least one bit left over */
+		if( ((buffer[i] == 0xff) && ((buffer[i+1] & 0x80) == 0x80) && (buffer[i+1] != 0xff)) ||
+			((buffer[i] == 0x7f) && ((buffer[i+1] & 0xc0) == 0xc0) && (buffer[i+1] != 0xff)) )
 		{
 			i++;  //set first byte to shift
 			bits=bytes=j=0;  //reset byte count
 
-			// find next sync
-			while(!((buffer[i+bytes] == 0xff) && ((buffer[i+bytes+1] & 0x80) == 0x80)))
+			// find next (normal) sync
+			while(!((buffer[i+bytes] == 0xff) && (buffer[i+bytes+1] & 0x80)))
 			{
 				bytes++;
 				if(i+bytes>length) break;
@@ -98,22 +109,19 @@ void sync_align(BYTE *buffer, int length)
 			if(verbose) printf("(%d)", bytes);
 
 			//shift left until MSB cleared
-			while((buffer[i] & 0x80) == 0x80)
+			while(buffer[i] & 0x80)
 			{
 				if(bits++>7)
 					if(verbose) printf("error shift too long!");
 
 				for(j=0; j<bytes; j++)
 				{
-					if(i+j>length) goto end;
-					carry = buffer[i+j+1];
-        			buffer[i+j] = (buffer[i+j] << 1)  | (carry >> 7);
+					if(i+j+1>length-1) j=bytes;
+					buffer[i+j] = (buffer[i+j] << 1) | ((buffer[i+j+1] & 0x80) >> 7);
 				}
-				buffer[i+j] |= 0x1;
-				if(verbose>1) printf("[%x]",buffer[i]);
+				//buffer[i+j] |= 0x1;
 			}
-			end:;
-			i+=bytes;
+			if(verbose) printf("[bits:%d]",bits);
 		}
     }
 }

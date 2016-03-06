@@ -123,14 +123,12 @@ main(int argc, char **argv)
 		if(!(file_buffer_size = load_file(inname, compressed_buffer))) exit(0);
 		if(!(file_buffer_size = LZ_Uncompress(compressed_buffer, file_buffer, file_buffer_size))) exit(0);
 		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) exit(0);
-		if(sync_align_buffer) sync_tracks(track_buffer, track_length);
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(inname, "NIB"))
 	{
 		if(!(file_buffer_size = load_file(inname, file_buffer))) exit(0);
 		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) exit(0);
-		if(sync_align_buffer) sync_tracks(track_buffer, track_length);
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(inname, "NB2"))

@@ -33,7 +33,7 @@ void parseargs(char *argv[])
 
 		case '$':
 			sync_align_buffer = 1;
-			printf("* Sync align tracks\n");
+			printf("* Force sync align tracks\n");
 			break;
 
 		case 'P':
@@ -562,6 +562,8 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 	{
 		printf("\nExtended SPS G64 detected");
 		headersize=0x7f0;
+		if(sync_align_buffer) sync_align_buffer=0;
+		else sync_align_buffer=1;
 	}
 	else
 		headersize=0x2ac;
@@ -1168,17 +1170,26 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 int sync_tracks(BYTE *track_buffer, size_t *track_length)
 {
 	int track;
+	BYTE *marker;
+	size_t sector;
+	BYTE temp_buffer[NIB_TRACK_LENGTH*2];
 
 	printf("\nByte-syncing tracks...\n");
-	for (track = start_track; track <= end_track; track ++)
+	for (track = start_track; track <= 70; track ++)
 	{
 		if(track_length[track])
 		{
 			if(verbose) printf("\n%4.1f: (%d) ",(float) track/2, track_length[track]);
-			sync_align(track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
+			check_bad_gcr(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
+			sync_align(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
+
+			/* align to sector gap */
+			memcpy(temp_buffer, track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
+			memcpy(temp_buffer+track_length[track], track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
+			marker = find_sector_gap(temp_buffer, (size_t)track_length[track], &sector);
+			memcpy(track_buffer+(track*NIB_TRACK_LENGTH), marker, track_length[track]);
 		}
 	}
-
 	return 1;
 }
 
@@ -1193,10 +1204,9 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 
 	for (track = start_track; track <= end_track; track ++)
 	{
-		memcpy(nibdata,  track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
+		if(verbose) printf("%4.1f: ",(float) track/2);
+		memcpy(nibdata, track_buffer+(track*NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
 		memset(track_buffer + (track * NIB_TRACK_LENGTH), 0x00, NIB_TRACK_LENGTH);
-
-		if(verbose) printf("%4.1f: ",(float) track / 2);
 
 		/* process track cycle */
 		track_length[track] = extract_GCR_track(
