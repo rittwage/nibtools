@@ -86,7 +86,7 @@ size_t sync_align(BYTE *buffer, int length)
 		    	if(i==length) break;
 		}
 	}
-	if((!i) || (i==length)) return 0;
+	if(i==length) return 0;
 	memcpy(temp_buffer, buffer+i, length-i);
 	memcpy(temp_buffer+length-i, buffer, i);
     memcpy(buffer, temp_buffer, length);
