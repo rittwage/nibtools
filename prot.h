@@ -1,6 +1,6 @@
 /* prot.h */
 void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length);
-void sync_align(BYTE *buffer, int length);
+size_t sync_align(BYTE *buffer, int length);
 void shift_buffer_left(BYTE * buffer, int length, int n);
 void shift_buffer_right(BYTE * buffer, int length, int n);
 BYTE *align_vmax(BYTE * work_buffer, size_t track_len);

@@ -62,7 +62,7 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 /* this routine tries to "fix" non-sync aligned images created from RAW Kryoflux stream files */
 /* PROBLEM: This simple implementation can miss sync like 01111111 11111110 which is 14 bits and valid... */
 /* PROBLEM: Many KF G64s begin the track in the middle of a sector, and is missed by this routine also */
-void sync_align(BYTE *buffer, int length)
+size_t sync_align(BYTE *buffer, int length)
 {
     int i, j;
     int bytes, bits;
@@ -76,16 +76,17 @@ void sync_align(BYTE *buffer, int length)
     while(!((buffer[i]==0xff) && (buffer[i+1]&0x80)))
 	{
     	i++;
-    	if(i>length) break;
+    	if(i==length) break;
 	}
 	if(i<15) // header, skip that also
 	{
 		while(!((buffer[i]==0xff) && (buffer[i+1]&0x80)))
 		{
 		    	i++;
-		    	if(i>length) break;
+		    	if(i==length) break;
 		}
 	}
+	if((!i) || (i==length)) return 0;
 	memcpy(temp_buffer, buffer+i, length-i);
 	memcpy(temp_buffer+length-i, buffer, i);
     memcpy(buffer, temp_buffer, length);
@@ -112,7 +113,10 @@ void sync_align(BYTE *buffer, int length)
 			while(buffer[i] & 0x80)
 			{
 				if(bits++>7)
+				{
 					if(verbose) printf("error shift too long!");
+					break;
+				}
 
 				for(j=0; j<bytes; j++)
 				{
@@ -124,6 +128,7 @@ void sync_align(BYTE *buffer, int length)
 			if(verbose) printf("[bits:%d]",bits);
 		}
     }
+    return 1;
 }
 
 void shift_buffer_left(BYTE *buffer, int length, int n)

@@ -1181,13 +1181,16 @@ int sync_tracks(BYTE *track_buffer, size_t *track_length)
 		{
 			if(verbose) printf("\n%4.1f: (%d) ",(float) track/2, track_length[track]);
 			check_bad_gcr(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
-			sync_align(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
-
+			if(!sync_align(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]))
+			{
+					printf("{nosync}");
+					continue;
+			}
 			/* align to sector gap */
 			memcpy(temp_buffer, track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
 			memcpy(temp_buffer+track_length[track], track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
 			marker = find_sector_gap(temp_buffer, (size_t)track_length[track], &sector);
-			memcpy(track_buffer+(track*NIB_TRACK_LENGTH), marker, track_length[track]);
+			if(marker) memcpy(track_buffer+(track*NIB_TRACK_LENGTH), marker, track_length[track]);
 		}
 	}
 	return 1;
