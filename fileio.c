@@ -1167,11 +1167,9 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 	return length;
 }
 
-int sync_tracks(BYTE *track_buffer, size_t *track_length)
+int sync_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, BYTE *track_alignment)
 {
 	int track;
-	BYTE *marker;
-	size_t sector;
 	BYTE temp_buffer[NIB_TRACK_LENGTH*2];
 
 	printf("\nByte-syncing tracks...\n");
@@ -1186,13 +1184,19 @@ int sync_tracks(BYTE *track_buffer, size_t *track_length)
 					printf("{nosync}");
 					continue;
 			}
-			/* align to sector gap */
+			/* re-extract/align data, since KF images are just index to index */
 			memcpy(temp_buffer, track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
 			memcpy(temp_buffer+track_length[track], track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
-			marker = find_sector_gap(temp_buffer, (size_t)track_length[track], &sector);
-			if(marker) memcpy(track_buffer+(track*NIB_TRACK_LENGTH), marker, track_length[track]);
+			track_length[track] = extract_GCR_track(
+						track_buffer + (track * NIB_TRACK_LENGTH),
+						temp_buffer,
+						&track_alignment[track],
+						track/2,
+						capacity_min[track_density[track]&3],
+						capacity_max[track_density[track]&3] );
 		}
 	}
+	if(verbose) printf("\n");
 	return 1;
 }
 

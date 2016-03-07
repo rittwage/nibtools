@@ -115,7 +115,7 @@ main(int argc, char **argv)
 	if (compare_extension(inname, "G64"))
 	{
 		if(!(read_g64(inname, track_buffer, track_density, track_length))) exit(0);
-		if(sync_align_buffer) sync_tracks(track_buffer, track_length);
+		if(sync_align_buffer)	sync_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(inname, "NBZ"))
 	{
