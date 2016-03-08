@@ -270,26 +270,25 @@ extract_cosmetic_id(BYTE * gcr_track, BYTE * id)
 BYTE
 convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track, int sector, BYTE *id)
 {
-	/* we should later try to repair some common GCR errors
-			1) tri-bit error, in which 01110 is misinterpreted as 01000
-			2) low frequency error, in which 10010 is misinterpreted as 11000
-	*/
-	BYTE header[10];	/* block header */
-	BYTE hdr_chksum;	/* header checksum */
-	BYTE blk_chksum;	/* block  checksum */
+ 	// we should later try to repair some common GCR errors
+ 	//	1) tri-bit error, in which 01110 is misinterpreted as 01000
+	// 2) low frequency error, in which 10010 is misinterpreted as 11000
+	BYTE header[10];        /* block header */
+	BYTE hdr_chksum;        /* header checksum */
+	BYTE blk_chksum;        /* block  checksum */
 	BYTE *gcr_ptr, *gcr_end;
 	BYTE *sectordata;
 	BYTE error_code;
-    size_t track_len;
-    int i, j;
+	size_t track_len;
+	int i, j;
 
 	if ((gcr_cycle == NULL) || (gcr_cycle <= gcr_start))
 		return SYNC_NOT_FOUND;
 
 	/* initialize sector data with Original Format Pattern */
 	memset(d64_sector, 0x01, 260);
-	d64_sector[0] = 0x07;	/* Block header mark */
-	d64_sector[1] = 0x4b;	/* Use Original Format Pattern */
+	d64_sector[0] = 0x07;   /* Block header mark */
+	d64_sector[1] = 0x4b;   /* Use Original Format Pattern */
 
 	for (blk_chksum = 0, i = 1; i < 257; i++)
 		blk_chksum ^= d64_sector[i + 1];
@@ -308,11 +307,10 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	/* Try to find a good block header for Track/Sector */
 	error_code = HEADER_NOT_FOUND;
 
-	for (gcr_ptr = gcr_start; gcr_ptr < gcr_end-1; gcr_ptr++)
+	//for (gcr_ptr = gcr_start; gcr_ptr < gcr_end-1; gcr_ptr++)
+	for (gcr_ptr = gcr_start; gcr_ptr < gcr_end-10; gcr_ptr++)
 	{
-		//FIXME: Ein sync koennte genau den Warparounf bilden und am Trackanfang nicht lang genug sein, um als Sync erkannt zu werden:
-		//FIXME: A sync could well form the wraparound and not long enough at the track beginning to be recognized
-		if ((gcr_ptr[0] == 0xff) && (gcr_ptr[1] != 0xff))
+		if ((gcr_ptr[0] == 0xff) && (gcr_ptr[1] == 0x52))
 		{
 			gcr_ptr++;
 			memset(header, 0, 10);
@@ -362,7 +360,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 	{
 		gcr_ptr = gcr_start;
 		if (!find_sync(&gcr_ptr, gcr_end))
-		   return DATA_NOT_FOUND;
+			return DATA_NOT_FOUND;
 	}
 
 	for (i = 0, sectordata = d64_sector; i < 65; i++)
@@ -370,8 +368,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 		convert_4bytes_from_GCR(gcr_ptr, sectordata);
 
 		if(verbose>3)
-			printf("%.4x: %.2x%.2x%.2x%.2x%.2x --- %.2x%.2x%.2x%.2x\n",
-				(i*4),
+			printf("%.4x: %.2x%.2x%.2x%.2x%.2x --- %.2x%.2x%.2x%.2x\n", (i*4),
 				gcr_ptr[0], gcr_ptr[1], gcr_ptr[2], gcr_ptr[3], gcr_ptr[4],
 				sectordata[0], sectordata[1], sectordata[2], sectordata[3]);
 
