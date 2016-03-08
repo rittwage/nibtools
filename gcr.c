@@ -1438,21 +1438,22 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 			}
 			else
 			{
-				sprintf(tmpstr,"T%dS%d: Non-CBM (%.2x/E%d)(%.2x/E%d)\n",track/2,sector,checksum1,error1,checksum2,error2);
+				sprintf(tmpstr,"T%.1fS%d: Non-CBM (%.2x/E%d)(%.2x/E%d)\n",
+					(float)track/2,sector,checksum1,error1,checksum2,error2);
 			}
 			sec_match++;
 		}
 		else
 		{
-			sprintf(tmpstr, "T%dS%d Mismatch (%.2x/E%d/CRC:%x) (%.2x/E%d/CRC:%x)\n",
-				track/2, sector, checksum1, error1, crcresult1, checksum2, error2, crcresult2);
+			sprintf(tmpstr, "T%.1fS%d Mismatch (%.2x/E%d/CRC:%x) (%.2x/E%d/CRC:%x)\n",
+				(float)track/2, sector, checksum1, error1, crcresult1, checksum2, error2, crcresult2);
 
 			if(verbose)
 			{
-				printf(tmpstr, "T%dS%d Mismatch (%.2x/E%d/CRC:%x) (%.2x/E%d/CRC:%x)\n",
-					track/2, sector, checksum1, error1, crcresult1, checksum2, error2, crcresult2);
+				printf(tmpstr, "T%.1fS%d Mismatch (%.2x/E%d/CRC:%x) (%.2x/E%d/CRC:%x)\n",
+					(float)track/2, sector, checksum1, error1, crcresult1, checksum2, error2, crcresult2);
 
-				printf("T%dS%d converted from GCR:\n", track/2, sector);
+				printf("T%.1fS%d converted from GCR:\n", (float)track/2, sector);
 
 				/* this prints out sectir contents, which is not always terminal compatible */
 				for (i=0; i<256; i+=16)
