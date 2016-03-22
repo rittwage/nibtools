@@ -18,6 +18,7 @@
 #include "prot.h"
 #include "crc.h"
 #include "md5.h"
+#include "bitshifter.c"
 
 void parseargs(char *argv[])
 {
@@ -1171,19 +1172,39 @@ int sync_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, B
 {
 	int track;
 	BYTE temp_buffer[NIB_TRACK_LENGTH*2];
+	BYTE nibdata[NIB_TRACK_LENGTH];
+	BYTE *nibdata_aligned; // aligned track
+	int aligned_len;       // aligned track length
 
 	printf("\nByte-syncing tracks...\n");
-	for (track = start_track; track <= 70; track ++)
+	for (track = start_track; track <= end_track; track ++)
 	{
 		if(track_length[track])
 		{
 			if(verbose) printf("\n%4.1f: (%d) ",(float) track/2, track_length[track]);
+
 			check_bad_gcr(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
+
+			/* Pete's version */
 			if(!sync_align(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]))
 			{
 					printf("{nosync}");
 					continue;
 			}
+			/* end Pete's version */
+
+			/* Arnd version */
+			//memcpy(nibdata, track_buffer+(track*NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
+			//if (isTrackBitshifted(nibdata, NIB_TRACK_LENGTH))
+			//{
+			//	printf("[bitshifted!] ");
+			//	align_bitshifted_track(nibdata, NIB_TRACK_LENGTH, &nibdata_aligned, &aligned_len);
+			//	memcpy(nibdata, nibdata_aligned, NIB_TRACK_LENGTH);
+			//	//align_bitshifted_track(nibdata, NIB_TRACK_LENGTH, NULL, NULL);
+			//}
+			//memcpy(track_buffer+(track*NIB_TRACK_LENGTH), nibdata, NIB_TRACK_LENGTH);
+			/* end Arnd version */
+
 			/* re-extract/align data, since KF images are just index to index */
 			memcpy(temp_buffer, track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
 			memcpy(temp_buffer+track_length[track], track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
@@ -1206,7 +1227,6 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 	BYTE nibdata[NIB_TRACK_LENGTH];
 
 	memset(nibdata, 0, sizeof(nibdata));
-
 	printf("Aligning tracks...\n");
 
 	for (track = start_track; track <= end_track; track ++)

@@ -4,8 +4,8 @@
 #
 # For use with
 #
-#   NIBTOOLS   rev. 614   -- http://www.rittwage.com
-#   OpenCBM    v0.4.99.93 -- http://opencbm.trikaliotis.net
+#   NIBTOOLS   rev. 633   -- http://www.rittwage.com
+#   OpenCBM    v0.4.99.98 -- http://opencbm.trikaliotis.net
 #   CC65 Win32 v2.13.2-1  -- http://www.cc65.org
 #
 # and
@@ -66,7 +66,7 @@
 #   Makefile for the target platform.
 #
 #   You can set the NIBTOOLS SVN version below,
-#     e.g. set NIBVER = "SVN=614" for SVN 614.
+#     e.g. set NIBVER = "SVN=633" for SVN 633.
 #
 #   NIBTOOLS requires you to set OPENCBMVER to the OpenCBM version
 #   you are using:
@@ -84,6 +84,7 @@
 #   All NIBTOOLS files are listed below.
 #   For OPENCBM and CC65 only the required files are listed.
 #
+#   \nibdev\nibtools\bitshifter.c
 #   \nibdev\nibtools\cbm.c
 #   \nibdev\nibtools\crc.c
 #   \nibdev\nibtools\crc.h
@@ -183,7 +184,7 @@
 # NIBTOOLS SVN version
 # -------------------------------------------------------------------------
 
-NIBVER = "SVN=614"
+NIBVER = "SVN=633"
 
 # -------------------------------------------------------------------------
 # Project directories
@@ -218,11 +219,11 @@ OPENCBMVER = "OPENCBM_49"
 #OPENCBM_DLL_DIR_x86  = ..\..\opencbm-0.4.3rc2-i386
 #OPENCBM_DLL_DIR_x64  = ..\..\opencbm-0.4.3rc2-amd64
 
-#OPENCBM_DLL_DIR_x86  = ..\..\opencbm-0.4.99.89-i386
-#OPENCBM_DLL_DIR_x64  = ..\..\opencbm-0.4.99.89-i386
+#OPENCBM_DLL_DIR_x86  = ..\..\opencbm-ZoomFloppy-2.0-i386\exe
+#OPENCBM_DLL_DIR_x64  = ..\..\opencbm-ZoomFloppy-2.0-i386\exe
 
-OPENCBM_DLL_DIR_x86  = ..\..\opencbm-ZoomFloppy-2.0-i386\exe
-OPENCBM_DLL_DIR_x64  = ..\..\opencbm-ZoomFloppy-2.0-i386\exe
+OPENCBM_DLL_DIR_x86  = ..\..\opencbm-0.4.99.98\i386
+OPENCBM_DLL_DIR_x64  = ..\..\opencbm-0.4.99.98\i386
 
 # CC65 directory
 CC65_BIN_DIR = ..\..\cc65-win32-2.13.2-1\bin
