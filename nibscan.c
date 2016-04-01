@@ -508,13 +508,11 @@ scandisk(void)
 	// check each track for various things
 	for (track = start_track; track <= end_track; track ++)
 	{
-		//printf("-------------------------------------------------\n");
-		printf("%4.1f: ", (float) track/2);
-
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
-			printf("UNFORMATTED");
+			//printf("UNFORMATTED");
+			continue;
 		else
-			printf("%d", track_length[track]);
+			printf("%4.1f: %d",(float) track/2, track_length[track]);
 
 		if (track_length[track] > 0)
 		{
@@ -594,7 +592,7 @@ scandisk(void)
 			if (temp_errors)
 			{
 				errors += temp_errors;
-				printf(" %s", errorstring);
+				printf("%s", errorstring);
 				if(waitkey) getchar();
 			}
 
@@ -770,16 +768,16 @@ size_t check_fat(int track)
 		  track_length[track],
 		  track_length[track+2], 1, errorstring);
 
-		if(verbose) printf("%s",errorstring);
+		if(verbose>1) printf("%s",errorstring);
 
 		if (diff<=10)
 		{
-			printf("*FAT Track on T%d, diff=%d*",track/2,(int)diff);
+			printf("*FAT diff=%d*",track/2,(int)diff);
 			return 1;
 		}
 		else if (diff<=35)
 		{
-			printf("*Possible FAT Track on T%d, diff=%d*",track/2,(int)diff);
+			printf("*Possible FAT diff=%d*",track/2,(int)diff);
 			return 1;
 		}
 		else
