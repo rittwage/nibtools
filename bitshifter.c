@@ -2,12 +2,13 @@
 	bitshifter.c
 	Copyright 2011 Arnd Menge
 	---
-	contains routines used by nibtools to sync align bit shifted track data.
+	contains routines used by nibtools to sync align bitshifted track data.
 
 	NOTE: ALPHA VERSION.
 */
 
 int  isTrackBitshifted(BYTE *track_start, int track_length);
+int  align_bitshifted_kf_track(BYTE *track_start, int track_length, BYTE **aligned_track_start, int *aligned_track_length);
 int  align_bitshifted_track(BYTE *track_start, int track_length, BYTE **aligned_track_start, int *aligned_track_length);
 BYTE ShiftCopyXBitsFromPBtoQC(BYTE **p1, BYTE *p1bit, BYTE **p2, BYTE *p2bit, int NumDataBits, BYTE mode);
 BYTE find_end_of_bitshifted_sync(BYTE **pt, BYTE *gcr_end);
@@ -15,18 +16,19 @@ BYTE find_bitshifted_sync(BYTE **pt, BYTE *gcr_end);
 int  isImageAligned(BYTE *track_buffer);
 
 
-// Determine if a track is bit shifted (sectors not sync aligned).
+// Determine if a track is bitshifted (sectors not sync aligned).
 //
 // 'track_start' points to start of track data.
 // 'track_length' is the number of track data bytes.
 //
 // Return value:
-//   1 = at least one data sector is bit shifted.
-//   0 = all data bytes (non-sync) are correctly aligned.
-//       and start on byte boundary.
+//   1 = at least one data sector is bitshifted.
+//   0 = all data bytes (non-sync) are correctly aligned,
+//       or no sync found.
 int isTrackBitshifted(BYTE *track_start, int track_length)
 {
 	BYTE *pt, *track_end;
+	int numSyncs = 0; // Number of found syncs.
 
 	pt = track_start;                           // pt -> start of track data
 	track_end = track_start + track_length - 1; // track_end -> last valid track data byte
@@ -43,6 +45,7 @@ int isTrackBitshifted(BYTE *track_start, int track_length)
 		if (pt < track_end)
 		{
 			// sync found (there can't be a sync if pt==track_end)
+			numSyncs++;
 
 			// A sync is at least 10 bits long and therefore cannot end on the same
 			// track byte.
@@ -51,18 +54,23 @@ int isTrackBitshifted(BYTE *track_start, int track_length)
 			// Determine if number of final '1' sync bits in first byte where a '0'
 			// bit occurs is 0, or 8 if track image ends with sync.
 			if (find_end_of_bitshifted_sync(&pt, track_end)%8 != 0)
-				return 1;
+				return 1; // data sector is bitshifted
 		}
 	}
 
+	// Return 0 if no sync found.
+	if (numSyncs == 0) return 0;
+
+	// All data bytes (non-sync) are correctly aligned.
 	return 0;
 }
 
 
-// Align a track that is possibly bit shifted (sectors not sync aligned).
+// Align a track that is possibly bitshifted (sectors not sync aligned).
 // Pad bits are inserted before syncs until last sync byte ends on byte
 // boundary, hence the first byte of following data sector starts on the
 // next byte.
+// Returns aligned track starting with sync (if a sync is found).
 //
 // 'track_start': points to start of track data.
 //    On entry: points to (unaligned) source track data.
@@ -73,7 +81,96 @@ int isTrackBitshifted(BYTE *track_start, int track_length)
 //
 // 'aligned_track_start':
 //    ==NULL on entry: no change on exit.
-//    !=NULL on entry: points to aligned track data on exit.
+//    !=NULL on entry: points to aligned track data on exit, starting with sync (if a sync is found).
+//
+// 'aligned_track_length':
+//    If ==NULL on entry: no change on exit.
+//    If !=NULL && aligned_track_start!=NULL on entry: the number of valid track data bytes on exit.
+//
+// Return value:
+//   1: sync found, track aligned.
+//   0: sync not found, non-aligned track returned.
+//  -1: empty track detected.
+int align_bitshifted_kf_track(BYTE *track_start, int track_length, BYTE **aligned_track_start, int *aligned_track_length)
+{
+	BYTE *sourcedata, *src_end, *pt;
+	int SSB;
+	int res = 1; // Default return value.
+
+	if ((track_start == NULL) || (track_length == 0))
+	{
+		printf("{nodata}");
+		*aligned_track_start = track_start;
+		*aligned_track_length = track_length;
+		return -1; // empty track detected
+	}
+
+	// Have two copies of (bitshifted) source track data in memory.
+	sourcedata = malloc(track_length*2);
+	memcpy(sourcedata             , track_start, track_length);
+	memcpy(sourcedata+track_length, track_start, track_length);
+
+	pt = sourcedata; // Work pointer on source data
+	src_end = sourcedata + track_length - 1; // Pointer -> last source byte
+
+	// Get out of possible initial sync on track cycle.
+	while ((*pt & 0xff) && (pt < src_end))
+		(*pt)++;
+
+	// Find first sync.
+	//
+	// Possible syncs on track cycle:
+	//   1.1111.1111|track cycle|1000.0000
+	//     0001.1111|track cycle|1111.1000
+	//     0000.0001|track cycle|1111.1111.1  <-- use (src_end+2) for this one
+	//     0000.0000|track cycle|1111.1111.11 <-- use (src_end+2) for this one
+	//
+	// Returns updated pt pointing to first sync start.
+	// Returns SYNC START BIT (SSB) = bit position 1-8 of sync start at
+	//   pt if sync is found, or 0 if no sync found.
+	//
+	// On return: pt<=src_end+1 (first byte of second track copy),
+	//            because we skipped initial sync in while loop above.
+	SSB = find_bitshifted_sync(&pt, src_end+2);
+
+	//printf("\nsourcedata=0x%x | pt=0x%x.%d | src_end=0x%x | #%d\n", sourcedata, pt, SSB, src_end, track_length);
+
+	// Return if no sync found (no alignment without sync).
+	if (SSB == 0)
+	{
+		printf("{nosync}");
+		*aligned_track_start = track_start;
+		*aligned_track_length = track_length;
+		res = 0; // sync not found, non-aligned track returned.
+	}
+	else
+		res = align_bitshifted_track(pt, track_length, aligned_track_start, aligned_track_length);
+
+	//BYTE *tmp = *aligned_track_start+*aligned_track_length-1;
+	//printf("aligned_track_start=0x%x | end=0x%x | #%d\n", *aligned_track_start, tmp, *aligned_track_length);
+
+	free(sourcedata);
+
+	return res;
+}
+
+// Align a track that is possibly bitshifted (sectors not sync aligned).
+// Pad bits are inserted before syncs until last sync byte ends on byte
+// boundary, hence the first byte of following data sector starts on the
+// next byte.
+// Returns aligned track starting at original position (not necessarily at sync),
+// but track data will be aligned only after first found sync.
+//
+// 'track_start': points to start of track data.
+//    On entry: points to (unaligned) source track data.
+//    On exit, if aligned_track_start==NULL: points to aligned track data.
+//             Aligned track data is cut off after 'track_length' bytes.
+//
+// 'track_length': the number of valid track data bytes.
+//
+// 'aligned_track_start':
+//    ==NULL on entry: no change on exit.
+//    !=NULL on entry: points to aligned track data on exit, starting at original position.
 //
 // 'aligned_track_length':
 //    If ==NULL on entry: no change on exit.
@@ -89,8 +186,8 @@ int align_bitshifted_track(BYTE *track_start, int track_length, BYTE **aligned_t
 	int SSB, LSB;
 	int NumDataBits, NumPadBits, NumSyncBits;
 
-	// Allocate & init memory for target (aligned track data).
-	// Source is 'track_length' long (unaligned track data).
+	// Allocate & init memory for target (sync aligned) track data.
+	// Source is 'track_length' long (bitshifted track data).
 	// Target will be longer as we insert '0' pad bits for sync
 	// alignment: choose 'track_length'*2 to be safe.
 	nibdata = malloc(track_length*2);
@@ -202,7 +299,7 @@ int align_bitshifted_track(BYTE *track_start, int track_length, BYTE **aligned_t
 			// printf("SSB=%d LSB=%d #DataBits=%d(%d.%d) #SyncBits=%d #PadBits=%d \n",
 			// SSB, LSB, NumDataBits, NumDataBits/8, NumDataBits%8, NumSyncBits, NumPadBits);
 
-			// Bit shift and copy NumDataBits data bits (mode=99) from source position
+			// Bitshift and copy NumDataBits data bits (mode=99) from source position
 			// p1.p1bit to target position p2.p2bit :
 			// 'p1bit' is bit number 1-8 of next bit to be copied at pointer p1.
 			// 'p2bit' is number of last written bit in target byte at pointer p2
@@ -216,7 +313,7 @@ int align_bitshifted_track(BYTE *track_start, int track_length, BYTE **aligned_t
 			// NOTE: Too many zero pad bits may result in random bits enlarging sync.
 			ShiftCopyXBitsFromPBtoQC(&p1, &p1bit, &p2, &p2bit, NumPadBits,   0);
 
-			// Bit shift and copy NumSyncBits '1' sync bits (mode=1) from source position
+			// Bitshift and copy NumSyncBits '1' sync bits (mode=1) from source position
 			// p1.p1bit to target position p2.p2bit
 			// Updated positions p1.p1bit and p2.p2bit are returned!
 			ShiftCopyXBitsFromPBtoQC(&p1, &p1bit, &p2, &p2bit, NumSyncBits,  1);
@@ -263,7 +360,14 @@ int align_bitshifted_track(BYTE *track_start, int track_length, BYTE **aligned_t
 			// Generate verbose output if flagged.
 			if (verbose > 2)
 			{
-				printf("P.B=0x%x.%d | gcr_end=0x%x | Q.C=0x%x.%d | #%d\n", p1, p1bit, gcr_end, p2, p2bit, NumDataBits);
+				printf("P.B=0x%x.%d | gcr_end=0x%x | nibdata=0x%x | Q.C=0x%x.%d | #%d\n", p1, p1bit, gcr_end, nibdata, p2, p2bit, NumDataBits);
+			}
+
+			// Don't forget last bits of last byte (target memory was initialized with zeros by memset).
+			if (p2bit != 0)
+			{
+				p2bit = 0;
+				p2++;
 			}
 		}
 
@@ -299,14 +403,14 @@ int align_bitshifted_track(BYTE *track_start, int track_length, BYTE **aligned_t
 
 // Copy NumDataBits bits from source to target.
 //
-// Source may be bit shifted track data (pointer *p, pointer b to bit number of next bit to be copied)
+// Source may be bitshifted track data (pointer *p, pointer b to bit number of next bit to be copied)
 // or special byte depending on 'mode'.
 // Target location specified by pointer *q and pointer c to number of last written bit in target byte
 // (1-7, 0 if no bit written so far).
 //
 // Mode 0: Insert '0' bits (before sync).
 // Mode 1: Insert '1' bits (sync).
-// Mode 99: Copy bit shifted track data.
+// Mode 99: Copy bitshifted track data.
 //
 // Returns always 1 (Everything ok).
 BYTE
@@ -327,7 +431,7 @@ ShiftCopyXBitsFromPBtoQC(BYTE **p, BYTE *b, BYTE **q, BYTE *c, int NumDataBits, 
 		// Determine which bits to insert/copy.
 		if (mode == 0) db = 0;         // Mode  0: Insert '0' bits (before sync)
 		else if (mode == 1) db = 0xff; // Mode  1: Insert '1' bits (sync)
-		else db = **p;                 // Mode 99: Copy (bit shifted) track data
+		else db = **p;                 // Mode 99: Copy (bitshifted) track data
 
 		// Copy bits from 'db' to Q, but no more than 'db' has, and at most NumDataBits:
 		// > Number of used bits in target byte Q.C = *c
@@ -409,7 +513,7 @@ find_end_of_bitshifted_sync(BYTE **pt, BYTE *gcr_end)
 BYTE
 find_bitshifted_sync(BYTE **pt, BYTE *gcr_end)
 {
-	/* Possible bit shifted sync starts are:
+	/* Possible bitshifted sync starts are:
 
 	   11111111.11
 	    1111111.111
