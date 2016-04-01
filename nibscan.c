@@ -326,118 +326,110 @@ compare_disks(void)
 
 	for (track = start_track; track <= end_track; track ++)
 	{
+		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
+		{
+			track_length[track] = 0;
+			//printf("1 - UNFORMATTED!\n");
+			continue;
+		}
+
+		if(!check_formatted(track_buffer2 + (track * NIB_TRACK_LENGTH), track_length2[track]))
+		{
+			track_length2[track] = 0;
+			//printf("2 - UNFORMATTED!\n");
+			continue;
+		}
+
 		printf("%4.1f, Disk 1: (%d) %d\n",
 		 	(float)track/2, track_density[track]&3, track_length[track]);
 
 		printf("%4.1f, Disk 2: (%d) %d\n",
 		 	(float)track/2, track_density2[track]&3, track_length2[track]);
 
-		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
+		numtracks++;
+
+		// check for gcr match (unlikely)
+		gcr_match =
+		  compare_tracks(
+			track_buffer + (track * NIB_TRACK_LENGTH),
+			track_buffer2 + (track * NIB_TRACK_LENGTH),
+			track_length[track],
+			track_length2[track],
+			0,
+			errorstring);
+
+		printf("%s", errorstring);
+
+		if(gcr_match)
 		{
-			track_length[track] = 0;
-			printf("1 - UNFORMATTED!\n");
+			gcr_percentage = (gcr_match*100)/track_length[track];
+
+			if (gcr_percentage >= 98)
+			{
+				gcr_total++;
+				printf("\n[*>%d%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
+				sprintf(tmpstr, "%d,", track/2);
+				strcat(gcr_matches, tmpstr);
+			}
+			else
+			{
+				printf("\n[*>%d%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
+				sprintf(tmpstr, "%d,", track/2);
+				strcat(gcr_mismatches, tmpstr);
+			}
 		}
 
-		if(!check_formatted(track_buffer2 + (track * NIB_TRACK_LENGTH), track_length2[track]))
+		if(track/2 <= 35)
 		{
-			track_length2[track] = 0;
-			printf("2 - UNFORMATTED!\n");
+			errors_d1 += check_errors(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track], track, id, errorstring);
+			errors_d2 += check_errors(track_buffer2 + (NIB_TRACK_LENGTH * track), track_length2[track], track, id2, errorstring);
 		}
 
-		if( ((track_length[track] > 0) && (track_length2[track] == 0)) ||
-			((track_length[track] == 0) && (track_length2[track] > 0)) )
+		/* check for DOS sector matches */
+		if(track/2 <= 35)
 		{
-			printf("[Track sizes do not match]\n");
-			if(waitkey) getchar();
-		}
-
-		if ((track_length[track] > 0) || (track_length2[track] > 0))
-		{
-			numtracks++;
-
-			// check for gcr match (unlikely)
-			gcr_match =
-			  compare_tracks(
-				track_buffer + (track * NIB_TRACK_LENGTH),
-				track_buffer2 + (track * NIB_TRACK_LENGTH),
-				track_length[track],
-				track_length2[track],
-				0,
-				errorstring);
+			sec_match = compare_sectors(
+										track_buffer + (track * NIB_TRACK_LENGTH),
+										track_buffer2 + (track * NIB_TRACK_LENGTH),
+										track_length[track],
+										track_length2[track],
+										id,
+										id2,
+										track,
+										errorstring
+										);
 
 			printf("%s", errorstring);
 
-			if(gcr_match)
+			sec_total += sec_match;
+			numsecs += sector_map[track/2];
+
+			if (sec_match == sector_map[track/2])
 			{
-				gcr_percentage = (gcr_match*100)/track_length[track];
-
-				if (gcr_percentage >= 98)
-				{
-					gcr_total++;
-					printf("\n[*>%d%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
-					sprintf(tmpstr, "%d,", track/2);
-					strcat(gcr_matches, tmpstr);
-				}
-				else
-				{
-					printf("\n[*>%d%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
-					sprintf(tmpstr, "%d,", track/2);
-					strcat(gcr_mismatches, tmpstr);
-				}
-			}
-
-			if(track/2 <= 35)
-			{
-				errors_d1 += check_errors(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track], track, id, errorstring);
-				errors_d2 += check_errors(track_buffer2 + (NIB_TRACK_LENGTH * track), track_length2[track], track, id2, errorstring);
-			}
-
-			/* check for DOS sector matches */
-			if(track/2 <= 35)
-			{
-				sec_match = compare_sectors(
-											track_buffer + (track * NIB_TRACK_LENGTH),
-											track_buffer2 + (track * NIB_TRACK_LENGTH),
-											track_length[track],
-											track_length2[track],
-											id,
-											id2,
-											track,
-											errorstring
-											);
-
-				printf("%s", errorstring);
-
-				sec_total += sec_match;
-				numsecs += sector_map[track/2];
-
-				if (sec_match == sector_map[track/2])
-				{
-					trk_total++;
-					printf("[*Data MATCH*]\n");
-					sprintf(tmpstr, "%d,", track / 2);
-					strcat(sec_matches, tmpstr);
-				}
-				else
-				{
-					printf("[*Data MISmatch*]\n");
-					sprintf(tmpstr, "%d,", track / 2);
-					strcat(sec_mismatches, tmpstr);
-				}
-			}
-
-			if(track_density[track] != track_density2[track])
-			{
-				printf("[Densities do not match: %d != %d]\n", track_density[track], track_density2[track]);
-				dens_mismatch++;
+				trk_total++;
+				printf("[*Data MATCH*]\n");
 				sprintf(tmpstr, "%d,", track / 2);
-				strcat(dens_mismatches, tmpstr);
+				strcat(sec_matches, tmpstr);
 			}
-			printf("\n");
-
-			if((!sec_match) || (track_density[track] != track_density2[track]))
-				if( waitkey) getchar();
+			else
+			{
+				printf("[*Data MISmatch*]\n");
+				sprintf(tmpstr, "%d,", track / 2);
+				strcat(sec_mismatches, tmpstr);
+			}
 		}
+
+		if(track_density[track] != track_density2[track])
+		{
+			printf("[Densities do not match: %d != %d]\n", track_density[track], track_density2[track]);
+			dens_mismatch++;
+			sprintf(tmpstr, "%d,", track / 2);
+			strcat(dens_mismatches, tmpstr);
+		}
+		printf("\n");
+
+		if((!sec_match) || (track_density[track] != track_density2[track]))
+			if( waitkey) getchar();
 	}
 
 	printf("\n---------------------------------------------------------------------\n");
