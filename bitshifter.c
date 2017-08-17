@@ -15,6 +15,9 @@ BYTE find_end_of_bitshifted_sync(BYTE **pt, BYTE *gcr_end);
 BYTE find_bitshifted_sync(BYTE **pt, BYTE *gcr_end);
 int  isImageAligned(BYTE *track_buffer);
 
+#ifndef min
+#define min(a,b)  (((a) < (b))? (a) : (b))
+#endif
 
 // Determine if a track is bitshifted (sectors not sync aligned).
 //
@@ -439,7 +442,7 @@ ShiftCopyXBitsFromPBtoQC(BYTE **p, BYTE *b, BYTE **q, BYTE *c, int NumDataBits, 
 		// > 0 <= C <= 7 (see above)
 		// > *b = Next bit position to be copied from 'db' (1 <= B <= 8)
 		// > [ ((Q << C) & 0xff00) + new bits from db ] >> C
-		**q = ( ( (__int32)((**q) >> (8-*c)) << 8) | (((__int32)db << (*b-1)) & 0xff) ) >> *c;
+		**q = ( ( (unsigned int)((**q) >> (8-*c)) << 8) | (((unsigned int)db << (*b-1)) & 0xff) ) >> *c;
 
 		// Determine number 'd' of copied bits (lowest value of following):
 		// - At most (8-*c) free bits in Q were filled

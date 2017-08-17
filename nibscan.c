@@ -764,12 +764,12 @@ size_t check_fat(int track)
 
 		if (diff<=10)
 		{
-			printf("*FAT diff=%d*",track/2,(int)diff);
+			printf("*FAT diff=%d*",(int)diff);
 			return 1;
 		}
 		else if (diff<=35)
 		{
-			printf("*Possible FAT diff=%d*",track/2,(int)diff);
+			printf("*Possible FAT diff=%d*",(int)diff);
 			return 1;
 		}
 		else
