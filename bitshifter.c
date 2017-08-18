@@ -442,7 +442,7 @@ ShiftCopyXBitsFromPBtoQC(BYTE **p, BYTE *b, BYTE **q, BYTE *c, int NumDataBits, 
 		// > 0 <= C <= 7 (see above)
 		// > *b = Next bit position to be copied from 'db' (1 <= B <= 8)
 		// > [ ((Q << C) & 0xff00) + new bits from db ] >> C
-		**q = ( ( (unsigned int)((**q) >> (8-*c)) << 8) | (((unsigned int)db << (*b-1)) & 0xff) ) >> *c;
+		**q = ( ( (int)((**q) >> (8-*c)) << 8) | (((int)db << (*b-1)) & 0xff) ) >> *c;
 
 		// Determine number 'd' of copied bits (lowest value of following):
 		// - At most (8-*c) free bits in Q were filled
