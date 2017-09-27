@@ -38,8 +38,8 @@ void parseargs(char *argv[])
 			break;
 
 		case 'P':
-			printf("* Skip 1571 SRQ Support (Use parallel)\n");
-			use_floppycode_srq = 0;
+			printf("* Skip 1571 SRQ Support (Use parallel always)\n");
+			override_srq = 1;
 			break;
 
 		case 's':
