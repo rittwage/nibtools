@@ -101,16 +101,13 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	{
 		send_mnib_cmd(fd, FL_WRITE, NULL, 0);
 
+		/* Neither of these currently work with SRQ */
 		/* IHS will lock forever if IHS is set and it sees no index hole, i.e. side 2 of flippy disk or there is no compatible IHS */
 		/* Arnd has some code to test for it, not implemented yet */
 		burst_write(fd, (unsigned char)((ihs) ? 0x00 : 0x03));
 
 		/* align disk waits until end of sync before writing */
-		/* this is not working with SRQ due to timing, and largely useless anyway */
-		if(use_floppycode_srq)
-			burst_write(fd, 0);
-		else
-			burst_write(fd, (unsigned char)((align_disk) ? 0xfb : 0x00));
+		burst_write(fd, (unsigned char)((align_disk) ? 0xfb : 0x00));
 
 
 		if (burst_write_track(fd, rawtrack, (int)(tracklen + leader + skewbytes + 1)))
