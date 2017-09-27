@@ -106,7 +106,12 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		burst_write(fd, (unsigned char)((ihs) ? 0x00 : 0x03));
 
 		/* align disk waits until end of sync before writing */
-		burst_write(fd, (unsigned char)((align_disk) ? 0xfb : 0x00));
+		/* this is not working with SRQ due to timing, and largely useless anyway */
+		if(use_floppycode_srq)
+			burst_write(fd, 0);
+		else
+			burst_write(fd, (unsigned char)((align_disk) ? 0xfb : 0x00));
+
 
 		if (burst_write_track(fd, rawtrack, (int)(tracklen + leader + skewbytes + 1)))
 			break;

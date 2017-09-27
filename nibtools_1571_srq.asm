@@ -396,34 +396,35 @@ _marker:
 ; send a short sync to all tracks on a disk
 ; Pete Rittwage 3/7/2010
 _align_disk:
-        JSR  _read_byte           ; read byte from parallel data port
-        STA  _delay_loop+1         ; can change delay loop by 10ms
+        JSR  _read_byte           ; read byte from parallel data port (toss it)
       
         LDA  #$ce
         STA  $1c0c
         DEC  $1c03                ; CA data direction head (0->$ff: write)
         
-        LDA #$52  	 ; track 41	
-       	STA $cf
-
 ;--------------------------------------
 ; this simple sweep aligns small syncs 20ms off from each other, not real great 
 ;--------------------------------------
- _admain:
+        LDA #$52  	 ; track 41	
+       	STA $cf
+
+_admain:
 	JSR _step_dest_internal
 	LDA  #$ff                 ;
+
         STA  $1c01                ; write $ff byte (Sync mark)
 _adL1:
         BVC  _adL1                ;
+
         STA  $1c01                ; write $ff byte (Sync mark)
 _adL2:
         BVC  _adL2                ;
 
-_delay_loop:
-     	DEC $cf
-	DEC $cf
+     	;DEC $cf
+	DEC $cf			; step down a track
+
 	LDA $cf
-	CMP #$01
+	CMP #$01		; are we at track 1?
 	BNE _admain 
 	
         LDA  #$ee
@@ -442,12 +443,13 @@ _fill_track:
         DEC  $1c03                ; CA data direction head (0->$ff: write)
 
 	JSR  _read_byte           ; read byte from parallel data port
-        LDX  #$20                 ;
+
+        LDX  #$20                 ; write $2000 ($20 x $100) times
         STA  $1c01                ; send byte to head
 _ftL1:
         BVC  _ftL1                ;
         CLV                       ;
-        INY                       ; write $2000 ($20 x $100) times
+        INY                       ; 
         BNE  _ftL1                ;
         DEX                       ;
         BNE  _ftL1                ;

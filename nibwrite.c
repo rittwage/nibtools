@@ -248,7 +248,7 @@ int writeimage(CBM_FILE fd)
 	if(auto_capacity_adjust)
 		adjust_target(fd);
 
-	if(align_disk)
+	if((align_disk)&&(!use_floppycode_srq))
 		init_aligned_disk(fd);
 
 	if(mode == MODE_WRITE_RAW)
