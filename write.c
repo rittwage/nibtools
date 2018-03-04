@@ -109,7 +109,6 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		/* align disk waits until end of sync before writing */
 		burst_write(fd, (unsigned char)((align_disk) ? 0xfb : 0x00));
 
-
 		if (burst_write_track(fd, rawtrack, (int)(tracklen + leader + skewbytes + 1)))
 			break;
 		else

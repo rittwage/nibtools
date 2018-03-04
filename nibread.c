@@ -189,7 +189,7 @@ main(int argc, char *argv[])
 			printf("* Using halftracks\n");
 			break;
 
-		case 'i':
+		case 'i':  // this is not implemented in SRQ mode //
 			printf("* 1571 or SuperCard-compatible index hole sensor (use only for side 1)\n");
 			ihs = 1;
 			break;
