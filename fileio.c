@@ -1200,27 +1200,35 @@ int sync_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, B
 			check_bad_gcr(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
 
 			/* Pete's version */
-			if(!sync_align(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]))
-			{
-					printf("{nosync}");
-					continue;
-			}
+			//if(!sync_align(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]))
+			//{
+			//		printf("{nosync}");
+			//		continue;
+			//}
 			/* end Pete's version */
 
 			/* Arnd's version */
-			//if (isTrackBitshifted(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]))
-			//{
-			//	printf("[bitshifted] ");
-			//	align_bitshifted_kf_track(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track], &nibdata_aligned, &aligned_len);
-			//	memcpy(track_buffer+(track*NIB_TRACK_LENGTH), nibdata_aligned, aligned_len);
-			//	track_length[track] = aligned_len;
-			//}
-			//else continue; // Continue if track is aligned or if no sync found.
+			if (isTrackBitshifted(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]))
+			{
+				printf("[bitshifted] ");
+				align_bitshifted_kf_track(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track], &nibdata_aligned, &aligned_len);
+				memcpy(track_buffer+(track*NIB_TRACK_LENGTH), nibdata_aligned, aligned_len);
+
+				if(aligned_len<0x2000)
+					track_length[track] = aligned_len;
+				else
+				{
+					aligned_len = 0x2000;
+					printf("aligned data too long, truncated ");
+				}
+			}
+			else continue; // Continue if track is aligned or if no sync found.
 			/* end Arnd version */
 
 			/* re-extract/align data, since KF images are just index to index */
 			memcpy(temp_buffer, track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
 			memcpy(temp_buffer+track_length[track], track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
+
 			track_length[track] = extract_GCR_track(
 						track_buffer + (track * NIB_TRACK_LENGTH),
 						temp_buffer,
@@ -1247,19 +1255,6 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 		if(verbose) printf("%4.1f: ",(float) track/2);
 		memcpy(nibdata, track_buffer+(track*NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
 		memset(track_buffer + (track * NIB_TRACK_LENGTH), 0x00, NIB_TRACK_LENGTH);
-
-		/* Pete's version */
-		if(sync_align(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]))
-		{
-			printf("[bitshifted] ");
-		}
-
-		/* Arnd's version */
-		//if (isTrackBitshifted(nibdata, NIB_TRACK_LENGTH))
-		//{
-		//	printf("[bitshifted] ");
-		//	align_bitshifted_track(nibdata, NIB_TRACK_LENGTH, NULL, NULL);
-		//}
 
 		/* process track cycle */
 		track_length[track] = extract_GCR_track(
