@@ -90,7 +90,7 @@ size_t sync_align(BYTE *buffer, int length)
 	memcpy(temp_buffer, buffer+i, length-i);
 	memcpy(temp_buffer+length-i, buffer, i);
     memcpy(buffer, temp_buffer, length);
-    if(verbose) printf("{shuff:%d}", i);
+    if(verbose>1) printf("{shuff:%d}", i);
 
     // shift buffer left to edge of sync marks
     for (i=0; i<length; i++)
@@ -107,7 +107,7 @@ size_t sync_align(BYTE *buffer, int length)
 				bytes++;
 				if(i+bytes>length) break;
 			}
-			if(verbose) printf("(%d)", bytes);
+			if(verbose>1) printf("(%d)", bytes);
 
 			//shift left until MSB cleared
 			while(buffer[i] & 0x80)
@@ -125,7 +125,7 @@ size_t sync_align(BYTE *buffer, int length)
 				}
 				//buffer[i+j] |= 0x1;
 			}
-			if(verbose) printf("[bits:%d]",bits);
+			if(verbose>1) printf("[bits:%d]",bits);
 		}
     }
     return 1;
