@@ -580,6 +580,12 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		return 0;
 	}
 
+	if(g64maxtrack>NIB_TRACK_LENGTH)
+	{
+			printf("Contains track size > 0x2000 bytes.\nLikely corrupt G64 file.\nWill attempt to skip bad tracks\n");
+			//return 0;
+	}
+
 	for (track = 2; track <= g64tracks; track++, pointer += 4)
 	{
 		int pointer2 = *(int*)(header+0xc+pointer);
@@ -600,6 +606,12 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		/* get length */
 		fread(length_record, 2, 1, fpin);
 		tmpLength = length_record[1] << 8 | length_record[0];
+
+		if(tmpLength>NIB_TRACK_LENGTH)
+		{
+			tmpLength = NIB_TRACK_LENGTH;
+			//printf(" skipping extra data");
+		}
 		track_length[track] = tmpLength;
 
 		/* get track from file */
@@ -1181,6 +1193,8 @@ int sync_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, B
 		if(track_length[track])
 		{
 			if(verbose) printf("\n%4.1f: (%d) ",(float) track/2, track_length[track]);
+
+			if(track_length[track]==NIB_TRACK_LENGTH) continue;
 
 			check_bad_gcr(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
 
