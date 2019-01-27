@@ -1212,7 +1212,6 @@ int sync_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, B
 			{
 				printf("[bitshifted] ");
 				align_bitshifted_kf_track(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track], &nibdata_aligned, &aligned_len);
-				memcpy(track_buffer+(track*NIB_TRACK_LENGTH), nibdata_aligned, aligned_len);
 
 				if(aligned_len<0x2000)
 					track_length[track] = aligned_len;
@@ -1221,6 +1220,7 @@ int sync_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, B
 					aligned_len = 0x2000;
 					printf("aligned data too long, truncated ");
 				}
+				memcpy(track_buffer+(track*NIB_TRACK_LENGTH), nibdata_aligned, aligned_len);
 			}
 			else continue; // Continue if track is aligned or if no sync found.
 			/* end Arnd version */
