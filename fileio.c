@@ -827,9 +827,10 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	int save_40_errors = 0;
 	int save_40_tracks = 0;
 	int blockindex = 0;
+	int offset = 0;
 	BYTE *cycle_start;	/* start position of cycle    */
 	BYTE *cycle_stop;	/* stop  position of cycle +1 */
-	BYTE id[3];
+	BYTE id[4];
 	BYTE rawdata[260];
 	BYTE d64data[MAXBLOCKSONDISK * 256], *d64ptr;
 	BYTE errorinfo[MAXBLOCKSONDISK], errorcode;
@@ -849,20 +850,39 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	}
 
 	/* get disk id */
-	if (!extract_id(track_buffer + (18 * 2 * NIB_TRACK_LENGTH), id))
+	if (!extract_id(track_buffer + (18*2*NIB_TRACK_LENGTH), id))
 	{
-		fprintf(stderr, "Cannot find directory sector.\n");
-		return 0;
+		int track = id[0];
+		//printf("debug: dir track really=%d\n",track);
+		offset = 18 - track;
+		if (!offset || !extract_id(track_buffer + ((18+offset)*2*NIB_TRACK_LENGTH), id))
+		{
+			fprintf(stderr, "Cannot find directory sector.\n");
+			return 0;
+		}
+		else
+		{
+			printf("Track offset found in image: %d\n",offset);
+			offset++; // the rest of the routines for D64 only operate on every other track
+		}
 	}
+	//printf("debug: diskid=%s\n",id);
 
 	d64ptr = d64data;
 	for (track = start_track; track <= 40*2; track += 2)
 	{
-		cycle_start = track_buffer + (track * NIB_TRACK_LENGTH);
-		cycle_stop = track_buffer + (track * NIB_TRACK_LENGTH) + track_length[track];
+		cycle_start = track_buffer + ((track+offset) * NIB_TRACK_LENGTH);
+		cycle_stop = track_buffer + ((track+offset) * NIB_TRACK_LENGTH) + track_length[track+offset];
+		//printf("debug: start=%d, stop=%d\n",cycle_start,cycle_stop);
 
 		if(verbose) printf("%.2d (%d):" ,track/2, capacity[speed_map[track/2]]);
 
+		if (track+offset < 2 || track+offset > 80)
+		{
+		  for (sector = 0; sector < sector_map[track/2]; sector++)
+			errorinfo[blockindex] = SYNC_NOT_FOUND;
+		}
+		else
 		for (sector = 0; sector < sector_map[track/2]; sector++)
 		{
 			if(verbose) printf("%d", sector);
