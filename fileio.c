@@ -990,7 +990,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		return 0;
 	}
 
-	/* determine max track size (VICE still can't handle) */
+	/* determine max track size (old VICE can't handle) */
 	//for (index= 0; index < MAX_HALFTRACKS_1541; index += track_inc)
 	//{
 	//	if(track_length[index+2] > G64_TRACK_MAXLEN)

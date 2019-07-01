@@ -267,7 +267,7 @@ int align_bitshifted_track(BYTE *track_start, int track_length, BYTE **aligned_t
 			}
 
 			// Determine number of sync bits between sync_start.SSB and sync_end.LSB
-			NumSyncBits = (sync_end - sync_start - 1)*8 + LSB + (9-SSB);
+			NumSyncBits = ((sync_end - sync_start - 1)*8 + LSB) + (9-SSB);
 
 			// Determine number of required '0' pad bits to insert before sync start for sync
 			// to end on byte alignment:
