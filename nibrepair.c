@@ -96,7 +96,7 @@ main(int argc, char **argv)
 	memset(track_buffer, 0x00, sizeof(track_buffer));
 
 	/* default is to reduce sync */
-	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+2);
+	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+1);
 
 	while (--argc && (*(++argv)[0] == '-'))
 		parseargs(argv);

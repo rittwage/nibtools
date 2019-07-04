@@ -186,8 +186,8 @@ int align_bitshifted_track(BYTE *track_start, int track_length, BYTE **aligned_t
 	BYTE *pt, *p1, *p2;
 	BYTE *gcr_end, *gcr_end2, *sync_start, *sync_end;
 	BYTE p1bit, p2bit, first_sync;
-	int SSB, LSB;
-	int NumDataBits, NumPadBits, NumSyncBits;
+	size_t SSB, LSB;
+	size_t NumDataBits, NumPadBits, NumSyncBits;
 
 	// Allocate & init memory for target (sync aligned) track data.
 	// Source is 'track_length' long (bitshifted track data).
@@ -255,7 +255,7 @@ int align_bitshifted_track(BYTE *track_start, int track_length, BYTE **aligned_t
 				// >>> (SSB-1) data bits in first sync byte, may be 0.
 				//
 				// Hence number of data bits before sync start:
-				NumDataBits = (sync_start - p1 - 1)*8 + (SSB-1) + (9-p1bit);
+				NumDataBits = ((sync_start - p1 - 1)*8) + (SSB-1) + (9-p1bit);
 			}
 			else
 			{
@@ -350,7 +350,7 @@ int align_bitshifted_track(BYTE *track_start, int track_length, BYTE **aligned_t
 			// >>> 8 data bits in last track byte.
 			//
 			// Hence number of data bits before end of track:
-			NumDataBits = (gcr_end - p1 - 1)*8 + 8 + (9-p1bit);
+			NumDataBits = ((gcr_end - p1 - 1)*8) + 8 + (9-p1bit);
 
 			// Bit shift and copy NumDataBits data bits (mode=99) before end of track
 			// from source position p1.p1bit to target position p2.p2bit :

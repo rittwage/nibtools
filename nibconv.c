@@ -76,9 +76,9 @@ main(int argc, char **argv)
 	rpm_real = 296;
 
 	/* default is to reduce sync */
-	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541 + 2);
-	//memset(track_length, 0, MAX_TRACKS_1541 + 2);
-	for(t=0; t<MAX_TRACKS_1541 + 2; t++)
+	memset(reduce_map, REDUCE_SYNC, MAX_TRACKS_1541+1);
+	//memset(track_length, 0, MAX_TRACKS_1541+1);
+	for(t=0; t<MAX_TRACKS_1541+1; t++)
 		track_length[t] = NIB_TRACK_LENGTH; // I do not recall why this was done, but left at MAX
 
 	fprintf(stdout,

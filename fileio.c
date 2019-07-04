@@ -18,7 +18,7 @@
 #include "prot.h"
 #include "crc.h"
 #include "md5.h"
-#include "bitshifter.c"
+//#include "bitshifter.c"
 
 void parseargs(char *argv[])
 {
@@ -92,14 +92,14 @@ void parseargs(char *argv[])
 			{
 				case 'x':
 					printf("V-MAX!\n");
-					memset(align_map, ALIGN_VMAX, MAX_TRACKS_1541+2);
+					memset(align_map, ALIGN_VMAX, MAX_TRACKS_1541+1);
 					fix_gcr = 0;
 					presync = 1;
 					break;
 
 				case 'c':
 					printf("V-MAX! (CINEMAWARE)\n");
-					memset(align_map, ALIGN_VMAX_CW, MAX_TRACKS_1541+2);
+					memset(align_map, ALIGN_VMAX_CW, MAX_TRACKS_1541+1);
 					fix_gcr = 0;
 					presync = 1;
 					break;
@@ -117,7 +117,7 @@ void parseargs(char *argv[])
 
 				case 'v':
 					printf("VORPAL (NEWER)\n");
-					memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541+2);
+					memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541+1);
 					align_map[18] = ALIGN_NONE;
 					break;
 
@@ -125,7 +125,7 @@ void parseargs(char *argv[])
 					printf("RAPIDLOK\n"); /* don't reduce sync, but everything else */
 					//for(count = 1; count <= MAX_TRACKS_1541; count ++)
 					//	reduce_map[count] = REDUCE_BAD | REDUCE_GAP;
-					memset(align_map, ALIGN_RAPIDLOK, MAX_TRACKS_1541+2);
+					memset(align_map, ALIGN_RAPIDLOK, MAX_TRACKS_1541+1);
 					break;
 
 				case'p':
@@ -147,32 +147,32 @@ void parseargs(char *argv[])
 			if ((*argv)[2] == '0')
 			{
 				printf("sector 0\n");
-				memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541+2);
+				memset(align_map, ALIGN_SEC0, MAX_TRACKS_1541+1);
 			}
 			else if ((*argv)[2] == 'g')
 			{
 				printf("gap\n");
-				memset(align_map, ALIGN_GAP, MAX_TRACKS_1541+2);
+				memset(align_map, ALIGN_GAP, MAX_TRACKS_1541+1);
 			}
 			else if ((*argv)[2] == 'w')
 			{
 				printf("longest bad GCR run\n");
-				memset(align_map, ALIGN_BADGCR, MAX_TRACKS_1541+2);
+				memset(align_map, ALIGN_BADGCR, MAX_TRACKS_1541+1);
 			}
 			else if ((*argv)[2] == 's')
 			{
 				printf("longest sync\n");
-				memset(align_map, ALIGN_LONGSYNC, MAX_TRACKS_1541+2);
+				memset(align_map, ALIGN_LONGSYNC, MAX_TRACKS_1541+1);
 			}
 			else if ((*argv)[2] == 'a')
 			{
 				printf("autogap\n");
-				memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541+2);
+				memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541+1);
 			}
 			else if ((*argv)[2] == 'n')
 			{
 				printf("raw (no alignment, use NIB start)\n");
-				memset(align_map, ALIGN_RAW, MAX_TRACKS_1541+2);
+				memset(align_map, ALIGN_RAW, MAX_TRACKS_1541+1);
 			}
 			else
 				printf("Unknown alignment parameter\n");
@@ -1220,29 +1220,29 @@ int sync_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, B
 			check_bad_gcr(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
 
 			/* Pete's version */
-			//if(!sync_align(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]))
-			//{
-			//		printf("{nosync}");
-			//		continue;
-			//}
+			if(!sync_align(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]))
+			{
+					printf("{nosync}");
+					continue;
+			}
 			/* end Pete's version */
 
 			/* Arnd's version */
-			if (isTrackBitshifted(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]))
-			{
-				printf("[bitshifted] ");
-				align_bitshifted_kf_track(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track], &nibdata_aligned, &aligned_len);
-
-				if(aligned_len<0x2000)
-					track_length[track] = aligned_len;
-				else
-				{
-					aligned_len = 0x2000;
-					printf("aligned data too long, truncated ");
-				}
-				memcpy(track_buffer+(track*NIB_TRACK_LENGTH), nibdata_aligned, aligned_len);
-			}
-			else continue; // Continue if track is aligned or if no sync found.
+			//if (isTrackBitshifted(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]))
+			//{
+			//	printf("[bitshifted] ");
+			//	align_bitshifted_kf_track(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track], &nibdata_aligned, &aligned_len);
+			//
+			//	if(aligned_len<0x2000)
+			//		track_length[track] = aligned_len;
+			//	else
+			//	{
+			//		aligned_len = 0x2000;
+			//		printf("aligned data too long, truncated ");
+			//	}
+			//	memcpy(track_buffer+(track*NIB_TRACK_LENGTH), nibdata_aligned, aligned_len);
+			//}
+			//else continue; // Continue if track is aligned or if no sync found.
 			/* end Arnd version */
 
 			/* re-extract/align data, since KF images are just index to index */
