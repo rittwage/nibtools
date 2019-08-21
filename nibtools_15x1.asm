@@ -466,11 +466,13 @@ _shake:
         LDX  PP_BASE              ; get new parallel byte from host (4+4 = 8)
         STA  $1800                ; send handshake (4+8 = 12)
         BEQ  _wtL5                ; $00 byte = end of track (2+12 = 14)
-        CPX  #$01                 ; did we get $01 byte? (2+14 = 16)
+        ;CPX  #$01                 ; did we get $01 byte? (2+14 = 16)
         BNE  _write               ; no -> write normal byte ((2+1) + 16 = 20)
-        LDX  #$00                 ; change to $00 byte, weak/bad GCR (2+19 = 21)
-        BEQ  _write               ; always branch back to write it
+        ;LDX  #$00                 ; change to $00 byte, weak/bad GCR (2+19 = 21)
+        ;BEQ  _write               ; always branch back to write it
                                   ;  ((2+1) + 21 = 24 cycles worst case)
+
+
 _wtL5:
         BVC  _wtL5
         CLV
