@@ -72,7 +72,7 @@ main(int argc, char **argv)
 	force_align = ALIGN_NONE;
 	gap_match_length = 7;
 	cap_min_ignore = 0;
-	verbose = 1;
+	verbose = 0;
 	rpm_real = 300;
 
 	/* default is to reduce sync */
@@ -83,7 +83,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout,
 		"\nnibconv - converts a CBM disk image from one format to another.\n"
-		AUTHOR "Revision %d - " VERSION "\n\n", SVN);
+		AUTHOR VERSION "\n\n");
 
 	/* clear heap buffers */
 	memset(compressed_buffer, 0x00, sizeof(compressed_buffer));
@@ -193,7 +193,16 @@ main(int argc, char **argv)
 			exit(0);
 		}
 		*/
+
 		if(skip_halftracks) track_inc = 2;
+
+		/* handle cases of making NIB from other formats for testing */
+		if( (compare_extension(inname, "D64")) ||
+			(compare_extension(inname, "G64")))
+		{
+			rig_tracks(track_buffer, track_density, track_length, track_alignment);
+		}
+
 		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) exit(0);
 		if(!(file_buffer_size = LZ_CompressFast(file_buffer, compressed_buffer, file_buffer_size))) exit(0);
 		if(!(save_file(outname, compressed_buffer, file_buffer_size))) exit(0);
@@ -208,7 +217,16 @@ main(int argc, char **argv)
 			exit(0);
 		}
 		*/
+
 		if(skip_halftracks) track_inc = 2;
+
+		/* handle cases of making NIB from other formats for testing */
+		if( (compare_extension(inname, "D64")) ||
+			(compare_extension(inname, "G64")))
+		{
+			rig_tracks(track_buffer, track_density, track_length, track_alignment);
+		}
+
 		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) exit(0);
 		if(!(save_file(outname, file_buffer, file_buffer_size))) exit(0);
 	}

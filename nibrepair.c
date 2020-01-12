@@ -88,7 +88,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout,
 		"\nnibrepair - converts a damaged NIB/NB2/G64 to a new 'repaired' G64 file.\n"
-		AUTHOR "Revision %d - " VERSION "\n\n", SVN);
+		AUTHOR VERSION "\n\n");
 
 	/* clear heap buffers */
 	memset(compressed_buffer, 0x00, sizeof(compressed_buffer));

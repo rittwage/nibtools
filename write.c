@@ -233,9 +233,15 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 				if(verbose) printf(" (diff:%.4d) ", (int)gcr_diff);
 				fprintf(fplog, " (diff:%.4d) ", (int)gcr_diff);
 
+
 				if(gcr_diff <= (size_t)sector_map[track/2]+10)
 				{
 					printf("OK ");
+					verified=1;
+				}
+				else if(gcr_diff <= badgcr)
+				{
+					printf("WEAK OK");
 					verified=1;
 				}
 				else
@@ -335,12 +341,14 @@ unformat_disk(CBM_FILE fd)
 
 	for (track = start_track; track <= end_track; track ++)
 	{
+		if(verbose) printf("\n%4.1f:",  (float) track/2);
 		for(i=0;i<unformat_passes; i++)
 		{
+			printf(".");
 			kill_track(fd,track);
 			zero_track(fd, track);
 		}
-		if(verbose) printf("\n%4.1f: UNFORMATTED!",  (float) track/2);
+		if(verbose) printf("UNFORMATTED!",  (float) track/2);
 	}
 }
 

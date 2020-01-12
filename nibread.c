@@ -85,7 +85,7 @@ main(int argc, char *argv[])
 
 	fprintf(stdout,
 		"\nnibread - Commodore 1541/1571 disk image nibbler\n"
-		AUTHOR "Revision %d - " VERSION "\n\n", SVN);
+		AUTHOR VERSION "\n\n");
 
 	/* we can do nothing with no switches */
 	if (argc < 2)

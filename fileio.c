@@ -226,7 +226,7 @@ void parseargs(char *argv[])
 
 		case 'v':
 			verbose++;
-			printf("* Verbose mode increased (%d)\n", verbose);
+			printf("* Verbosity increased (%d)\n", verbose);
 			break;
 
 		case 'V':
@@ -480,12 +480,12 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		best_err = 0;
 		best_len = 0;  /* unused for now */
 
-		printf("\n%4.1f:",(float) track / 2);
+		if(verbose) printf("\n%4.1f:",(float) track / 2);
 
 		/* contains 16 passes of track, four for each density */
 		for(pass_density = 0; pass_density < 4; pass_density ++)
 		{
-			printf(" (%d)", pass_density);
+			if(verbose) printf(" (%d)", pass_density);
 
 			for(pass = 0; pass <= 3; pass ++)
 			{
@@ -520,7 +520,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
 
-		printf("%d:%d) (pass %d, %d errors) %.1d%%",
+		if(verbose) printf("%d:%d) (pass %d, %d errors) %.1d%%",
 			track_density[track]&3, track_length[track],
 			best_pass, best_err,
 			((track_length[track] / capacity[track_density[track]&3]) * 100));
@@ -779,7 +779,7 @@ int save_file(char *filename, BYTE *file_buffer, int length)
 int write_nib(BYTE*file_buffer, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
     /*	writes contents of buffers into NIB file, with header and density information
-    	this is only called by nibread, so it does not extract/compress the track
+			it does not process the track
     */
 
 	int track;
@@ -981,7 +981,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
 	char errorstring[0x1000];
 
-	printf("\nWriting G64 file...\n");
+	printf("Writing G64 file...\n");
 
 	fpout = fopen(filename, "wb");
 	if (fpout == NULL)
@@ -1232,7 +1232,7 @@ int sync_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, B
 			//{
 			//	printf("[bitshifted] ");
 			//	align_bitshifted_kf_track(track_buffer+(track*NIB_TRACK_LENGTH), track_length[track], &nibdata_aligned, &aligned_len);
-			//
+
 			//	if(aligned_len<0x2000)
 			//		track_length[track] = aligned_len;
 			//	else
@@ -1256,6 +1256,8 @@ int sync_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, B
 						track/2,
 						capacity_min[track_density[track]&3],
 						capacity_max[track_density[track]&3] );
+
+			printf("(%d)",track_length[track]);
 		}
 	}
 	if(verbose) printf("\n");
@@ -1297,6 +1299,23 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 		}
 	}
 	return 1;
+}
+
+int rig_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, BYTE *track_alignment)
+{
+	int track;
+
+	printf("Rigging tracks...\n");
+
+	for (track = start_track; track <= end_track; track ++)
+	{
+		memcpy(track_buffer + (track*NIB_TRACK_LENGTH) + track_length[track],
+			track_buffer + (track*NIB_TRACK_LENGTH), NIB_TRACK_LENGTH - track_length[track]);
+
+	}
+	return 1;
+
+
 }
 
 int compare_extension(unsigned char * filename, unsigned char * extension)

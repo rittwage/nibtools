@@ -32,9 +32,10 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 				  track_length[track],
 				  track_length[track+2], 1, errorstring);
 
-				if (diff<=10)
+				if(verbose) printf("%4.1f: %d\n",(float)track/2,diff);
+				if (diff<=35)
 				{
-					printf("Fat track found on T%d (diff=%d)\n",track/2,(int)diff);
+					printf("Fat track found on T%d/%d (diff=%d)\n",track/2,(track/2)+1,(int)diff);
 
 					memcpy(track_buffer + ((track+1) * NIB_TRACK_LENGTH),
 						track_buffer + (track * NIB_TRACK_LENGTH),
