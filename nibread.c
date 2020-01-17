@@ -124,7 +124,6 @@ main(int argc, char *argv[])
 	cap_min_ignore = 0;
 	ihs = 0;
 	mode = MODE_READ_DISK;
-	rpm_real = 300;
 	align_report = 0;
 
 	// cache our arguments for logfile generation

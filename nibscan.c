@@ -102,7 +102,6 @@ main(int argc, char *argv[])
 	reduce_sync = 4;
 	reduce_badgcr = 0;
 	reduce_gap = 0;
-	rpm_real = 300;
 	verbose = 1;
 	cap_min_ignore = 0;
 

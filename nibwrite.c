@@ -102,7 +102,6 @@ main(int argc, char *argv[])
 	gap_match_length = 7;
 	cap_min_ignore = 0;
 	motor_speed = 300;
-	rpm_real = 300;
 	unformat_passes = 1;
 
 	mode = MODE_WRITE_DISK;
