@@ -582,7 +582,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 	if(g64maxtrack>NIB_TRACK_LENGTH)
 	{
-			printf("Contains track size > 0x2000 bytes.\nLikely corrupt G64 file.\nWill attempt to skip bad tracks\n");
+			printf("\nContains too large track!\nLikely corrupt G64 file\nWill attempt to skip bad tracks\n");
 			//return 0;
 	}
 
@@ -863,7 +863,7 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		else
 		{
 			printf("Track offset found in image: %d\n",offset);
-			offset++; // the rest of the routines for D64 only operate on every other track
+			offset; // the rest of the routines for D64 only operate on every other track
 		}
 	}
 	//printf("debug: diskid=%s\n",id);
@@ -871,8 +871,8 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	d64ptr = d64data;
 	for (track = start_track; track <= 40*2; track += 2)
 	{
-		cycle_start = track_buffer + ((track+offset) * NIB_TRACK_LENGTH);
-		cycle_stop = track_buffer + ((track+offset) * NIB_TRACK_LENGTH) + track_length[track+offset];
+		cycle_start = track_buffer + ((track+offset*2) * NIB_TRACK_LENGTH);
+		cycle_stop = track_buffer + ((track+offset*2) * NIB_TRACK_LENGTH) + track_length[track+offset*2];
 		//printf("debug: start=%d, stop=%d\n",cycle_start,cycle_stop);
 
 		if(verbose) printf("%.2d (%d):" ,track/2, capacity[speed_map[track/2]]);

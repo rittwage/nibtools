@@ -124,7 +124,7 @@ main(int argc, char **argv)
 	if (compare_extension(inname, "D64"))
 	{
 		if(!(read_d64(inname, track_buffer, track_density, track_length))) exit(0);
-		skip_halftracks=1;
+		//skip_halftracks=1;
 	}
 	else if (compare_extension(inname, "G64"))
 	{
@@ -182,7 +182,7 @@ main(int argc, char **argv)
 			printf("trying to use needs this information (such as for protection),\nit may still fail.\n");
 		}
 	}
-	else if (compare_extension(outname, "NBZ"))
+	else if ((compare_extension(outname, "NBZ"))||(compare_extension(outname, "NIB")))
 	{
 		/*
 		if( (compare_extension(inname, "D64")) ||
@@ -194,7 +194,8 @@ main(int argc, char **argv)
 		}
 		*/
 
-		if(skip_halftracks) track_inc = 2;
+		if(skip_halftracks) track_inc = 1;
+		else track_inc = 2; /* yes, I know it's reversed */
 
 		/* handle cases of making NIB from other formats for testing */
 		if( (compare_extension(inname, "D64")) ||
@@ -204,31 +205,16 @@ main(int argc, char **argv)
 		}
 
 		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) exit(0);
-		if(!(file_buffer_size = LZ_CompressFast(file_buffer, compressed_buffer, file_buffer_size))) exit(0);
-		if(!(save_file(outname, compressed_buffer, file_buffer_size))) exit(0);
-	}
-	else if (compare_extension(outname, "NIB"))
-	{
-		/*
-		if( (compare_extension(inname, "D64")) ||
-			(compare_extension(inname, "G64")))
+
+		if (compare_extension(outname, "NBZ"))
 		{
-			printf("Output format makes no sense from this input file.\n");
-			exit(0);
+			if(!(file_buffer_size = LZ_CompressFast(file_buffer, compressed_buffer, file_buffer_size))) exit(0);
+			if(!(save_file(outname, compressed_buffer, file_buffer_size))) exit(0);
 		}
-		*/
-
-		if(skip_halftracks) track_inc = 2;
-
-		/* handle cases of making NIB from other formats for testing */
-		if( (compare_extension(inname, "D64")) ||
-			(compare_extension(inname, "G64")))
+		else
 		{
-			rig_tracks(track_buffer, track_density, track_length, track_alignment);
+			if(!(save_file(outname, file_buffer, file_buffer_size))) exit(0);
 		}
-
-		if(!(file_buffer_size = write_nib(file_buffer, track_buffer, track_density, track_length))) exit(0);
-		if(!(save_file(outname, file_buffer, file_buffer_size))) exit(0);
 	}
 	else if (compare_extension(outname, "NB2"))
 	{

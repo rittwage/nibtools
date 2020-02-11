@@ -255,20 +255,20 @@ int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *
 		if(!(file_buffer_size = LZ_Uncompress(compressed_buffer, file_buffer, file_buffer_size))) return 0;
 		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) return 0;
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
-		search_fat_tracks(track_buffer, track_density, track_length);
+		if(fattrack!=99) search_fat_tracks(track_buffer, track_density, track_length);
 	}
 	else if (compare_extension(filename, "NIB"))
 	{
 		if(!(file_buffer_size = load_file(filename, file_buffer))) return 0;
 		if(!(read_nib(file_buffer, file_buffer_size, track_buffer, track_density, track_length))) return 0;
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
-		search_fat_tracks(track_buffer, track_density, track_length);
+		if(fattrack!=99) search_fat_tracks(track_buffer, track_density, track_length);
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
 		if(!(read_nb2(filename, track_buffer, track_density, track_length))) return 0;
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
-		search_fat_tracks(track_buffer, track_density, track_length);
+		if(fattrack!=99) search_fat_tracks(track_buffer, track_density, track_length);
 	}
 	else
 	{
@@ -500,11 +500,13 @@ scandisk(void)
 	// check each track for various things
 	for (track = start_track; track <= end_track; track ++)
 	{
+		printf("%4.1f: %d",(float) track/2, track_length[track]);
+
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
-			//printf("UNFORMATTED");
+		{
+			printf(":UNFORMATTED\n");
 			continue;
-		else
-			printf("%4.1f: %d",(float) track/2, track_length[track]);
+		}
 
 		if (track_length[track] > 0)
 		{
@@ -540,16 +542,13 @@ scandisk(void)
 			}
 
 			// detect bad GCR '000' bits
-			//if (fix_gcr)
-			{
-				badgcr_tracks[track] =
-				  check_bad_gcr(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track]);
+			badgcr_tracks[track] =
+			  check_bad_gcr(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track]);
 
-				if (badgcr_tracks[track])
-				{
-					//printf("weak:%d ", badgcr_tracks[track]);
-					totalgcr += badgcr_tracks[track];
-				}
+			if (badgcr_tracks[track])
+			{
+				//printf("weak:%d ", badgcr_tracks[track]);
+				totalgcr += badgcr_tracks[track];
 			}
 
 			/* check for rapidlok track
@@ -564,10 +563,13 @@ scandisk(void)
 			*/
 
 			/* check for FAT track */
-			if (track < end_track - track_inc)
+			if(fattrack!=99)
 			{
-				fat_tracks[track] = check_fat(track);
-				if (fat_tracks[track]) totalfat++;
+				if (track < end_track - track_inc)
+				{
+					fat_tracks[track] = check_fat(track);
+					if (fat_tracks[track]) totalfat++;
+				}
 			}
 
 			/* check for regular disk errors
@@ -600,6 +602,11 @@ scandisk(void)
 					dump_headers(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track]);
 					raw_track_info(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track]);
 			}
+		}
+		else
+		{
+			printf("(%d", track_density[track]&3);
+			printf(":UNFORMATTED");
 		}
 		printf("\n");
 

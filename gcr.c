@@ -276,6 +276,7 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
  	// we should later try to repair some common GCR errors
  	//	1) tri-bit error, in which 01110 is misinterpreted as 01000
 	// 2) low frequency error, in which 10010 is misinterpreted as 11000
+
 	BYTE header[10];        /* block header */
 	BYTE hdr_chksum;        /* header checksum */
 	BYTE blk_chksum;        /* block  checksum */
