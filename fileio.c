@@ -46,8 +46,9 @@ void parseargs(char *argv[])
 			break;
 
 		case 'h':
-			track_inc = 2;
-			printf("* Disable halftracks\n");
+			if(track_inc == 1) track_inc = 2;
+			else track_inc = 1;
+			printf("* Toggle halftracks (increment=%d)\n",track_inc);
 			break;
 
 		case 'I':
@@ -72,6 +73,7 @@ void parseargs(char *argv[])
 			unformat_passes = atoi(&(*argv)[2]);
 			if(!unformat_passes) unformat_passes = 1;
 			printf("* Unformat passes = %d\n", unformat_passes);
+			track_inc = 1;
 			break;
 
 		case 'R':
@@ -330,6 +332,12 @@ void parseargs(char *argv[])
 			}
 			break;
 
+		/* this is only used in reading or unformat */
+		case 'k':
+			read_killer = 0;
+			printf("* Ignore 'killer' tracks\n");
+			break;
+
 		default:
 			usage();
 			break;
@@ -563,8 +571,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 	{
 		printf("\nExtended SPS G64 detected");
 		headersize=0x7f0;
-		if(sync_align_buffer) sync_align_buffer=0;
-		else sync_align_buffer=1;
+		sync_align_buffer=1;
 	}
 	else
 		headersize=0x2ac;

@@ -76,6 +76,7 @@ int sync_align_buffer=0;
 int fattrack=0;
 int track_match=0;
 int old_g64=0;
+int read_killer=1;
 
 unsigned char md5_hash_result[16];
 unsigned char md5_dir_hash_result[16];
@@ -138,7 +139,7 @@ main(int argc, char *argv[])
 	if (mode == 1) 	// compare images
 	{
 		if(!(load_image(file1, track_buffer, track_density, track_length))) exit(0);
-		if(!(load_image(file2,  track_buffer2, track_density2, track_length2))) exit(0);
+		if(!(load_image(file2, track_buffer2, track_density2, track_length2))) exit(0);
 
 		compare_disks();
 
@@ -246,7 +247,7 @@ int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *
 	else if (compare_extension(filename, "G64"))
 	{
 		if(!(read_g64(filename, track_buffer, track_density, track_length))) return 0;
-		if(sync_align_buffer)	sync_tracks(track_buffer, track_density, track_length, track_alignment);
+		if(sync_align_buffer) sync_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(filename, "NBZ"))
 	{
@@ -774,7 +775,7 @@ size_t check_fat(int track)
 			printf("*FAT diff=%d*",(int)diff);
 			return 1;
 		}
-		else if (diff<=35)
+		else if (diff<34) /* 34 happens on empty formatted disks */
 		{
 			printf("*Possible FAT diff=%d*",(int)diff);
 			return 1;

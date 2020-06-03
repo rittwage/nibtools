@@ -33,9 +33,9 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 				  track_length[track+2], 1, errorstring);
 
 				if(verbose>1) printf("%4.1f: %d\n",(float)track/2,diff);
-				if (diff<=35)
+				if (diff<34) /* 34 happens on empty formatted disks */
 				{
-					printf("Fat track found on T%d/%d (diff=%d)\n",track/2,(track/2)+1,(int)diff);
+					printf("Likely fat track found on T%d/%d (diff=%d)\n",track/2,(track/2)+1,(int)diff);
 
 					memcpy(track_buffer + ((track+1) * NIB_TRACK_LENGTH),
 						track_buffer + (track * NIB_TRACK_LENGTH),
@@ -47,7 +47,7 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 			}
 		}
 	}
-	else	if(fattrack!=99) /* manually overridden */
+	else if(fattrack!=99) /* manually overridden */
 	{
 		printf("Handle FAT track on %d\n",fattrack);
 

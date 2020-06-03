@@ -489,7 +489,7 @@ scan_track(CBM_FILE fd, int track)
 	BYTE count;
 	BYTE density_major[4], iMajorMax; /* 50% majorities for bit rate */
 	BYTE density_stats[4], iStatsMax; /* total occurrences */
-	int bin, i;
+	int bin, i, passes = 10;
 
 	/* Scan for killer track */
 	density = set_default_bitrate(fd, track);
@@ -499,8 +499,12 @@ scan_track(CBM_FILE fd, int track)
 	if (killer_info & BM_FF_TRACK)
 			return (density | killer_info);
 
+	if (killer_info & BM_NO_SYNC)
+			passes = 1;
+
+
 	/* Floppy sends statistic data in reverse bit-rate order */
-	for(i=0; i<10; i++)
+	for(i=0; i<passes; i++)
 	{
 		memset(density_major, 0, sizeof(density_major));
 		memset(density_stats, 0, sizeof(density_stats));

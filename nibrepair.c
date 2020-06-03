@@ -61,6 +61,7 @@ int sync_align_buffer=0;
 int fattrack=0;
 int track_match=0;
 int old_g64=0;
+int read_killer=1;
 
 /* local prototypes */
 int repair(void);

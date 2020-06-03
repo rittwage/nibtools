@@ -329,23 +329,22 @@ master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 void
 unformat_disk(CBM_FILE fd)
 {
-	/* this routine writes all 1's and all 0's alternatively to try to both
-		fix old media into working again, and wiping all data
-	*/
+	/* this routine can write all 1's and all 0's alternatively to try to both
+		fix old media into working again, and wiping all data */
 	int track, i;
 
 	motor_on(fd);
 	set_density(fd, 2);
 
-	printf("\nUnformatting...\n\n");
+	printf("Unformatting...\n\n");
 
-	for (track = start_track; track <= end_track; track ++)
+	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		if(verbose) printf("\n%4.1f:",  (float) track/2);
 		for(i=0;i<unformat_passes; i++)
 		{
 			printf(".");
-			kill_track(fd,track);
+			if(read_killer) kill_track(fd,track);
 			zero_track(fd, track);
 		}
 		if(verbose) printf("UNFORMATTED!",  (float) track/2);
