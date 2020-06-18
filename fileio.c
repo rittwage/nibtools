@@ -42,9 +42,6 @@ void parseargs(char *argv[])
 			override_srq = 1;
 			break;
 
-		case 's':
-			break;
-
 		case 'h':
 			if(track_inc == 1) track_inc = 2;
 			else track_inc = 1;
