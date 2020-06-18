@@ -207,7 +207,7 @@ main(int argc, char *argv[])
 			extended_parallel_test = atoi(&(*argv)[2]);
 			if(!extended_parallel_test)
 				extended_parallel_test = 100;
-			printf("* Extended parallel port test loops = %d\n", extended_parallel_test);
+			printf("* Extended port test loops = %d\n", extended_parallel_test);
 			break;
 
 		case 'I':

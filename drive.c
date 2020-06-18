@@ -19,6 +19,7 @@ extern int drivetype;
 unsigned int floppybytes;
 extern CBM_FILE fd;
 extern int use_floppycode_srq;
+extern int extended_parallel_test;
 
 #ifdef OPENCBM_42
 int
@@ -408,16 +409,17 @@ init_floppy(CBM_FILE fd, BYTE drive, int bump)
 		printf("Failed port transfer test. Check cabling.\n");
 		return 0;
 	}
-	printf("Passed initial communication test.\n");
+	printf("Passed basic communication test.\n");
 
-	if(!verify_floppy(fd))
+	if(extended_parallel_test)
 	{
-		printf("Failed code verification test. Check cabling.\n");
-		return 0;
+		if(!verify_floppy(fd))
+		{
+			printf("Failed code verification test. Check cabling.\n");
+			return 0;
+		}
+		printf("Passed code verification test.\n");
 	}
-	printf("Passed code verification test.\n");
-
-	printf("Passed all basic port checks.\n");
 	return 1;
 }
 

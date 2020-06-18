@@ -65,6 +65,7 @@ int fattrack=0;
 int track_match=0;
 int old_g64=0;
 int read_killer=1;
+int extended_parallel_test=0;
 
 CBM_FILE fd;
 FILE *fplog;
