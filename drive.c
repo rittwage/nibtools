@@ -201,7 +201,7 @@ upload_code(CBM_FILE fd, BYTE drive)
 				// IHS floppy code
 				floppy_code = floppycode1541ihs;
 				databytes = sizeof(floppycode1541ihs);
-				printf("Sending 1541 parallel support code...\n");
+				printf("Sending 1541 parallel IHS support code...\n");
 			}
     	    break;
 
