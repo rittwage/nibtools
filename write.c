@@ -347,7 +347,7 @@ unformat_disk(CBM_FILE fd)
 			if(read_killer) kill_track(fd,track);
 			zero_track(fd, track);
 		}
-		if(verbose) printf("UNFORMATTED!",  (float) track/2);
+		if(verbose) printf("UNFORMATTED!");
 	}
 }
 

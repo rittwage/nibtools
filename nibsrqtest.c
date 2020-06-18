@@ -31,6 +31,7 @@ int use_floppycode_srq=2;
 int use_floppycode_ihs=0;
 int override_srq=0;
 int drivetype=1571;
+int extended_parallel_test=0;
 CBM_FILE fd;
 
 FILE *fplog;
