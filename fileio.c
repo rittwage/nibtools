@@ -867,7 +867,7 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		else
 		{
 			printf("Track offset found in image: %d\n",offset);
-			offset; // the rest of the routines for D64 only operate on every other track
+			//offset; // the rest of the routines for D64 only operate on every other track
 		}
 	}
 	//printf("debug: diskid=%s\n",id);
@@ -983,7 +983,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	FILE * fpout;
 	BYTE buffer[NIB_TRACK_LENGTH], tempfillbyte;
 	size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
-	char errorstring[0x1000];
+	//char errorstring[0x1000];
 
 	printf("Writing G64 file...\n");
 
@@ -1209,8 +1209,8 @@ int sync_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, B
 {
 	int track;
 	BYTE temp_buffer[NIB_TRACK_LENGTH*2];
-	BYTE *nibdata_aligned; // aligned track
-	int aligned_len;       // aligned track length
+	//BYTE *nibdata_aligned; // aligned track
+	//int aligned_len;       // aligned track length
 
 	printf("\nByte-syncing tracks...\n");
 	for (track = start_track; track <= end_track; track ++)

@@ -68,7 +68,7 @@ size_t sync_align(BYTE *buffer, int length)
     int i, j;
     int bytes, bits;
 	BYTE temp_buffer[NIB_TRACK_LENGTH];
-	BYTE *marker_pos;
+	//BYTE *marker_pos;
 
 	memset(temp_buffer, 0x00, NIB_TRACK_LENGTH);
 
