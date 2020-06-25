@@ -867,7 +867,7 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		else
 		{
 			printf("Track offset found in image: %d\n",offset);
-			//offset; // the rest of the routines for D64 only operate on every other track
+			offset++; // the rest of the routines for D64 only operate on every other track
 		}
 	}
 	//printf("debug: diskid=%s\n",id);
