@@ -16,11 +16,14 @@
 void
 master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t tracklen)
 {
-	int i, leader =  0x20;
+	int i,leader;
 	static size_t skewbytes = 0;
 	static BYTE last_density = -1;
 	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
 	BYTE tempfillbyte;
+
+	if(track_inc==1) leader=0;
+	else leader=10;
 
 	/* loop last byte of track data for filler */
 	if(fillbyte == 0xfe) /* $fe is special case for loop */
@@ -139,6 +142,9 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 	size_t gcr_diff;
 	char errorstring[0x1000];
 
+	//if(track_inc==1) unformat_disk(fd);
+
+	//for (track = end_track; track >= start_track; track -= track_inc)
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		/* double-check our sync-flag assumptions and process track for remaster */
@@ -156,7 +162,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		/* zero out empty tracks entirely */
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
 		{
-				if(track_inc>1)
+				if(track_inc!=1)
 				{
 					zero_track(fd, track);
 					if(verbose) printf("\n%4.1f: UNFORMATTED!",  (float) track / 2);

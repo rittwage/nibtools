@@ -79,6 +79,7 @@ int ARCH_MAINDECL
 main(int argc, char *argv[])
 {
 	int bump, reset, i;
+	double st, et;
 	char filename[256], logfilename[256], *dotpos;
 	char argcache[256];
 	FILE *fp;
@@ -227,14 +228,16 @@ main(int argc, char *argv[])
 
 		case 'S':
 			if (!(*argv)[2]) usage();
-			start_track = (BYTE) (2*(atoi(&(*argv)[2])));
-			printf("* Start track set to %d\n", start_track/2);
+			st = atof(&(*argv)[2])*2;
+			start_track = (int)st;
+			printf("* Start track set to %.1f (%d)\n", st/2, start_track);
 			break;
 
 		case 'E':
 			if (!(*argv)[2]) usage();
-			end_track =  (BYTE) (2*(atoi(&(*argv)[2])));
-			printf("* End track set to %d\n", end_track/2);
+			et = atof(&(*argv)[2])*2;
+			end_track = (int)et;
+			printf("* End track set to %.1f (%d)\n", et/2, end_track);
 			break;
 
 		case 'D':

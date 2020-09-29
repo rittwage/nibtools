@@ -23,6 +23,7 @@
 void parseargs(char *argv[])
 {
 	int count;
+	double st, et;
 
 	// parse arguments
 	switch ((*argv)[1])
@@ -55,14 +56,16 @@ void parseargs(char *argv[])
 
 		case 'S':
 			if (!(*argv)[2]) usage();
-			start_track = (BYTE) (2 * (atoi(&(*argv)[2])));
-			printf("* Start track set to %d\n", start_track/2);
+			st = atof(&(*argv)[2])*2;
+			start_track = (int)st;
+			printf("* Start track set to %.1f (%d)\n", st/2, start_track);
 			break;
 
 		case 'E':
 			if (!(*argv)[2]) usage();
-			end_track = (BYTE) (2 * (atoi(&(*argv)[2])));
-			printf("* End track set to %d\n", end_track/2);
+			et = atof(&(*argv)[2])*2;
+			end_track = (int)et;
+			printf("* End track set to %.1f (%d)\n", et/2, end_track);
 			break;
 
 		case 'u':
@@ -1276,7 +1279,8 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 	memset(nibdata, 0, sizeof(nibdata));
 	printf("Aligning tracks...\n");
 
-	for (track = start_track; track <= end_track; track ++)
+	//for (track = start_track; track <= end_track; track ++)
+	for (track = 1; track <= 84; track ++)
 	{
 		if(verbose) printf("%4.1f: ",(float) track/2);
 		memcpy(nibdata, track_buffer+(track*NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);

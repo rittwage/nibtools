@@ -335,6 +335,7 @@ read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 
 	if(!rawmode) get_disk_id(fd);
 
+	//for (track = end_track; track >= start_track; track -= track_inc)
 	for (track = start_track; track <= end_track; track += track_inc)
 		track_density[track] = paranoia_read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH));
 
