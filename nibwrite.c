@@ -271,7 +271,7 @@ int writeimage(CBM_FILE fd)
 void
 usage(void)
 {
-	fprintf(stderr, "usage: nibwrite [options] <filename>\n\n"
+	printf("usage: nibwrite [options] <filename>\n\n"
 		 " -@x: Use OpenCBM device 'x' (xa1541, xum1541:0, xum1541:1, etc.)\n"
 	     " -D[n]: Use drive #[n]\n"
 	     " -S[n]: Override starting track\n"

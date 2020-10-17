@@ -14,16 +14,17 @@ extern int fattrack;
 /* I don't like this kludge, but it is necessary to fix old files that lacked halftracks */
 void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
-	int track;
-	size_t diff = 0;
+	int track, numfats=0;
+	size_t diff=0;
 	char errorstring[0x1000];
 
 	if(!fattrack) /* autodetect fat tracks */
 	{
 		printf("Searching for fat tracks...\n");
-		for (track=2; track<=MAX_HALFTRACKS_1541+1; track+=2)
+		for (track=2; track<=MAX_HALFTRACKS_1541-1; track+=2)
 		{
-			if (track_length[track] > 0 && track_length[track+2] > 0 && track_length[track] != 8192 && track_length[track+2] != 8192)
+			if (track_length[track] > 0 && track_length[track+2] > 0 &&
+				track_length[track] != 8192 && track_length[track+2] != 8192)
 			{
 				diff = compare_tracks(
 				  track_buffer + (track * NIB_TRACK_LENGTH),
@@ -32,7 +33,8 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 				  track_length[track+2], 1, errorstring);
 
 				if(verbose>1) printf("%4.1f: %d\n",(float)track/2,diff);
-				if (diff<34) /* 34 happens on empty formatted disks */
+
+				if (diff<2) /* 34 happens on empty formatted disks */
 				{
 					printf("Likely fat track found on T%d/%d (diff=%d)\n",track/2,(track/2)+1,(int)diff);
 
@@ -42,7 +44,15 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 
 					track_length[track+1] = track_length[track];
 					track_density[track+1] = track_density[track];
+
 					fattrack=track;
+
+					if(numfats++>1)
+					{
+						printf("These are likely not fat tracks, just repeat data - Ignoring\n");
+						fattrack=0;
+						return;
+					}
 				}
 			}
 		}

@@ -186,18 +186,9 @@ main(int argc, char **argv)
 	}
 	else if ((compare_extension(outname, "NBZ"))||(compare_extension(outname, "NIB")))
 	{
-		/*
-		if( (compare_extension(inname, "D64")) ||
-			(compare_extension(inname, "G64")) ||
-			(compare_extension(inname, "NBZ")))
-		{
-			printf("Output format makes no sense from this input file.\n");
-			exit(0);
-		}
-		*/
-
 		if(skip_halftracks) track_inc = 1;
 		else track_inc = 2; /* yes, I know it's reversed */
+
 
 		/* handle cases of making NIB from other formats for testing */
 		if( (compare_extension(inname, "D64")) ||
@@ -235,7 +226,7 @@ main(int argc, char **argv)
 void
 usage(void)
 {
-	fprintf(stderr,
+	printf(
 	"usage: nibconv [options] <infile>.ext1 <outfile>.ext2\n"
 	"\nsupported file extensions for ext1:\n"
 	"NIB, NB2, D64, G64\n"

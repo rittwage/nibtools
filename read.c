@@ -358,7 +358,7 @@ int write_nb2(CBM_FILE fd, char * filename)
 	/* create output file */
 	if ((fpout = fopen(filename, "wb")) == NULL)
 	{
-		fprintf(stderr, "Couldn't create output file %s!\n", filename);
+		printf("Couldn't create output file %s!\n", filename);
 		return 0;
 	}
 
@@ -458,7 +458,7 @@ void get_disk_id(CBM_FILE fd)
 		printf("\nCosmetic Disk ID: ");
 
 		if(!extract_cosmetic_id(buffer, diskid))
-			fprintf(stderr, "[Cannot find directory sector!]\n");
+			printf("[Cannot find directory sector!]\n");
 		else
 		{
 			printf("'%c%c'\n", diskid[0], diskid[1]);
@@ -470,7 +470,7 @@ void get_disk_id(CBM_FILE fd)
 		printf("Format Disk ID: ");
 
 		if (!extract_id(buffer, diskid))
-			fprintf(stderr, "[Cannot find directory sector!]\n");
+			printf("[Cannot find directory sector!]\n");
 		else
 		{
 			printf("'%c%c'\n", diskid[0], diskid[1]);

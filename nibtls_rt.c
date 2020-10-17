@@ -154,7 +154,7 @@ static int cbm_handshaked_read(int toggle)
         do {
                 if (++timeoutcount >= 8)
                 {
-                        fprintf(stderr,"Triple-Debounce TIMEOUT: 0x%02x, 0x%02x, 0x%02x (%d, 0x%02x)\n",
+                        printf("Triple-Debounce TIMEOUT: 0x%02x, 0x%02x, 0x%02x (%d, 0x%02x)\n",
                             returnvalue, returnvalue2, returnvalue3, timeoutcount, oldvalue);
                         break;
                 }

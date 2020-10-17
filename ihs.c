@@ -353,7 +353,7 @@ int DeepBitrateAnalysis(CBM_FILE fd, char *filename, BYTE *buffer, char *logline
 
 		if (fwrite(header, sizeof(header), 1, fpout[density]) != 1)
 		{
-			fprintf(stderr, "Cannot write BR%d header.\n", density);
+			printf("Cannot write BR%d header.\n", density);
 			exit(2);
 		}
 
@@ -443,14 +443,14 @@ int DeepBitrateAnalysis(CBM_FILE fd, char *filename, BYTE *buffer, char *logline
 			sprintf(thdr, "[%4.1f]", (float)track/2 );
 			if (fwrite(thdr, 6, 1, fpout[density]) != 1)
 			{
-				fprintf(stderr, "Cannot write track [%d] header (BR%d).\n", track, density);
+				printf("Cannot write track [%d] header (BR%d).\n", track, density);
 				exit(2);
 			}
 
 			// Save raw bitrate track to BRX file
 			if (fwrite(buffer, NIB_TRACK_LENGTH-6, 1, fpout[density]) != 1)
 			{
-				fprintf(stderr, "Cannot write track [%d] data (BR%d).\n", track, density);
+				printf("Cannot write track [%d] data (BR%d).\n", track, density);
 				exit(2);
 			}
 

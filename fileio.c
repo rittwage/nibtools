@@ -351,7 +351,7 @@ void parseargs(char *argv[])
 
 void switchusage(void)
 {
-	fprintf(stderr,
+	printf(
 	" -a[x]: Force alternative track alignments (advanced users only)\n"
 	" -p[x]: Custom protection handlers (advanced users only)\n"
  	" -f[n]: Enable level 'n' aggressive bad GCR simulation\n"
@@ -374,7 +374,7 @@ int load_file(char *filename, BYTE *file_buffer)
 
 	if ((fpin = fopen(filename, "rb")) == NULL)
 	{
-		fprintf(stderr, "Couldn't open input file %s!\n", filename);
+		printf("Couldn't open input file %s!\n", filename);
 		return 0;
 	}
 
@@ -442,7 +442,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 	if ((fpin = fopen(filename, "rb")) == NULL)
 	{
-		fprintf(stderr, "Couldn't open input file %s!\n", filename);
+		printf("Couldn't open input file %s!\n", filename);
 		return 0;
 	}
 
@@ -472,7 +472,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 	if (!extract_id(tmpdata, diskid))
 	{
-			fprintf(stderr, "Cannot find directory sector.\n");
+			printf("Cannot find directory sector.\n");
 			return 0;
 	}
 	printf("\ndiskid: %c%c\n", diskid[0], diskid[1]);
@@ -556,7 +556,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 	if ((fpin = fopen(filename, "rb")) == NULL)
 	{
-		fprintf(stderr, "Couldn't open input file %s!\n", filename);
+		printf("Couldn't open input file %s!\n", filename);
 		return 0;
 	}
 
@@ -664,7 +664,7 @@ int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 	if ((fpin = fopen(filename, "rb")) == NULL)
 	{
-		fprintf(stderr, "Couldn't open input file %s!\n", filename);
+		printf("Couldn't open input file %s!\n", filename);
 		return 0;
 	}
 
@@ -695,7 +695,7 @@ int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 	default:  // non-standard images, attempt to load anyway
 		//rewind(fpin);
-		//fprintf(stderr, "Bad d64 image size.\n");
+		//printf("Bad d64 image size.\n");
 		//return 0;
 		printf("\nNon-standard D64 image... attempting to load as 40-track anyway\n");
 		printf("%d sectors in file\n", d64size/256);
@@ -857,7 +857,7 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	/* create output file */
 	if ((fpout = fopen(filename, "wb")) == NULL)
 	{
-		fprintf(stderr, "Couldn't create output file %s!\n", filename);
+		printf("Couldn't create output file %s!\n", filename);
 		return 0;
 	}
 
@@ -869,7 +869,7 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		offset = 18 - track;
 		if (!offset || !extract_id(track_buffer + ((18+offset)*2*NIB_TRACK_LENGTH), id))
 		{
-			fprintf(stderr, "Cannot find directory sector.\n");
+			printf("Cannot find directory sector.\n");
 			return 0;
 		}
 		else
@@ -943,7 +943,7 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 
 	if (fwrite(d64data, blocks_to_save * 256, 1, fpout) != 1)
 	{
-		fprintf(stderr, "Cannot write d64 data.\n");
+		printf("Cannot write d64 data.\n");
 		return 0;
 	}
 
@@ -953,7 +953,7 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 
 		if (fwrite(errorinfo, blocks_to_save, 1, fpout) != 1)
 		{
-			fprintf(stderr, "Cannot write sector data.\n");
+			printf("Cannot write sector data.\n");
 			return 0;
 		}
 
@@ -1388,7 +1388,7 @@ unsigned int crc_dir_track(BYTE *track_buffer, size_t *track_length)
 	/* get disk id */
 	if (!extract_id(track_buffer + (18 * 2 * NIB_TRACK_LENGTH), id))
 	{
-		fprintf(stderr, "Cannot find directory sector.\n");
+		printf("Cannot find directory sector.\n");
 		return 0;
 	}
 
@@ -1431,7 +1431,7 @@ unsigned int crc_all_tracks(BYTE *track_buffer, size_t *track_length)
 	/* get disk id */
 	if (!extract_id(track_buffer + (18*2 * NIB_TRACK_LENGTH), id))
 	{
-		fprintf(stderr, "Cannot find directory sector.\n");
+		printf("Cannot find directory sector.\n");
 		return 0;
 	}
 
@@ -1477,7 +1477,7 @@ unsigned int md5_dir_track(BYTE *track_buffer, size_t *track_length, unsigned ch
 	/* get disk id */
 	if (!extract_id(track_buffer + (18*2 * NIB_TRACK_LENGTH), id))
 	{
-		fprintf(stderr, "Cannot find directory sector.\n");
+		printf("Cannot find directory sector.\n");
 		return 0;
 	}
 
@@ -1517,7 +1517,7 @@ unsigned int md5_all_tracks(BYTE *track_buffer, size_t *track_length, unsigned c
 	/* get disk id */
 	if (!extract_id(track_buffer + (18*2 * NIB_TRACK_LENGTH), id))
 	{
-		fprintf(stderr, "Cannot find directory sector.\n");
+		printf("Cannot find directory sector.\n");
 		return 0;
 	}
 

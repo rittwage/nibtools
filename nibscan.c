@@ -868,7 +868,7 @@ size_t check_rapidlok(int track)
 void
 usage(void)
 {
-	fprintf(stderr, "usage: nibscan [options] <filename1> [filename2]\n\n");
+	printf("usage: nibscan [options] <filename1> [filename2]\n\n");
 	switchusage();
 	exit(1);
 }

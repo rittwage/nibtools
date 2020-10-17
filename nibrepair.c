@@ -167,7 +167,7 @@ int repair(void)
 	/* get disk id */
 	if (!extract_id(track_buffer + (18 * 2 * NIB_TRACK_LENGTH), id))
 	{
-		fprintf(stderr, "Cannot find directory sector.\n");
+		printf("Cannot find directory sector.\n");
 		return 0;
 	}
 
@@ -409,7 +409,7 @@ BYTE repair_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, int track, int sector, 
 void
 usage(void)
 {
-	fprintf(stderr, "usage: nibrepair [options] <filename>\n\n");
+	printf("usage: nibrepair [options] <filename>\n\n");
 	switchusage();
 	exit(1);
 }

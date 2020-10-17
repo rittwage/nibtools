@@ -85,7 +85,7 @@ main(int argc, char *argv[])
 	char argcache[256];
 	FILE *fp;
 
-	fprintf(stdout,
+	printf(
 		"\nnibread - Commodore 1541/1571 disk image nibbler\n"
 		AUTHOR VERSION "\n\n");
 
@@ -337,7 +337,7 @@ main(int argc, char *argv[])
 
 	if ((fplog = fopen(logfilename, "wb")) == NULL)
 	{
-		fprintf(stderr, "Couldn't create log file %s!\n", logfilename);
+		printf("Couldn't create log file %s!\n", logfilename);
 		exit(2);
 	}
 
@@ -502,7 +502,7 @@ int disk2file(CBM_FILE fd, char *filename)
 void
 usage(void)
 {
-	fprintf(stderr, "usage: nibread [options] <filename>\n\n"
+	printf("usage: nibread [options] <filename>\n\n"
 		 " -@x: Use OpenCBM device 'x' (xa1541, xum1541:0, xum1541:1, etc.)\n"
 	     " -D[n]: Use drive #[n]\n"
 	     " -e[n]: Retry reading tracks with errors [n] times\n"
