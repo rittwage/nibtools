@@ -1499,7 +1499,7 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 					}
 				}
 
-				getchar();
+				//getchar();
 			}
 		}
 		strcat(outputstring, tmpstr);

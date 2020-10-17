@@ -68,6 +68,7 @@ int extra_capacity_margin=5;
 int sync_align_buffer=0;
 int fattrack=0;
 int old_g64=0;
+int backwards=0;
 
 BYTE density_map;
 float motor_speed;

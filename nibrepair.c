@@ -62,6 +62,7 @@ int fattrack=0;
 int track_match=0;
 int old_g64=0;
 int read_killer=1;
+int backwards=0;
 
 /* local prototypes */
 int repair(void);

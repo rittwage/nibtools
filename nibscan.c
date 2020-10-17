@@ -77,6 +77,7 @@ int fattrack=0;
 int track_match=0;
 int old_g64=0;
 int read_killer=1;
+int backwards=0;
 
 unsigned char md5_hash_result[16];
 unsigned char md5_dir_hash_result[16];

@@ -105,6 +105,7 @@ extern int extra_capacity_margin;
 extern int sync_align_buffer;
 extern int fattrack;
 extern int old_g64;
+extern int backwards;
 
 #include "ihs.h"
 
@@ -162,6 +163,7 @@ void init_aligned_disk(CBM_FILE fd);
 void adjust_target(CBM_FILE fd);
 void speed_adjust(CBM_FILE fd);
 void kill_track(CBM_FILE fd, int track);
+void fake_fat_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t tracklen);
 
 /* drive.c  */
 int compare_extension(unsigned char * filename, unsigned char * extension);

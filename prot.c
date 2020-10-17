@@ -18,10 +18,9 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 	size_t diff = 0;
 	char errorstring[0x1000];
 
-	printf("Searching for fat tracks...\n");
-
 	if(!fattrack) /* autodetect fat tracks */
 	{
+		printf("Searching for fat tracks...\n");
 		for (track=2; track<=MAX_HALFTRACKS_1541+1; track+=2)
 		{
 			if (track_length[track] > 0 && track_length[track+2] > 0 && track_length[track] != 8192 && track_length[track+2] != 8192)
@@ -43,13 +42,14 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 
 					track_length[track+1] = track_length[track];
 					track_density[track+1] = track_density[track];
+					fattrack=track;
 				}
 			}
 		}
 	}
 	else if(fattrack!=99) /* manually overridden */
 	{
-		printf("Handle FAT track on %d\n",fattrack);
+		printf("Handle FAT track on %d\n",fattrack/2);
 
 		memcpy(track_buffer + ((fattrack+1) * NIB_TRACK_LENGTH),
 			track_buffer + (fattrack * NIB_TRACK_LENGTH),

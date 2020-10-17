@@ -38,6 +38,11 @@ void parseargs(char *argv[])
 			printf("* Force sync align tracks\n");
 			break;
 
+		case 'B':
+			backwards = 1;
+			printf("* Write tracks backwards\n");
+			break;
+
 		case 'P':
 			printf("* Skip 1571 SRQ Support (Use parallel always)\n");
 			override_srq = 1;

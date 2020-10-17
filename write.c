@@ -144,8 +144,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 
 	//if(track_inc==1) unformat_disk(fd);
 
-	//for (track = end_track; track >= start_track; track -= track_inc)
-	for (track = start_track; track <= end_track; track += track_inc)
+	for (track=backwards?end_track:start_track; backwards?(track>=start_track):(track<=end_track); backwards?(track-=track_inc):(track+=track_inc))
 	{
 		/* double-check our sync-flag assumptions and process track for remaster */
 		track_density[track] =
@@ -268,6 +267,13 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 			}
 		}
 	}
+	if((fattrack)&&(fattrack!=99))
+	{
+		length = compress_halftrack(fattrack, track_buffer + (fattrack * NIB_TRACK_LENGTH),
+			track_density[fattrack], track_length[fattrack]);
+
+		fake_fat_track(fd, track_buffer, track_density, fattrack, length);
+	}
 }
 
 void
@@ -279,7 +285,7 @@ master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 	FILE *trkin = '\0';
 	size_t length;
 
-	for (track = start_track; track <= end_track; track += track_inc)
+	for (track=backwards?end_track:start_track; backwards?(track>=start_track):(track<=end_track); backwards?(track-=track_inc):(track+=track_inc))
 	{
 		printf("\n%4.1f:", (float) track / 2);
 
@@ -389,9 +395,10 @@ void speed_adjust(CBM_FILE fd)
 
 	printf("\nTesting drive motor speed for 100 loops.\n");
 	printf("--------------------------------------------------\n");
+	printf("Track 41.5 will be destroyed!\n");
 
 	motor_on(fd);
-	step_to_halftrack(fd, start_track);
+	step_to_halftrack(fd, 83);
 	set_bitrate(fd, 2);
 
 	for (i=0; i<100; i++)
@@ -505,4 +512,51 @@ init_aligned_disk(CBM_FILE fd)
 	burst_write(fd, 0);
 	burst_read(fd);
 	printf("Attempted sweep-aligned tracks\n");
+}
+
+void
+fake_fat_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t tracklen)
+{
+	int t;
+	BYTE rawtrack[NIB_TRACK_LENGTH];
+
+	printf("\nFaking 'fat' track");
+
+	printf("\nErasing tracks...");
+	for(t=track; t<=track+3; t+=1)
+	{
+		printf("\nTrack %0.1f", (float)t/2);
+		step_to_halftrack(fd, t);
+		send_mnib_cmd(fd, FL_FILLTRACK, NULL, 0);
+		burst_write(fd, 0x00);
+		burst_read(fd);
+	}
+
+	memcpy(rawtrack, track_buffer + (track * NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
+	replace_bytes(rawtrack, sizeof(rawtrack), 0x00, 0x01);
+
+	/* truncate the end if needed (reduce tail) */
+	if (tracklen > capacity[track_density[track]&3])
+	{
+		printf("\nTruncating to %d", tracklen-capacity[track_density[track]&3]);
+		tracklen = capacity[track_density[track]&3];
+	}
+
+	set_density(fd, track_density[track]&3);
+
+	printf("\nWrite track %0.1f", (float)track/2);
+	step_to_halftrack(fd, track);
+	send_mnib_cmd(fd, FL_WRITE, NULL, 0);
+	burst_write(fd, (unsigned char)((ihs) ? 0x00 : 0x03));
+	burst_write(fd, (unsigned char)((align_disk) ? 0xfb : 0x00));
+	burst_write_track(fd, rawtrack, (int)(tracklen));
+	printf(" (%d)",tracklen);
+
+	printf("\nWrite track %0.1f", (float)(track+3)/2);
+	step_to_halftrack(fd, track+3);
+	send_mnib_cmd(fd, FL_WRITE, NULL, 0);
+	burst_write(fd, (unsigned char)((ihs) ? 0x00 : 0x03));
+	burst_write(fd, (unsigned char)((align_disk) ? 0xfb : 0x00));
+	burst_write_track(fd, rawtrack, (int)(tracklen));
+	printf(" (%d)",tracklen);
 }
