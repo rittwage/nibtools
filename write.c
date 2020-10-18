@@ -86,7 +86,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	else
 		step_to_halftrack(fd, track);
 
-	if((track==fattrack)||(track==fattrack+2))
+	if((fattrack)&&((track==fattrack)||(track==fattrack+2)))
 			printf("[fat track]");
 
 	if((track_density[track]&3) != last_density)
