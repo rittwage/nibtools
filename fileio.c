@@ -74,6 +74,7 @@ void parseargs(char *argv[])
 			break;
 
 		case 'u':
+		case 'w':
 			mode = MODE_UNFORMAT_DISK;
 			unformat_passes = atoi(&(*argv)[2]);
 			if(!unformat_passes) unformat_passes = 1;

@@ -45,14 +45,14 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 					track_length[track+1] = track_length[track];
 					track_density[track+1] = track_density[track];
 
-					fattrack=track;
-
-					if(numfats++>1)
+					if(!numfats)
+						fattrack=track;
+					else
 					{
 						printf("These are likely not fat tracks, just repeat data - Ignoring\n");
-						fattrack=0;
-						return;
+						//fattrack=0;
 					}
+					numfats++;
 				}
 			}
 		}

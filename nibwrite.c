@@ -254,7 +254,10 @@ int writeimage(CBM_FILE fd)
 	if(auto_capacity_adjust)
 		adjust_target(fd);
 
-	if(align_disk)
+	if((fattrack)&&(fattrack!=99))
+		unformat_disk(fd);
+
+	if(align_disk) // This will ruin a fat track disk
 		init_aligned_disk(fd);
 
 	if(mode == MODE_WRITE_RAW)
