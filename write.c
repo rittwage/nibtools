@@ -81,7 +81,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		replace_bytes(rawtrack, sizeof(rawtrack), 0x00, 0x01);
 
 	/* step to destination track and set density */
-	if(track==fattrack+2)
+	if((fattrack)&&(track==fattrack+2))
 		step_to_halftrack(fd, track+1);
 	else
 		step_to_halftrack(fd, track);

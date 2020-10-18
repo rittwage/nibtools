@@ -214,6 +214,7 @@ int loadimage(char *filename)
 	{
 		if(!(read_g64(filename, track_buffer, track_density, track_length))) return 0;
 		if(sync_align_buffer)	sync_tracks(track_buffer, track_density, track_length, track_alignment);
+		search_fat_tracks(track_buffer, track_density, track_length);
 	}
 	else if (compare_extension(filename, "NBZ"))
 	{
