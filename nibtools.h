@@ -157,12 +157,11 @@ void master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_
 void prep_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t tracklen);
 void write_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 void unformat_disk(CBM_FILE fd);
-void zero_track(CBM_FILE fd, int track);
+void fill_track(CBM_FILE fd, int track, BYTE fill);
 unsigned int track_capacity(CBM_FILE fd);
 void init_aligned_disk(CBM_FILE fd);
 void adjust_target(CBM_FILE fd);
 void speed_adjust(CBM_FILE fd);
-void kill_track(CBM_FILE fd, int track);
 
 /* drive.c  */
 int compare_extension(unsigned char * filename, unsigned char * extension);

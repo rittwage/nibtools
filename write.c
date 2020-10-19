@@ -160,7 +160,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		/* engineer killer track */
 		if(track_density[track] & BM_FF_TRACK)
 		{
-				kill_track(fd, track);
+				fill_track(fd, track, 0xFF);
 				if(verbose) printf("\n%4.1f: KILLED!",  (float) track / 2);
 				continue;
 		}
@@ -170,7 +170,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		{
 				if(track_inc!=1)
 				{
-					zero_track(fd, track);
+					fill_track(fd, track, 0x00);
 					if(verbose) printf("\n%4.1f: UNFORMATTED!",  (float) track / 2);
 				}
 				continue;
@@ -263,7 +263,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 				{
 					retries++;
 					printf("Retry %d ", retries);
-					zero_track(fd, track);
+					fill_track(fd, track, 0x00);
 					master_track(fd, track_buffer, track_density, track, length);
 				}
 				if(((track>70)&&(retries>=3))||(retries>=10))
@@ -359,35 +359,24 @@ unformat_disk(CBM_FILE fd)
 		for(i=0;i<unformat_passes; i++)
 		{
 			if(verbose>1) printf(".");
-			//if(read_killer) kill_track(fd,track);
-			zero_track(fd, track);
+			//if(read_killer) fill_track(fd, track, 0xFF);
+			fill_track(fd, track, 0x00);
 		}
 		if(verbose>1) printf("UNFORMATTED!");
 	}
 }
 
-void kill_track(CBM_FILE fd, int track)
+void fill_track(CBM_FILE fd, int track, BYTE fill)
 {
 	// step head
 	step_to_halftrack(fd, track);
 
 	// write all $ff bytes
 	send_mnib_cmd(fd, FL_FILLTRACK, NULL, 0);
-	burst_write(fd, 0xff);  // 0xff byte is all sync "killer" track
+	burst_write(fd, fill);  // 0xff byte is all sync "killer" track
 	burst_read(fd);
 }
 
-void
-zero_track(CBM_FILE fd, int track)
-{
-	// step head
-	step_to_halftrack(fd, track);
-
-	// write all $0 bytes
-	send_mnib_cmd(fd, FL_FILLTRACK, NULL, 0);
-	burst_write(fd, 0x0);  // 0x00 byte is "unformatted"
-	burst_read(fd);
-}
 
 void speed_adjust(CBM_FILE fd)
 {
