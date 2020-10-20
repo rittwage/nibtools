@@ -206,7 +206,8 @@ _step_loop:
         AND  #$fc                 ; mask off stepper bits
         ORA  $c0                  ;
         STA  $1c00                ; perform half step
-        LDA  #$04                 ;
+_stepspeed:
+	LDA  #$04                 ;
         STA  $c1                  ;
         LDA  #$00                 ; busy wait $0400 times
         STA  $c0                  ;
@@ -376,6 +377,9 @@ _align_disk:
 ;--------------------------------------
 ; this simple sweep aligns small syncs 20ms off from each other, not real great 
 ;--------------------------------------
+	lda #$02		; change step to double speed 
+	sta _stepspeed+1
+	
  _admain:
 	JSR _step_dest_internal
 	LDA  #$ff                 ;
@@ -396,6 +400,10 @@ _delay_loop:
         LDA  #$ee
         STA  $1c0c
         INC  $1c03                ; CA data direction head ($ff->$0: read)
+
+      	lda #$04		; set step back to normal 		
+ 	sta _stepspeed+1
+ 	
         RTS
 
 

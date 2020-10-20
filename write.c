@@ -19,7 +19,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	int i,leader;
 	static size_t skewbytes = 0;
 	static BYTE last_density = -1;
-	BYTE rawtrack[NIB_TRACK_LENGTH * 2];
+	BYTE rawtrack[NIB_TRACK_LENGTH * 3];
 	BYTE tempfillbyte;
 
 	if(track_inc==1) leader=0;
@@ -46,7 +46,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		if(skewbytes > NIB_TRACK_LENGTH)
 			skewbytes = skewbytes - NIB_TRACK_LENGTH;
 
-		if(verbose>1) printf("{skew=%d}", skewbytes);
+		printf("{skew=%d}", skewbytes);
 	}
 
 	/* check for and correct initial too short sync mark */
@@ -60,7 +60,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	}
 
 	/* merge track data */
-	memcpy(rawtrack + leader + skewbytes,  track_buffer + (track * NIB_TRACK_LENGTH), tracklen);
+	memcpy(rawtrack + leader + skewbytes, track_buffer + (track * NIB_TRACK_LENGTH), tracklen);
 
 	//printf("[%.2x%.2x%.2x%.2x%.2x] ",
 	//		rawtrack[0], rawtrack[1], rawtrack[2], rawtrack[3], rawtrack[4]);
@@ -74,7 +74,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 
 	/* "fix" for track 18 mastering */
 	if(track==18*2)
-		memcpy(rawtrack + tracklen - 5, "UJMSU", 5);
+		memcpy(rawtrack + leader + skewbytes + tracklen - 5, "UJMSU", 5);
 
 	/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
 	if(!use_floppycode_srq)  // not in srq code
@@ -98,13 +98,13 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 
 	/* this doesn't work over USB since we aren't in control of timing, I don't think */
 	// try to do track alignment through simple timers
-	if((align_disk) && (auto_capacity_adjust))
-	{
-		/* subtract overhead from one revolution;
-		    adjust for motor speed and density;	*/
-		align_delay = (int) ((175500) + ((300 - motor_speed) * 600));
-		msleep(align_delay);
-	}
+	//if((align_disk) && (auto_capacity_adjust))
+	//{
+	//	/* subtract overhead from one revolution;
+	//	    adjust for motor speed and density;	*/
+	//	align_delay = (int) ((175500) + ((300 - motor_speed) * 600));
+	//	msleep(align_delay);
+	//}
 
 	/* burst send track */
 	for (i = 0; i < 3; i ++)
@@ -483,7 +483,7 @@ init_aligned_disk(CBM_FILE fd)
 	int track;
 
 	/* write all 0x55 */
-	printf("\nErasing tracks...\n");
+	printf("\nWiping/Unformatting...\n");
 	for (track = start_track; track <= end_track; track += track_inc)
 	{
 		// step head
@@ -498,7 +498,7 @@ init_aligned_disk(CBM_FILE fd)
 	/* drive code version, timers can hang w/o interrupts too long */
 	printf("Sync sweep...\n");
 	send_mnib_cmd(fd, FL_ALIGNDISK, NULL, 0);
-	burst_write(fd, 0);
+	burst_write(fd, 0x00);
 	burst_read(fd);
 	printf("Attempted sweep-aligned tracks\n");
 }
