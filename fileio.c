@@ -269,13 +269,12 @@ void parseargs(char *argv[])
 			if (!(*argv)[2]) usage();
 			if(!ihs) align_disk=1;
 			skew = (atoi(&(*argv)[2]));
-			if((skew > 210) || (skew < 0))
+			if((skew > 200) || (skew < 0))
 			{
 				printf("Skew must be between 1 and 200ms\n");
 				skew = 0;
 			}
 			printf("* Skew set to %dms\n",skew);
-			skew+=10; // we have -10ms skew already
 			break;
 
 		case 't':

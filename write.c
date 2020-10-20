@@ -484,7 +484,7 @@ init_aligned_disk(CBM_FILE fd)
 
 	/* write all 0x55 */
 	printf("\nWiping/Unformatting...\n");
-	for (track = start_track; track <= end_track; track += track_inc)
+	for (track = end_track; track >= start_track; track -= 1)
 	{
 		// step head
 		step_to_halftrack(fd, track);
