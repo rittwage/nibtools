@@ -17,9 +17,9 @@ void
 master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t tracklen)
 {
 	int i,leader;
-	static size_t skewbytes = 0;
+	static size_t skewbytes = 0, skewtemp = 0;
 	static BYTE last_density = -1;
-	BYTE rawtrack[NIB_TRACK_LENGTH * 3];
+	BYTE rawtrack[NIB_TRACK_LENGTH * 40];
 	BYTE tempfillbyte;
 
 	if(track_inc==1) leader=0;
@@ -37,17 +37,6 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		memset(rawtrack, 0x55, sizeof(rawtrack));
 	else
 		memset(rawtrack, tempfillbyte, sizeof(rawtrack));
-
-	/* apply skew, if specified */
-	if(skew)
-	{
-		skewbytes += skew * (capacity[track_density[track]&3] / 200);
-
-		if(skewbytes > NIB_TRACK_LENGTH)
-			skewbytes = skewbytes - NIB_TRACK_LENGTH;
-
-		printf("{skew=%d}", skewbytes);
-	}
 
 	/* check for and correct initial too short sync mark */
 	//if( ((!(track_density[track] & BM_NO_SYNC)) &&
@@ -96,15 +85,18 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		last_density = track_density[track]&3;
 	}
 
-	/* this doesn't work over USB since we aren't in control of timing, I don't think */
 	// try to do track alignment through simple timers
-	//if((align_disk) && (auto_capacity_adjust))
-	//{
-	//	/* subtract overhead from one revolution;
-	//	    adjust for motor speed and density;	*/
-	//	align_delay = (int) ((175500) + ((300 - motor_speed) * 600));
-	//	msleep(align_delay);
-	//}
+	if((skew||align_disk) && (auto_capacity_adjust))
+	{
+		/* subtract overhead from one revolution;
+	    adjust for motor speed and density; */
+		align_delay = (int)((motor_speed*200000)/300)-18000; // roughly the step time is 18
+		align_delay += skew*1000;
+		if(align_delay>200000) align_delay-=200000;
+
+		printf("[skew:%d][delay:%d]", skew, align_delay);
+	    msleep(align_delay);
+    }
 
 	/* burst send track */
 	for (i = 0; i < 3; i ++)
@@ -117,7 +109,8 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		burst_write(fd, (unsigned char)((ihs) ? 0x00 : 0x03));
 
 		/* align disk waits until end of sync before writing */
-		burst_write(fd, (unsigned char)((align_disk) ? 0xfb : 0x00));
+		//burst_write(fd, (unsigned char)((align_disk) ? 0xfb : 0x00));
+		burst_write(fd, (unsigned char)(0x00));
 
 		if (burst_write_track(fd, rawtrack, (int)(tracklen + leader + skewbytes + 1)))
 			break;
@@ -484,7 +477,7 @@ init_aligned_disk(CBM_FILE fd)
 
 	/* write all 0x55 */
 	printf("\nWiping/Unformatting...\n");
-	for (track = end_track; track >= start_track; track -= 1)
+	for (track = start_track; track <= end_track; track += 1)
 	{
 		// step head
 		step_to_halftrack(fd, track);

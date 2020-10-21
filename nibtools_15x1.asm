@@ -371,8 +371,8 @@ _align_disk:
         STA  $1c0c
         DEC  $1c03                ; CA data direction head (0->$ff: write)
         
-        ;LDA #$52  	 ; track 41	
-       	LDA $02
+        LDA #$52  	 ; track 41	
+       	;LDA $02
        	STA $cf
 
 ;--------------------------------------
@@ -392,12 +392,13 @@ _adL2:
         BVC  _adL2                ;
 
 _delay_loop:
-     	;DEC $cf
-	;DEC $cf
-	INC $cf
-	INC $cf
+     	DEC $cf
+	DEC $cf
+	;INC $cf
+	;INC $cf
 	LDA $cf
-	CMP #$52
+	;CMP #$52
+	CMP #$01
 	BNE _admain 
 	
         LDA  #$ee
