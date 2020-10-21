@@ -17,9 +17,8 @@ void
 master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, size_t tracklen)
 {
 	int i,leader;
-	static size_t skewbytes = 0, skewtemp = 0;
 	static BYTE last_density = -1;
-	BYTE rawtrack[NIB_TRACK_LENGTH * 40];
+	BYTE rawtrack[NIB_TRACK_LENGTH*2];
 	BYTE tempfillbyte;
 
 	if(track_inc==1) leader=0;
@@ -45,11 +44,11 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	if(presync)
 	{
 		if(verbose>1) printf("{presync}");
-		memset(rawtrack + leader + skewbytes - 2, 0xff, 2);
+		memset(rawtrack + leader - 2, 0xff, 2);
 	}
 
 	/* merge track data */
-	memcpy(rawtrack + leader + skewbytes, track_buffer + (track * NIB_TRACK_LENGTH), tracklen);
+	memcpy(rawtrack + leader, track_buffer + (track * NIB_TRACK_LENGTH), tracklen);
 
 	//printf("[%.2x%.2x%.2x%.2x%.2x] ",
 	//		rawtrack[0], rawtrack[1], rawtrack[2], rawtrack[3], rawtrack[4]);
@@ -63,7 +62,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 
 	/* "fix" for track 18 mastering */
 	if(track==18*2)
-		memcpy(rawtrack + leader + skewbytes + tracklen - 5, "UJMSU", 5);
+		memcpy(rawtrack + leader + tracklen - 5, "UJMSU", 5);
 
 	/* replace 0x00 bytes by 0x01, as 0x00 indicates end of track */
 	if(!use_floppycode_srq)  // not in srq code
@@ -112,7 +111,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 		//burst_write(fd, (unsigned char)((align_disk) ? 0xfb : 0x00));
 		burst_write(fd, (unsigned char)(0x00));
 
-		if (burst_write_track(fd, rawtrack, (int)(tracklen + leader + skewbytes + 1)))
+		if (burst_write_track(fd, rawtrack, (int)(tracklen + leader + 1)))
 			break;
 		else
 		{

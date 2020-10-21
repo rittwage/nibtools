@@ -267,16 +267,13 @@ void parseargs(char *argv[])
 
 		case 'T':
 			if (!(*argv)[2]) usage();
-			if(!ihs) align_disk=1;
 			skew = (atoi(&(*argv)[2]));
-			//if((skew > 200) || (skew < 0))
-			//{
-			//	printf("Skew must be between 1 and 200ms\n");
-			//	skew = 0;
-			//}
+			if((skew > 200) || (skew < 0))
+			{
+				printf("Skew must be between 1 and 200ms\n");
+				skew = 0;
+			}
 			printf("* Skew set to %dms\n",skew);
-			break;
-
 		case 't':
 			if(!ihs) align_disk = 1;
 			printf("* Attempt timer-based track alignment\n");
