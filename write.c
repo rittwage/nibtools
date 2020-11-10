@@ -459,7 +459,7 @@ void adjust_target(CBM_FILE fd)
 							//+(DENSITY0 / (capacity[0] + capacity_margin + extra_capacity_margin)) ) / 4;
 
 	//printf("--------------------------------------------------\n");
-	printf("Motor speed: ~%.2f RPM.\n", motor_speed);
+	//printf("Motor speed: ~%.2f RPM.\n", motor_speed);
 	//printf("Track capacity margin: %d\n", capacity_margin + extra_capacity_margin);
 
 	if( (motor_speed > 320) || (motor_speed < 280))
