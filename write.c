@@ -135,7 +135,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 void
 master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
-	int track, verified, retries, added_sync = 0;
+	int track, verified, retries, added_sync=0, addsyncloops;
 	size_t badgcr, length, verlen, verlen2;
 	BYTE verbuf1[NIB_TRACK_LENGTH], verbuf2[NIB_TRACK_LENGTH], verbuf3[NIB_TRACK_LENGTH], align;
 	size_t gcr_diff;
@@ -185,11 +185,14 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 
 		if((increase_sync)&&(track_length[track])&&(!(track_density[track]&BM_NO_SYNC))&&(!(track_density[track]&BM_FF_TRACK)))
 		{
-			added_sync = lengthen_sync(track_buffer + (track * NIB_TRACK_LENGTH),
-				track_length[track], NIB_TRACK_LENGTH);
-
+			for(addsyncloops=0;addsyncloops<increase_sync;addsyncloops++)
+			{
+				added_sync += lengthen_sync(track_buffer + (track * NIB_TRACK_LENGTH),
+					track_length[track], NIB_TRACK_LENGTH);
+			}
 			track_length[track] += added_sync;
 			if(verbose) printf("[+sync:%d]", added_sync);
+			added_sync=0;
 		}
 
 		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH),
