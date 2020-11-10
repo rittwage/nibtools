@@ -394,10 +394,10 @@ int write_nb2(CBM_FILE fd, char * filename)
 			printf("%4.1f: (%d) ", (float) track / 2, pass_density);
 			fprintf(fplog, "%4.1f: (%d) ", (float) track / 2, pass_density);
 
+			set_density(fd, pass_density);
+
 			for(pass = 0; pass < 4; pass ++)
 			{
-				set_density(fd, pass_density);
-
 				for (i = 0; i < 10; i++)
 				{
 					send_mnib_cmd(fd, FL_READWOSYNC, NULL, 0);

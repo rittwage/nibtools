@@ -702,8 +702,10 @@ find_sector0(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 	while (pos >= work_buffer + tracklen)
 		pos -= tracklen;
 
-	/*return pos - 1;  // go to  last byte that contains first few bits of sync */
-	return pos; // go to first full byte of sync
+	if(*pos & 1)
+		return pos - 1;  // go to  last byte that contains first few bits of sync
+	else
+		return pos; // return at first full byte of sync
 }
 
 BYTE *
@@ -760,8 +762,10 @@ find_sector_gap(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 	while (pos >= work_buffer + tracklen)
 		pos -= tracklen;
 
-	/*return pos - 1;  // go to  last byte that contains first few bits of sync*/
-	return pos; // return at first full byte of sync
+	if(*pos & 1)
+		return pos - 1;  // go to  last byte that contains first few bits of sync
+	else
+		return pos; // return at first full byte of sync
 }
 
 /* checks if there is any reasonable section of formatted (GCR) data */
@@ -1064,39 +1068,154 @@ aligned:
 size_t
 lengthen_sync(BYTE * buffer, size_t length, size_t length_max)
 {
-	size_t added;
-	BYTE *source, *newp, *end;
+        size_t added;
+        BYTE *source, *newp, *end;
+        BYTE newbuf[NIB_TRACK_LENGTH];
+
+        added = 0;
+        end = buffer + length;
+        source = buffer;
+        newp = newbuf;
+
+        if (length >= length_max)
+                return 0;
+
+        /* wrap alignment */
+        if( ((*(end-1) & 0x01) == 0x01) && (*source == 0xff) && (*(source+1) != 0xff) )
+        {
+                *(newp++) = 0xff;
+                added++;
+        }
+        *(newp++) = *(source++);
+
+        do
+        {
+				//if (((*(source-1)&0x01)==0x01)&&(*source==0xff)&&(*(source+1)!= 0xff)&&(length+added<=length_max))
+                if (((*(source-1)&0x01)==0x01)&&(*source==0xff)&&(*(source+1)!= 0xff))
+                {
+                        *(newp++) = 0xff;
+                        added++;
+                }
+                *(newp++) = *(source++);
+
+        } while (source <= (end-1));
+
+        memcpy(buffer, newbuf, length+added);
+        return added;
+}
+
+/*
+size_t
+lengthen_sync(BYTE * gcrdata, size_t length, size_t length_max)
+{
+	size_t sync_cnt = 0;
+	size_t sync_len[1000];
+	size_t sync_pos[1000];
+	BYTE sync_pre[1000];
+	BYTE sync_pre2[1000];
 	BYTE newbuf[NIB_TRACK_LENGTH];
+	size_t i, newsync, locked, total=0;
 
-	added = 0;
-	end = buffer + length;
-	source = buffer;
-	newp = newbuf;
+	memset(sync_len, 0, sizeof(sync_len));
+	memset(sync_pos, 0, sizeof(sync_pos));
+	memset(sync_pre, 0, sizeof(sync_pre));
+	memset(sync_pre2, 0, sizeof(sync_pre2));
+	memset(newbuf, 0x55, sizeof(newbuf));
 
-	if (length >= length_max)
-		return 0;
+	// juggle track data to make space
+	memcpy(newbuf+4, gcrdata, length);
+	memcpy(gcrdata, newbuf, length+4);
+	length+=4;
 
-	/* wrap alignment */
-	if( ((*(end-1) & 0x01) == 0x01) && (*source == 0xff) && (*(source+1) != 0xff) )
+	// count syncs/lengths
+	for (locked=0, i=0; i<length-1; i++)
 	{
-		*(newp++) = 0xff;
-		added++;
-	}
-	*(newp++) = *(source++);
-
-	do
-	{
-		if ( ((*(source-1) & 0x01) == 0x01) && (*source == 0xff) && (*(source+1) != 0xff) /*&& (length+added <= length_max)*/ )
+		if (locked)
 		{
-			*(newp++) = 0xff;
-			added++;
+			if (gcrdata[i] == 0xff)
+				sync_len[sync_cnt]++;
+			else
+				locked = 0; // end of sync
 		}
-		*(newp++) = *(source++);
+		//else if (gcrdata[i] == 0xff) // not full sync, only last 8 bits
+		else if(((gcrdata[i] & 0x01) == 0x01) && (gcrdata[i+1] == 0xff)) // 10 bits
+		{
+			locked = 1;
+			sync_cnt++;
+			sync_len[sync_cnt] = 1;
+			sync_pos[sync_cnt] = i;
+			sync_pre[sync_cnt] = gcrdata[i];
+			sync_pre2[sync_cnt] = gcrdata[i-1];
+		}
 
-	} while (source <= (end-1));
+	}
 
-	memcpy(buffer, newbuf, length+added);
-	return added;
+	if(verbose>1) printf("\nSYNCS:%d\n", sync_cnt);
+	for (i=1; i<=sync_cnt; i++)
+	{
+		if(verbose>1) printf("(%d,%d,%x%x)\n", sync_pos[i], sync_len[i], sync_pre2[i], sync_pre[i]);
+
+		if(sync_len[i] >= 5)
+		{ gcrdata[sync_pos[i]] = 0xff; gcrdata[sync_pos[i]-1] = sync_pre2[i]; }
+		if(sync_len[i] >= 10)
+		{ gcrdata[sync_pos[i]-1] = sync_pre[i]; gcrdata[sync_pos[i]-2] = sync_pre2[i]; }
+		if(sync_len[i] >= 15)
+		{ gcrdata[sync_pos[i]-2] = 0xff; gcrdata[sync_pos[i]-3] = sync_pre2[i];}
+		if(sync_len[i] >= 20)
+		{ gcrdata[sync_pos[i]-3] = sync_pre[i]; gcrdata[sync_pos[i]-4] = sync_pre2[i]; }
+	}
+
+	return 4;
+}
+*/
+
+size_t
+kill_partial_sync(BYTE * gcrdata, size_t length, size_t length_max)
+{
+	size_t sync_cnt = 0;
+	size_t sync_len[1000];
+	size_t sync_pos[1000];
+	BYTE sync_pre[1000];
+	BYTE sync_pre2[1000];
+	size_t i, locked, total=0;
+
+	memset(sync_len, 0, sizeof(sync_len));
+	memset(sync_pos, 0, sizeof(sync_pos));
+	memset(sync_pre, 0, sizeof(sync_pre));
+	memset(sync_pre2, 0, sizeof(sync_pre2));
+
+	// count syncs/lengths
+	for (locked=0, i=0; i<length-1; i++)
+	{
+		if (locked)
+		{
+			if (gcrdata[i] == 0xff)
+				sync_len[sync_cnt]++;
+			else
+				locked = 0; // end of sync
+		}
+		//else if (gcrdata[i] == 0xff) // not full sync, only last 8 bits
+		else if(((gcrdata[i] & 0x01) == 0x01) && (gcrdata[i+1] == 0xff)) // 10 bits
+		{
+			locked = 1;
+			sync_cnt++;
+			sync_len[sync_cnt] = 1;
+			sync_pos[sync_cnt] = i;
+			sync_pre[sync_cnt] = gcrdata[i];
+			sync_pre2[sync_cnt] = gcrdata[i-1];
+		}
+
+	}
+
+	if(verbose>1) printf("\nSYNCS:%d\n", sync_cnt);
+	for (i=1; i<=sync_cnt; i++)
+	{
+		if(verbose>1) printf("(%d,%d,%x%x)\n", sync_pos[i], sync_len[i], sync_pre2[i], sync_pre[i]);
+
+		gcrdata[sync_pos[i]] = sync_pre2[i];
+	}
+
+	return 0;
 }
 
 /*

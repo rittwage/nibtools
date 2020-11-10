@@ -509,7 +509,7 @@ usage(void)
 	     " -S[n]: Override starting track\n"
 	     " -E[n]: Override ending track\n"
 	     " -G[n]: Match track gap by [n] number of bytes (advanced users only)\n"
-	     " -s: Use SRQ transfer code instead of parallel (1571 only)\n"
+	     " -P: Use parallel transfer instead of SRQ (1571 only)\n"
 	     " -k: Disable reading of 'killer' tracks\n"
 	     " -d: Force default densities\n"
 	     " -v: Enable track matching (crude read verify)\n"

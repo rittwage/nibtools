@@ -55,8 +55,9 @@ void parseargs(char *argv[])
 			break;
 
 		case 'I':
-			increase_sync = 1;
-			printf("* Fix/increase short syncs\n");
+			increase_sync = atoi(&(*argv)[2]);
+			if(!increase_sync) increase_sync=1;
+			printf("* Fix/increase short syncs by %d\n", increase_sync);
 			break;
 
 		case 'S':
@@ -305,10 +306,11 @@ void parseargs(char *argv[])
 			}
 			break;
 
-//		case 'P':
-//			presync = atoi(&(*argv)[2]);
-//			printf("* Add short sync bytes to start of each track:%d\n",presync);
-//			break;
+		case 'x':
+			presync = atoi(&(*argv)[2]);
+			if(!presync) presync=1;
+			printf("* Add short sync bytes to start of each track:%d\n",presync);
+			break;
 
 		case 'b':
 			// custom fillbyte
@@ -473,7 +475,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 			printf("Cannot find directory sector.\n");
 			return 0;
 	}
-	printf("\ndiskid: %c%c\n", diskid[0], diskid[1]);
+	if(verbose) printf("\ndiskid: %c%c\n", diskid[0], diskid[1]);
 
 	rewind(fpin);
 	if (fread(header, sizeof(header), 1, fpin) != 1) {
@@ -527,15 +529,16 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		}
 
 		/* output some specs */
-		printf(" (");
-		if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
-		if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
+		if(verbose)
+		{
+			printf(" (");
+			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
 
-		if(verbose) printf("%d:%d) (pass %d, %d errors) %.1d%%",
-			track_density[track]&3, track_length[track],
-			best_pass, best_err,
-			((track_length[track] / capacity[track_density[track]&3]) * 100));
-
+			printf("%d:%d) (pass %d, %d errors) %.1d%%", track_density[track]&3, track_length[track],
+				best_pass, best_err,
+				((track_length[track] / capacity[track_density[track]&3]) * 100));
+		}
 	}
 	fclose(fpin);
 	printf("\nSuccessfully loaded NB2 file\n");
@@ -574,7 +577,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 	{
 		printf("\nExtended SPS G64 detected");
 		headersize=0x7f0;
-		sync_align_buffer=1;
+		//sync_align_buffer=1;
 	}
 	else
 		headersize=0x2ac;
