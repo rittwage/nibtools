@@ -19,38 +19,25 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	int i,leader;
 	static BYTE last_density = -1;
 	BYTE rawtrack[NIB_TRACK_LENGTH*2];
-	BYTE tempfillbyte;
 
 	if(track_inc==1) leader=0;
 	else leader=10;
 
-	/* loop last byte of track data for filler */
-	if(fillbyte == 0xfe) /* $fe is special case for loop */
-		tempfillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + tracklen - 1];
-	else
-		tempfillbyte = fillbyte;
-
-	if(verbose>1) printf("(fill:$%.2x)",tempfillbyte);
-
 	if(track_density[track] & BM_NO_SYNC)
 		memset(rawtrack, 0x55, sizeof(rawtrack));
 	else
-		memset(rawtrack, tempfillbyte, sizeof(rawtrack));
+		memset(rawtrack, fillbyte, sizeof(rawtrack));
 
 	/* merge track data */
 	memcpy(rawtrack + leader, track_buffer + (track * NIB_TRACK_LENGTH), tracklen);
 
-	//printf("[%.2x%.2x%.2x%.2x%.2x] ",
-	//		rawtrack[0], rawtrack[1], rawtrack[2], rawtrack[3], rawtrack[4]);
-
 	/* check for and correct initial too short sync mark */
-	//if( ((!(track_density[track] & BM_NO_SYNC)) &&
-	//	    (track_buffer[track * NIB_TRACK_LENGTH] == 0xff) &&
-	//	    (track_buffer[(track * NIB_TRACK_LENGTH) + 1] != 0xff)) || (presync) )
-	if(presync)
+	if( ((!(track_density[track] & BM_NO_SYNC)) &&
+	    (track_buffer[track * NIB_TRACK_LENGTH] == 0xff) &&
+	    (track_buffer[(track * NIB_TRACK_LENGTH) + 1] != 0xff)) || (presync) )
 	{
 		if(presync>=leader) presync=leader-2;
-		if(verbose) printf("{presync:%d}",presync);
+		if(verbose) printf("[presync:%d]",presync);
 		memset(rawtrack + leader - presync, 0xff, presync+1); // Overwrites first sync byte just in case it's not 0xFF
 	}
 
@@ -173,7 +160,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		{
 			printf("\n%4.1f: (", (float)track/2);
 			printf("%d", track_density[track]&3);
-			if ( (track_density[track]&3) != speed_map[track/2]) printf("!");
+			if ((track_density[track]&3) != speed_map[track/2]) printf("!");
 			printf(":%d) ", track_length[track]);
 			if (track_density[track] & BM_NO_SYNC) printf("NOSYNC ");
 			if (track_density[track] & BM_FF_TRACK) printf("KILLER ");
@@ -194,6 +181,11 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 			if(verbose) printf("[+sync:%d]", added_sync);
 			added_sync=0;
 		}
+
+		/* loop last byte of track data for filler
+		   we do this before compressing track in case we get wrong byte */
+		fillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length[track] - 1];
+		if(verbose) printf("[fill:$%.2x]", fillbyte);
 
 		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH),
 			track_density[track], track_length[track]);
@@ -418,12 +410,12 @@ void adjust_target(CBM_FILE fd)
 
 		set_bitrate(fd, (BYTE)i);
 
-		printf("%d: ", i);
+		if(verbose>1) printf("%d: ", i);
 
 		for(j = 0, run_total = 0; j < DENSITY_SAMPLES; j++)
 		{
 			cap[j] = track_capacity(fd);
-			printf("%d ", cap[j]);
+			if(verbose>1) printf("%d ", cap[j]);
 			run_total += cap[j];
 			if(cap[j] > cap_high[i]) cap_high[i] = cap[j];
 			if(cap[j] < cap_low[i]) cap_low[i] = cap[j];
@@ -437,19 +429,19 @@ void adjust_target(CBM_FILE fd)
 		switch(i)
 		{
 			case 0:
-				printf("(%.2frpm) margin:%d\n", DENSITY0 / capacity[0], cap_margin[i]);
+				if(verbose>1) printf("(%.2frpm) margin:%d\n", DENSITY0 / capacity[0], cap_margin[i]);
 				break;
 
 			case 1:
-				printf("(%.2frpm) margin:%d\n", DENSITY1 / capacity[1], cap_margin[i]);
+				if(verbose>1) ("(%.2frpm) margin:%d\n", DENSITY1 / capacity[1], cap_margin[i]);
 				break;
 
 			case 2:
-				printf("(%.2frpm) margin:%d\n", DENSITY2 / capacity[2], cap_margin[i]);
+				if(verbose>1) printf("(%.2frpm) margin:%d\n", DENSITY2 / capacity[2], cap_margin[i]);
 				break;
 
 			case 3:
-				printf("(%.2frpm) margin:%d\n", DENSITY3 / capacity[3], cap_margin[i]);
+				if(verbose>1) printf("(%.2frpm) margin:%d\n", DENSITY3 / capacity[3], cap_margin[i]);
 				break;
 		}
 
@@ -462,8 +454,8 @@ void adjust_target(CBM_FILE fd)
 							//+(DENSITY0 / (capacity[0] + capacity_margin + extra_capacity_margin)) ) / 4;
 
 	//printf("--------------------------------------------------\n");
-	//printf("Motor speed: ~%.2f RPM.\n", motor_speed);
-	//printf("Track capacity margin: %d\n", capacity_margin + extra_capacity_margin);
+	printf("Motor speed: ~%.2f RPM.\n", motor_speed);
+	printf("Track capacity margin: %d\n", capacity_margin + extra_capacity_margin);
 
 	if( (motor_speed > 320) || (motor_speed < 280))
 	{

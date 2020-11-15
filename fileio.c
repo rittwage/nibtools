@@ -312,6 +312,7 @@ void parseargs(char *argv[])
 			printf("* Add short sync bytes to start of each track:%d\n",presync);
 			break;
 
+/*
 		case 'b':
 			// custom fillbyte
 			printf("* Custom fillbyte: ");
@@ -336,6 +337,7 @@ void parseargs(char *argv[])
 				fillbyte = 0xfe;
 			}
 			break;
+*/
 
 		/* this is only used in reading or unformat */
 		case 'k':
@@ -634,18 +636,14 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		/* output some specs */
 		if(verbose)
 		{
-			if(verbose) printf("%4.1f: (",(float) track/2);
-			 if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
+			printf("%4.1f: ",(float) track/2);
+			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC!");
 			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
-
-			if(verbose) printf("%d:%d) %.1d%%\n",
-				track_density[track], track_length[track],
-				((track_length[track] / capacity[track_density[track]])*100));
+			printf("%d (density:%d)\n", track_length[track], track_density[track]);
 		}
 	}
-
 	fclose(fpin);
-	printf("\nSuccessfully loaded G64 file\n");
+	printf("Successfully loaded G64 file\n");
 	return 1;
 }
 
@@ -926,9 +924,16 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 
 			/* screen information */
 			if (errorcode == SECTOR_OK)
-				{ if(verbose) printf(" "); }
+			{
+				if(verbose) printf(" ");
+			}
 			else
-				{ if(verbose) printf("%.1x", errorcode); }
+				{
+					if(verbose)
+						printf("%.1x", errorcode);
+					else
+						printf("Error %.1x on Track %d, Sector %d\n", errorcode, track/2, sector);
+				}
 
 			/* dump to buffer */
 			memcpy(d64ptr, rawdata+1 , 256);
@@ -990,7 +995,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	//size_t skewbytes=0;
 	int index=0, track, added_sync;
 	FILE * fpout;
-	BYTE buffer[NIB_TRACK_LENGTH], tempfillbyte;
+	BYTE buffer[NIB_TRACK_LENGTH];
 	size_t raw_track_size[4] = { 6250, 6666, 7142, 7692 };
 	//char errorstring[0x1000];
 
@@ -1057,12 +1062,8 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		if((!old_g64)&&(!track_len)) continue;
 
 		/* loop last byte of track data for filler */
-		if(fillbyte == 0xfe) /* $fe is special case for loop */
-			tempfillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_len - 1];
-		else
-			tempfillbyte = fillbyte;
-
-		memset(&gcr_track[2], tempfillbyte, G64_TRACK_MAXLEN);
+		fillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_len - 1];
+		memset(&gcr_track[2], fillbyte, G64_TRACK_MAXLEN);
 
 		gcr_track[0] = (BYTE) (raw_track_size[speed_map[track/2]] % 256);
 		gcr_track[1] = (BYTE) (raw_track_size[speed_map[track/2]] / 256);
@@ -1122,7 +1123,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 			capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
 			track_len = compress_halftrack(track, buffer, track_density[track], track_len);
 		}
-		if(verbose>1) printf("(fill:$%.2x) ",tempfillbyte);
+		if(verbose>1) printf("(fill:$%.2x) ",fillbyte);
 		if(verbose>1) printf("{badgcr:%d}",badgcr);
 
 		gcr_track[0] = (BYTE) (track_len % 256);
@@ -1172,7 +1173,7 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 		{
 			/* reduce sync marks within the track */
 			length = reduce_runs(gcrdata, length, capacity[density&3], reduce_sync, 0xff);
-			if(verbose>1) printf("(-sync:%d)", orglen - length);
+			if(verbose) printf("(sync:-%d)", orglen - length);
 		}
 
 		/* reduce bad GCR runs */
@@ -1181,7 +1182,7 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 			(reduce_map[halftrack/2] & REDUCE_BAD) )
 		{
 			length = reduce_runs(gcrdata, length, capacity[density&3], 0, 0x00);
-			if(verbose) printf("(-badgcr:%d)", orglen - length);
+			if(verbose) printf("(badgcr:-%d)", orglen - length);
 		}
 
 		/* reduce sector gaps -  they occur at the end of every sector and vary from 4-19 bytes, typically  */
@@ -1190,7 +1191,7 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 			(reduce_map[halftrack/2] & REDUCE_GAP) )
 		{
 			length = reduce_gaps(gcrdata, length, capacity[density & 3]);
-			if(verbose) printf("(-gap:%d)", orglen - length);
+			if(verbose) printf("(gap:-%d)", orglen - length);
 		}
 
 		/* still not small enough, we have to truncate the end (reduce tail) */
@@ -1198,7 +1199,7 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 		if (length > capacity[density&3])
 		{
 			length = capacity[density&3];
-			if(verbose>1) printf("(-trunc:%d)", orglen - length);
+			if(verbose) printf("(trunc:-%d)", orglen - length);
 		}
 	}
 
@@ -1288,7 +1289,6 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 	//for (track = start_track; track <= end_track; track ++)
 	for (track = 1; track <= 84; track ++)
 	{
-		if(verbose) printf("%4.1f: ",(float) track/2);
 		memcpy(nibdata, track_buffer+(track*NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
 		memset(track_buffer + (track * NIB_TRACK_LENGTH), 0x00, NIB_TRACK_LENGTH);
 
@@ -1303,8 +1303,9 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 		);
 
 		/* output some specs */
-		if(verbose)
+		if((verbose)&&(track_length[track]>0))
 		{
+			printf("%4.1f: ",(float) track/2);
 			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC:");
 			if(track_density[track] & BM_FF_TRACK) printf("KILLER:");
 			printf("(%d:", track_density[track]&3);

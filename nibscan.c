@@ -66,7 +66,7 @@ int align_delay;
 int cap_min_ignore;
 int increase_sync = 0;
 int presync = 0;
-BYTE fillbyte = 0x55;
+BYTE fillbyte = 0xfe;
 BYTE drive = 8;
 char * cbm_adapter = "";
 int use_floppycode_srq = 0;
@@ -502,20 +502,20 @@ scandisk(void)
 	// check each track for various things
 	for (track = start_track; track <= end_track; track ++)
 	{
-		printf("%4.1f: %d",(float) track/2, track_length[track]);
-
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
 		{
-			printf(":UNFORMATTED\n");
+			//printf(":UNFORMATTED\n");
 			continue;
 		}
+		else
+			printf("%4.1f: %d",(float) track/2, track_length[track]);
 
 		if (track_length[track] > 0)
 		{
 			track_density[track] = check_sync_flags(track_buffer + (track * NIB_TRACK_LENGTH),
 				track_density[track]&3, track_length[track]);
 
-			printf("(%d", track_density[track]&3);
+			printf(" (density:%d", track_density[track]&3);
 
 			if (track_density[track] & BM_NO_SYNC)
 				printf(":NOSYNC");

@@ -84,14 +84,14 @@ size_t sync_align(BYTE *buffer, int length)
 
     // first align buffer to a sync, shuffling
     i=0;
-    while(!((buffer[i]==0xff) && (buffer[i+1]&0x80)))
+    while(!((buffer[i]==0xff)&&(buffer[i+1]&0x80)))
 	{
     	i++;
     	if(i==length) break;
 	}
 	if(i<15) // header, skip that also
 	{
-		while(!((buffer[i]==0xff) && (buffer[i+1]&0x80)))
+		while(!((buffer[i]==0xff)&&(buffer[i+1]&0x80)))
 		{
 		    	i++;
 		    	if(i==length) break;
@@ -783,10 +783,10 @@ auto_gap(BYTE * work_buffer, size_t tracklen)
 
 	/* last 5 bytes of gap */
 	// printf("gapbyte: %x, len: %d\n",gapbyte,longest);
-	if(key >= work_buffer + 5)
-		return(key - 5);
-	else
-		return(key);
+	//if(key >= work_buffer + 5)
+	//	return(key - 5);
+	//else
+	return key;
 }
 
 // The idea behind this is that bad GCR commonly occurs
@@ -828,7 +828,7 @@ find_bad_gap(BYTE * work_buffer, size_t tracklen)
 	}
 
 	/* first byte after bad run */
-	return (key);
+	return key;
 }
 
 // Line up the track cycle to the start of the longest sync mark
