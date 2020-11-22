@@ -167,27 +167,23 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 			printf("WRITE ");
 		}
 
-		badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
-		if(verbose) printf("[weak:%d]", badgcr);
+		/* loop last byte of track data for filler
+		   we do this before processing track in case we get wrong byte */
+		fillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length[track] - 1];
+		if(verbose) printf("[fill:$%.2x]", fillbyte);
 
 		if((increase_sync)&&(track_length[track])&&(!(track_density[track]&BM_NO_SYNC))&&(!(track_density[track]&BM_FF_TRACK)))
 		{
 			for(addsyncloops=0;addsyncloops<increase_sync;addsyncloops++)
 			{
-				added_sync += lengthen_sync(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track], NIB_TRACK_LENGTH);
+				added_sync = lengthen_sync(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track], capacity[track_density[track]&3]);
 				track_length[track] += added_sync;
+				if(verbose) printf("[+sync:%d]", added_sync);
 			}
-
-			if(verbose) printf("[+sync:%d]", added_sync);
-			added_sync = 0;
 		}
 
-		/* loop last byte of track data for filler
-		   we do this before compressing track in case we get wrong byte */
-		if(fillbyte == 0xfe)
-			fillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length[track] - 1];
-
-		if(verbose) printf("[fill:$%.2x]", fillbyte);
+		badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
+		if(verbose) printf("[weak:%d]", badgcr);
 
 		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH),
 			track_density[track], track_length[track]);

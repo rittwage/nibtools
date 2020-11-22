@@ -1079,14 +1079,14 @@ aligned:
 }
 
 size_t
-lengthen_sync(BYTE * buffer, size_t length, size_t length_max)
+lengthen_sync(BYTE *buffer, size_t length, size_t length_max)
 {
         size_t added;
         BYTE *source, *newp, *end;
         BYTE newbuf[NIB_TRACK_LENGTH];
 
         added = 0;
-        end = buffer + length;
+        end = buffer + length - 1;
         source = buffer;
         newp = newbuf;
 
@@ -1094,24 +1094,24 @@ lengthen_sync(BYTE * buffer, size_t length, size_t length_max)
                 return 0;
 
         /* wrap alignment */
-        if( ((*(end-1) & 0x01) == 0x01) && (*source == 0xff) && (*(source+1) != 0xff) )
-        {
-                *(newp++) = 0xff;
-                added++;
-        }
-        *(newp++) = *(source++);
+        //if( ((*(end-1) & 0x01) == 0x01) && (*source == 0xff) && (*(source+1) != 0xff) )
+        //{
+        //        *(newp++) = 0xff;
+        //        added++;
+        //}
+        //*(newp++) = *(source++);
 
         do
         {
-				//if (((*(source-1)&0x01)==0x01)&&(*source==0xff)&&(*(source+1)!= 0xff)&&(length+added<=length_max))
-                if (((*(source-1)&0x01)==0x01)&&(*source==0xff)&&(*(source+1)!= 0xff))
+				//if(((*(source-1)&0x01)==0x01)&&(*source==0xff)&&(*(source+1)!= 0xff)&&(length+added<=length_max))
+                if((*source==0xff)&&(*(source+1)!= 0xff))
                 {
                         *(newp++) = 0xff;
                         added++;
                 }
                 *(newp++) = *(source++);
 
-        } while (source <= (end-1));
+        } while (source <= end);
 
         memcpy(buffer, newbuf, length+added);
         return added;
