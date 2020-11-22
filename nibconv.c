@@ -189,7 +189,6 @@ main(int argc, char **argv)
 		if(skip_halftracks) track_inc = 1;
 		else track_inc = 2; /* yes, I know it's reversed */
 
-
 		/* handle cases of making NIB from other formats for testing */
 		if( (compare_extension(inname, "D64")) ||
 			(compare_extension(inname, "G64")))

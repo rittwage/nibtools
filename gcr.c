@@ -34,6 +34,17 @@ BYTE sector_map[MAX_TRACKS_1541 + 1] = {
 	17, 17, 17, 17, 17, 17, 17				/* 36 - 42 (non-standard) */
 };
 
+// 7, 17, 12, 8
+BYTE sector_gap_length[MAX_TRACKS_1541 + 1] = {
+	0,
+	9, 9, 9, 9, 9, 9, 9, 9, 9, 9,	/*  1 - 10 */
+	9, 9, 9, 9, 9, 9, 9, 18, 18, 18,	/* 11 - 20 */
+	18, 18, 18, 18, 13, 13, 13, 13, 13, 13,	/* 21 - 30 */
+	9, 9, 9, 9, 9,						/* 31 - 35 */
+	9, 9, 9, 9, 9, 9, 9				/* 36 - 42 (non-standard) */
+};
+
+
 BYTE speed_map[MAX_TRACKS_1541 + 1] = {
 	0,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,	/*  1 - 10 */
@@ -408,7 +419,7 @@ convert_sector_to_GCR(BYTE * buffer, BYTE * ptr, int track, int sector, BYTE * d
 	BYTE tempID[3];
 
 	memcpy(tempID, diskID, 3);
-	memset(ptr, 0x55, SECTOR_SIZE);	/* 'unformat' GCR sector */
+	memset(ptr, 0x55, SECTOR_SIZE + sector_gap_length[track]);	/* 'unformat' GCR sector */
 
 	if (error == SYNC_NOT_FOUND)
 		return;
@@ -474,8 +485,10 @@ convert_sector_to_GCR(BYTE * buffer, BYTE * ptr, int track, int sector, BYTE * d
 		ptr += 5;
 	}
 
-	memset(ptr, 0x55, SECTOR_GAP_LENGTH);	 /* tail gap*/
-	ptr += SECTOR_GAP_LENGTH;
+	memset(ptr, 0x55, sector_gap_length[track]);	 /* tail gap*/
+	ptr += sector_gap_length[track];
+	//memset(ptr, 0x55, SECTOR_GAP_LENGTH);	 /* tail gap*/
+	//ptr += SECTOR_GAP_LENGTH;
 }
 
 size_t

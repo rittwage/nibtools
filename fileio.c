@@ -312,7 +312,6 @@ void parseargs(char *argv[])
 			printf("* Add short sync bytes to start of each track:%d\n",presync);
 			break;
 
-/*
 		case 'b':
 			// custom fillbyte
 			printf("* Custom fillbyte: ");
@@ -331,13 +330,7 @@ void parseargs(char *argv[])
 				printf("$ff\n");
 				fillbyte = 0xff;
 			}
-			if ((*argv)[2] == '?')
-			{
-				printf("loop last byte in track\n");
-				fillbyte = 0xfe;
-			}
 			break;
-*/
 
 		/* this is only used in reading or unformat */
 		case 'k':
@@ -732,12 +725,12 @@ int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 				memset(buffer, fillbyte, sizeof(buffer));
 
 			// convert to gcr
-			convert_sector_to_GCR(buffer, gcrdata + (sector * SECTOR_SIZE), track, sector, id, error);
+			convert_sector_to_GCR(buffer, gcrdata + (sector * (SECTOR_SIZE + sector_gap_length[track])), track, sector, id, error);
 			cur_sector++;
 		}
 
 		// calculate track length
-		track_length[track*2] = sector_map[track] * SECTOR_SIZE;
+		track_length[track*2] = sector_map[track] * (SECTOR_SIZE + sector_gap_length[track]);
 
 		// no half tracks in D64, so clear them
 		track_length[(track*2)+1] = 0;
@@ -1182,7 +1175,7 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 			(reduce_map[halftrack/2] & REDUCE_BAD) )
 		{
 			length = reduce_runs(gcrdata, length, capacity[density&3], 0, 0x00);
-			if(verbose) printf("(badgcr:-%d)", orglen - length);
+			if(verbose) printf("(badgcr-%d)", orglen - length);
 		}
 
 		/* reduce sector gaps -  they occur at the end of every sector and vary from 4-19 bytes, typically  */
@@ -1191,7 +1184,7 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 			(reduce_map[halftrack/2] & REDUCE_GAP) )
 		{
 			length = reduce_gaps(gcrdata, length, capacity[density & 3]);
-			if(verbose) printf("(gap:-%d)", orglen - length);
+			if(verbose) printf("(gap-%d)", orglen - length);
 		}
 
 		/* still not small enough, we have to truncate the end (reduce tail) */
@@ -1199,7 +1192,7 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 		if (length > capacity[density&3])
 		{
 			length = capacity[density&3];
-			if(verbose) printf("(trunc:-%d)", orglen - length);
+			if(verbose) printf("(trunc-%d)", orglen - length);
 		}
 	}
 
@@ -1324,9 +1317,17 @@ int rig_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, BY
 
 	for (track = start_track; track <= end_track; track ++)
 	{
+		if(track_length[track]==0) continue;
+
+		if(track_length[track] < capacity[track_density[track]&3])
+		{
+			memset(track_buffer + (track*NIB_TRACK_LENGTH) + track_length[track], 0x55, capacity[track_density[track]&3]);
+			//printf("Padded %d bytes\n", capacity[track_density[track]&3]-track_length[track]);
+			track_length[track] = capacity[track_density[track]&3];
+		}
+
 		memcpy(track_buffer + (track*NIB_TRACK_LENGTH) + track_length[track],
 			track_buffer + (track*NIB_TRACK_LENGTH), NIB_TRACK_LENGTH - track_length[track]);
-
 	}
 	return 1;
 

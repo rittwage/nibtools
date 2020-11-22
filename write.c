@@ -174,17 +174,19 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		{
 			for(addsyncloops=0;addsyncloops<increase_sync;addsyncloops++)
 			{
-				added_sync += lengthen_sync(track_buffer + (track * NIB_TRACK_LENGTH),
-					track_length[track], NIB_TRACK_LENGTH);
+				added_sync += lengthen_sync(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track], NIB_TRACK_LENGTH);
+				track_length[track] += added_sync;
 			}
-			track_length[track] += added_sync;
+
 			if(verbose) printf("[+sync:%d]", added_sync);
-			added_sync=0;
+			added_sync = 0;
 		}
 
 		/* loop last byte of track data for filler
 		   we do this before compressing track in case we get wrong byte */
-		fillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length[track] - 1];
+		if(fillbyte == 0xfe)
+			fillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length[track] - 1];
+
 		if(verbose) printf("[fill:$%.2x]", fillbyte);
 
 		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH),

@@ -33,10 +33,9 @@
 #define HEADER_LENGTH 	10
 #define HEADER_GAP_LENGTH 	9  // this must be 9 or 1541 will corrupt the sector if written
 #define DATA_LENGTH 	325 			// 65 * 5
-#define SECTOR_GAP_LENGTH 		8  // this varies by drive motor speed and sector from 4-19
+//#define SECTOR_GAP_LENGTH 		  // this varies by drive motor speed and sector from 4-19
 
-#define SECTOR_SIZE ((SYNC_LENGTH) + (HEADER_LENGTH) + (HEADER_GAP_LENGTH) + \
-											(SYNC_LENGTH) + (DATA_LENGTH) + (SECTOR_GAP_LENGTH))
+#define SECTOR_SIZE ((SYNC_LENGTH) + (HEADER_LENGTH) + (HEADER_GAP_LENGTH) + (SYNC_LENGTH) + (DATA_LENGTH))
 
 /* NIB format constants */
 #define NIB_TRACK_LENGTH 0x2000
@@ -122,6 +121,7 @@ speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 
 /* global variables */
 extern BYTE sector_map[];
+extern BYTE sector_gap_length[];
 extern BYTE speed_map[];
 extern BYTE align_map[];
 extern BYTE reduce_map[];
