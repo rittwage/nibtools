@@ -72,10 +72,10 @@ get our numbers.
 speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 */
 
-#define DENSITY3 2307692.308 // bytes per minute
-#define DENSITY2 2142857.143
-#define DENSITY1 2000000.000
-#define DENSITY0 1875000.000
+#define DENSITY3 2307692 // bytes per minute
+#define DENSITY2 2142857
+#define DENSITY1 2000000
+#define DENSITY0 1875000
 
 /* Some disks have much less data than we normally expect to be able to write at a given density.
 	It's like short tracks, but it's a mastering issue not a protection.

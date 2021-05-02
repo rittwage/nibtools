@@ -1103,10 +1103,13 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 				break;
 			}
 
+			//printf("\ntrack=%d density=%d rpmreal=%d speedmap=%d capacity:%d\n",track,DENSITY0,rpm_real,speed_map[track/2],capacity[speed_map[track/2]]);
+
 			if(capacity[speed_map[track/2]] > G64_TRACK_MAXLEN)
 				capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
 
-			track_len = compress_halftrack(track, buffer, track_density[track], track_len);
+			if(track_len > capacity[speed_map[track/2]])
+				track_len = compress_halftrack(track, buffer, track_density[track], track_len);
 			if(verbose) printf("(%d)", track_len);
 		}
 		else
