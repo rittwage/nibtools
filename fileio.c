@@ -875,8 +875,8 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	d64ptr = d64data;
 	for (track = start_track; track <= 40*2; track += 2)
 	{
-		cycle_start = track_buffer + ((track+offset*2) * NIB_TRACK_LENGTH);
-		cycle_stop = track_buffer + ((track+offset*2) * NIB_TRACK_LENGTH) + track_length[track+offset*2];
+		cycle_start = track_buffer + ((track+(offset*2)) * NIB_TRACK_LENGTH);
+		cycle_stop = track_buffer + ((track+(offset*2)) * NIB_TRACK_LENGTH) + track_length[track+(offset*2)];
 		//printf("debug: start=%d, stop=%d\n",cycle_start,cycle_stop);
 
 		if(verbose) printf("%.2d (%d):" ,track/2, capacity[speed_map[track/2]]);

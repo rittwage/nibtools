@@ -393,7 +393,10 @@ convert_GCR_sector(BYTE *gcr_start, BYTE *gcr_cycle, BYTE *d64_sector, int track
 
 	/* check for Block header mark */
 	if (d64_sector[0] != 0x07)
+	{
 		error_code = (error_code == SECTOR_OK) ? DATA_NOT_FOUND : error_code;
+		if(verbose>3) printf("\nIncorrect Block Header: 0x%.2x != 0x07\n", d64_sector[0]);
+	}
 
 	/* Block checksum calc */
 	for (i = 1, blk_chksum = 0; i <= 256; i++)

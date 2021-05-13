@@ -650,7 +650,7 @@ dump_headers(BYTE * gcrdata, size_t length)
 		convert_4bytes_from_GCR(gcr_ptr + 5, header + 4);
 
 		if(header[0] == 0x08) // only parse headers
-			printf("\n%.2x %.2x %.2x %.2x = typ:%.2x -- blh:%.2x -- trk:%.2x -- sec:%.2x -- id:%c%c",
+			printf("\n%.2x %.2x %.2x %.2x = typ:%.2x -- blh:%.2x -- trk:%d -- sec:%d -- id:%c%c",
 				*gcr_ptr, *(gcr_ptr+1), *(gcr_ptr+2), *(gcr_ptr+3), header[0], header[1], header[3], header[2], header[5], header[4]);
 		else // data block should follow
 			printf("\n%.2x %.2x %.2x %.2x = typ:%.2x",
