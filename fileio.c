@@ -921,12 +921,13 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 				if(verbose) printf(" ");
 			}
 			else
-				{
-					if(verbose)
-						printf("%.1x", errorcode);
-					else
+			{
+				if(verbose)
+					printf("%.1x", errorcode);
+				else
+					if(track/2<=35)
 						printf("Error %.1x on Track %d, Sector %d\n", errorcode, track/2, sector);
-				}
+			}
 
 			/* dump to buffer */
 			memcpy(d64ptr, rawdata+1 , 256);
