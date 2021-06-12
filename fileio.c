@@ -926,7 +926,7 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 					printf("%.1x", errorcode);
 				else
 					if(track/2<=35)
-						printf("Error %.1x on Track %d, Sector %d\n", errorcode, track/2, sector);
+						printf("Error %.1d on Track %d, Sector %d\n", errorcode, track/2, sector);
 			}
 
 			/* dump to buffer */

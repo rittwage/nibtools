@@ -427,29 +427,29 @@ void adjust_target(CBM_FILE fd)
 		switch(i)
 		{
 			case 0:
-				if(verbose) printf("(%.2frpm) margin:%d\n", DENSITY0 / capacity[0], cap_margin[i]);
+				if(verbose) printf("(%.2frpm) margin:%d\n", (float)DENSITY0 / capacity[0], cap_margin[i]);
 				break;
 
 			case 1:
-				if(verbose) printf("(%.2frpm) margin:%d\n", DENSITY1 / capacity[1], cap_margin[i]);
+				if(verbose) printf("(%.2frpm) margin:%d\n", (float)DENSITY1 / capacity[1], cap_margin[i]);
 				break;
 
 			case 2:
-				if(verbose) printf("(%.2frpm) margin:%d\n", DENSITY2 / capacity[2], cap_margin[i]);
+				if(verbose) printf("(%.2frpm) margin:%d\n", (float)DENSITY2 / capacity[2], cap_margin[i]);
 				break;
 
 			case 3:
-				if(verbose) printf("(%.2frpm) margin:%d\n", DENSITY3 / capacity[3], cap_margin[i]);
+				if(verbose) printf("(%.2frpm) margin:%d\n", (float)DENSITY3 / capacity[3], cap_margin[i]);
 				break;
 		}
 
 		capacity[i] -= capacity_margin + extra_capacity_margin;
 	}
 
-	motor_speed = (float)((DENSITY3 / (capacity[3] + capacity_margin + extra_capacity_margin))
-							+(DENSITY2 / (capacity[2] + capacity_margin + extra_capacity_margin))
-							+(DENSITY1 / (capacity[1] + capacity_margin + extra_capacity_margin))
-							+(DENSITY0 / (capacity[0] + capacity_margin + extra_capacity_margin)) ) / 4;
+	motor_speed = (float)(((float)DENSITY3 / (capacity[3] + capacity_margin + extra_capacity_margin))
+							+((float)DENSITY2 / (capacity[2] + capacity_margin + extra_capacity_margin))
+							+((float)DENSITY1 / (capacity[1] + capacity_margin + extra_capacity_margin))
+							+((float)DENSITY0 / (capacity[0] + capacity_margin + extra_capacity_margin)) ) / 4;
 
 	//printf("--------------------------------------------------\n");
 	printf("Motor speed: ~%.2f RPM.\n", motor_speed);
