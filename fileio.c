@@ -1322,7 +1322,7 @@ int rig_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, BY
 
 		if(track_length[track] < capacity[track_density[track]&3])
 		{
-			memset(track_buffer + (track*NIB_TRACK_LENGTH) + track_length[track], 0x55, capacity[track_density[track]&3]);
+			memset(track_buffer + (track*NIB_TRACK_LENGTH) + track_length[track], 0x55, capacity[track_density[track]&3] - track_length[track]);
 			//printf("Padded %d bytes\n", capacity[track_density[track]&3]-track_length[track]);
 			track_length[track] = capacity[track_density[track]&3];
 		}

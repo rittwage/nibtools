@@ -328,7 +328,7 @@ master_disk_raw(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *tr
 void
 unformat_disk(CBM_FILE fd)
 {
-	/* this routine can write all 1's and all 0's alternatively to try to both
+	/* this routine can write all 1's and/or all 0's alternatively to try to both
 		fix old media into working again, and wiping all data */
 	int track, i;
 
