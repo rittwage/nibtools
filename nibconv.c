@@ -186,8 +186,8 @@ main(int argc, char **argv)
 	}
 	else if ((compare_extension(outname, "NBZ"))||(compare_extension(outname, "NIB")))
 	{
-		if(skip_halftracks) track_inc = 1;
-		else track_inc = 2; /* yes, I know it's reversed */
+		//if(skip_halftracks) track_inc = 1;
+		//else track_inc = 2; /* yes, I know it's reversed */
 
 		/* handle cases of making NIB from other formats for testing */
 		if( (compare_extension(inname, "D64")) ||
