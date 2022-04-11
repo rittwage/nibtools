@@ -570,9 +570,9 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 	if (memcmp(header+0x2ac, "EXT", 3) == 0)
 	{
-		printf("\nExtended SPS G64 detected");
+		printf("\nExtended SPS G64 detected\n");
 		headersize=0x7f0;
-		//sync_align_buffer=1;
+		sync_align_buffer=1;
 	}
 	else
 		headersize=0x2ac;
@@ -867,7 +867,7 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		else
 		{
 			printf("Track offset found in image: %d\n",offset);
-			offset++; // the rest of the routines for D64 only operate on every other track
+			//offset++; // the rest of the routines for D64 only operate on every other track
 		}
 	}
 	//printf("debug: diskid=%s\n",id);
@@ -1264,8 +1264,6 @@ int sync_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, B
 						track/2,
 						capacity_min[track_density[track]&3],
 						capacity_max[track_density[track]&3] );
-
-			printf("(%d)",track_length[track]);
 		}
 	}
 	if(verbose) printf("\n");

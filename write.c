@@ -169,7 +169,8 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 
 		/* loop last byte of track data for filler
 		   we do this before processing track in case we get wrong byte */
-		fillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length[track] - 1];
+		if(fillbyte == 0xfe)
+			fillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length[track] - 1];
 		if(verbose) printf("[fill:$%.2x]", fillbyte);
 
 		if((increase_sync)&&(track_length[track])&&(!(track_density[track]&BM_NO_SYNC))&&(!(track_density[track]&BM_FF_TRACK)))

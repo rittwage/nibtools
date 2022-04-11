@@ -363,7 +363,7 @@ int align_bitshifted_track(BYTE *track_start, int track_length, BYTE **aligned_t
 			// Generate verbose output if flagged.
 			if (verbose > 2)
 			{
-				printf("P.B=0x%x.%d | gcr_end=0x%x | nibdata=0x%x | Q.C=0x%x.%d | #%d\n", p1, p1bit, gcr_end, nibdata, p2, p2bit, NumDataBits);
+				//printf("P.B=0x%x.%d | gcr_end=0x%x | nibdata=0x%x | Q.C=0x%x.%d | #%d\n", p1, p1bit, gcr_end, nibdata, p2, p2bit, NumDataBits);
 			}
 
 			// Don't forget last bits of last byte (target memory was initialized with zeros by memset).
@@ -382,7 +382,7 @@ int align_bitshifted_track(BYTE *track_start, int track_length, BYTE **aligned_t
 		memcpy(track_start, nibdata, track_length);
 	} else {
 		// Return length of sync aligned track, cut off 0-7 left over bits.
-		*aligned_track_length = p2-nibdata;
+		*aligned_track_length = (int)(p2-nibdata);
 
 		// Return complete sync aligned track.
 		*aligned_track_start = malloc(*aligned_track_length);
@@ -391,8 +391,8 @@ int align_bitshifted_track(BYTE *track_start, int track_length, BYTE **aligned_t
 		// Generate verbose output if flagged.
 		if (verbose > 2)
 		{
-			printf(">>> 0x%x..0x%x..0x%x\n", nibdata             , *aligned_track_length, nibdata             +*aligned_track_length-1);
-			printf(">>> 0x%x..0x%x..0x%x\n", *aligned_track_start, *aligned_track_length, *aligned_track_start+*aligned_track_length-1);
+			//printf(">>> 0x%x..0x%x..0x%x\n", nibdata             , *aligned_track_length, nibdata             +*aligned_track_length-1);
+			//printf(">>> 0x%x..0x%x..0x%x\n", *aligned_track_start, *aligned_track_length, *aligned_track_start+*aligned_track_length-1);
 		}
 	}
 
