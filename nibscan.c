@@ -350,7 +350,7 @@ compare_disks(void)
 
 		numtracks++;
 
-		// check for gcr match (unlikely)
+		// check for raw gcr match
 		gcr_match =
 		  compare_tracks(
 			track_buffer + (track * NIB_TRACK_LENGTH),
@@ -614,7 +614,6 @@ scandisk(void)
 
 		// process and dump to disk for manual compare
 		//track_length[track] = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
-
 		sprintf(testfilename, "raw/tr%.1fd%d", (float) track/2, (track_density[track] & 3));
 		if(NULL != (trkout = fopen(testfilename, "w")))
 		{

@@ -68,21 +68,21 @@ BYTE reduce_map[MAX_TRACKS_1541 + 1] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/*  1 - 10 */
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 11 - 20 */
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 21 - 30 */
-	0, 0, 0, 0, 0, 0,					/* 31 - 35 */
-	0,	0, 0, 0, 0, 0						/* 37 - 42  */
+	0, 0, 0, 0, 0, 0,				/* 31 - 35 */
+	0,	0, 0, 0, 0, 0				/* 37 - 42  */
 };
 
 char alignments[][20] = { "NONE", "GAP", "SEC0", "SYNC", "BADGCR", "VMAX", "AUTO", "VMAX-CW", "RAW", "PIRATESLAYER", "RAPIDLOK"};
 
 /* Burst Nibbler defaults
 size_t capacity_min[] = 		{ 6183, 6598, 7073, 7616 };
-size_t capacity[] = 				{ 6231, 6646, 7121, 7664 };
+size_t capacity[] = 			{ 6231, 6646, 7121, 7664 };
 size_t capacity_max[] = 		{ 6311, 6726, 7201, 7824 };
 */
 
 /* New calculated defaults */
-size_t capacity_min[] =		{ (int) (DENSITY0 / 305), (int) (DENSITY1 / 305), (int) (DENSITY2 / 305), (int) (DENSITY3 / 305) };
-size_t capacity[] = 			{ (int) (DENSITY0 / 300), (int) (DENSITY1 / 300), (int) (DENSITY2 / 300), (int) (DENSITY3 / 300) };
+size_t capacity_min[] =	{ (int) (DENSITY0 / 305), (int) (DENSITY1 / 305), (int) (DENSITY2 / 305), (int) (DENSITY3 / 305) };
+size_t capacity[] = 	{ (int) (DENSITY0 / 300), (int) (DENSITY1 / 300), (int) (DENSITY2 / 300), (int) (DENSITY3 / 300) };
 size_t capacity_max[] =	{ (int) (DENSITY0 / 295), (int) (DENSITY1 / 295), (int) (DENSITY2 / 295), (int) (DENSITY3 / 295) };
 
 /* Nibble-to-GCR conversion table */
@@ -1530,7 +1530,7 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 
 				printf("T%.1fS%d converted from GCR:\n", (float)track/2, sector);
 
-				/* this prints out sectir contents, which is not always terminal compatible */
+				/* this prints out sector contents, which is not always terminal compatible */
 				for (i=0; i<256; i+=16)
 				{
 					printf("($%.2x) 1:", i);
@@ -1728,18 +1728,21 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 	/* state machine definitions */
 	enum ebadgcr { S_BADGCR_OK, S_BADGCR_ONCE_BAD, S_BADGCR_LOST };
 	enum ebadgcr sbadgcr;
-	size_t i, lastpos;
+	size_t i, j, lastpos;
 	size_t total, b_badgcr;
 	size_t n_badgcr;
+	size_t firstbad, lastbad;
+	BYTE origdata[0x2000];
 
 	/* if empty we are all "bad" GCR */
 	if(!length)
 		return NIB_TRACK_LENGTH;
 
-	i = 0;
 	total = 0;
 	lastpos = 0;
+	firstbad = lastbad = 0;
 	sbadgcr = S_BADGCR_OK;
+	memcpy(origdata,gcrdata,length);
 
 	for (i = 0; i < length - 1; i++)
 	{
@@ -1759,7 +1762,28 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 						gcrdata[lastpos] = 0x00;
 					}
 					else
+					{
 						sbadgcr = S_BADGCR_ONCE_BAD;
+					}
+
+					if(!firstbad) firstbad=lastpos;
+				}
+				else
+				{
+					if((firstbad) && (verbose>1))
+					{
+						if(memcmp(origdata+firstbad,gcrdata+firstbad,i-firstbad))
+						{
+							printf("badgcr(%0.4x-%0.4x):[",firstbad,i);
+							for(j=firstbad;j<i;j++)
+								printf("%0.2x:",origdata[j]);
+							printf("]=[");
+							for(j=firstbad;j<i;j++)
+								printf("%0.2x:",gcrdata[j]);
+							printf("]\n");
+						}
+						firstbad = 0;
+					}
 				}
 				break;
 
@@ -1770,9 +1794,13 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 					sbadgcr = S_BADGCR_LOST;
 
 					if(fix_gcr > 1)
+					{
 						fix_first_gcr(gcrdata, length, lastpos);
+					}
 					else if (fix_gcr > 2)
+					{
 						gcrdata[lastpos] = 0x00;
+					}
 				}
 				else
 					sbadgcr = S_BADGCR_OK;
@@ -1784,16 +1812,22 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 					total++;
 
 					if (fix_gcr)
+					{
 						gcrdata[lastpos] = 0x00;
+					}
 				}
 				else
 				{
 					sbadgcr = S_BADGCR_OK;
 
 					if(fix_gcr > 1)
+					{
 						fix_last_gcr(gcrdata, length, lastpos);
+					}
 					else if(fix_gcr > 2)
+					{
 						gcrdata[lastpos] = 0x00;
+					}
 				}
 				break;
 		}

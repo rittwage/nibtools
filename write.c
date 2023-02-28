@@ -127,6 +127,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 	BYTE verbuf1[NIB_TRACK_LENGTH], verbuf2[NIB_TRACK_LENGTH], verbuf3[NIB_TRACK_LENGTH], align;
 	size_t gcr_diff;
 	char errorstring[0x1000];
+	char fillbytesave;
 
 	//if(track_inc==1) unformat_disk(fd);
 
@@ -169,9 +170,10 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 
 		/* loop last byte of track data for filler
 		   we do this before processing track in case we get wrong byte */
+		fillbytesave = fillbyte;
 		if(fillbyte == 0xfe)
 			fillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length[track] - 1];
-		if(verbose) printf("[fill:$%.2x]", fillbyte);
+		if(verbose) printf("[fill:$%x]", fillbyte);
 
 		if((increase_sync)&&(track_length[track])&&(!(track_density[track]&BM_NO_SYNC))&&(!(track_density[track]&BM_FF_TRACK)))
 		{
@@ -190,6 +192,8 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 			track_density[track], track_length[track]);
 
 		master_track(fd, track_buffer, track_density, track, length);
+
+		fillbyte = fillbytesave;
 
 		if(track_match)	// Try to verify our write
 		{
@@ -257,6 +261,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 					verified=1;
 				}
 			}
+
 		}
 	}
 }

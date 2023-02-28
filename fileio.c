@@ -430,6 +430,8 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 	size_t errors, best_err, best_pass;
 	size_t length, best_len;
 	char errorstring[0x1000];
+	char testfilename[16];
+	FILE *trkout;
 
 	printf("\nReading NB2 file...");
 
@@ -498,19 +500,21 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 			for(pass = 0; pass <= 3; pass ++)
 			{
 				/* get track from file */
-				if(pass_density == track_density[track])
+				fread(nibdata, NIB_TRACK_LENGTH, 1, fpin);
+
+				length = extract_GCR_track(tmpdata, nibdata,
+					&dummy,
+					track/2,
+					capacity_min[track_density[track]&3],
+					capacity_max[track_density[track]&3]);
+
+				errors = check_errors(tmpdata, length, track, diskid, errorstring);
+
+				//printf("D:%d,L:%d,E:%d",track_density[track]&3,length,errors);
+
+				if(pass_density == (track_density[track]&3))
 				{
-					fread(nibdata, NIB_TRACK_LENGTH, 1, fpin);
-
-					length = extract_GCR_track(tmpdata, nibdata,
-						&dummy,
-						track/2,
-						capacity_min[track_density[track]&3],
-						capacity_max[track_density[track]&3]);
-
-					errors = check_errors(tmpdata, length, track, diskid, errorstring);
-
-					if( (pass == 1) || (errors < best_err) )
+					if( (pass == 0) || (errors < best_err) )
 					{
 						//track_length[track] = 0x2000;
 						memcpy(track_buffer + (track * NIB_TRACK_LENGTH), nibdata, NIB_TRACK_LENGTH);
@@ -518,8 +522,12 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 						best_err = errors;
 					}
 				}
-				else
-					fread(tmpdata, NIB_TRACK_LENGTH, 1, fpin);
+				sprintf(testfilename, "raw/tr%.1fd%d", (float) track/2, pass_density);
+				if(NULL != (trkout = fopen(testfilename, "w")))
+				{
+					fwrite(nibdata, NIB_TRACK_LENGTH, 1, trkout);
+					fclose(trkout);
+				}
 			}
 		}
 
@@ -881,7 +889,7 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 
 		if(verbose) printf("%.2d (%d):" ,track/2, capacity[speed_map[track/2]]);
 
-		if (track+offset < 2 || track+offset > 80)
+		if (track < 2 || track > 80)
 		{
 		  for (sector = 0; sector < sector_map[track/2]; sector++)
 			errorinfo[blockindex] = SYNC_NOT_FOUND;
