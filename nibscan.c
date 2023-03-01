@@ -599,7 +599,7 @@ scandisk(void)
 				if(verbose>1) printf(" %s", errorstring);
 			}
 
-			if (verbose>1)
+			if (verbose>2)
 			{
 					dump_headers(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track]);
 					raw_track_info(track_buffer + (NIB_TRACK_LENGTH * track), track_length[track]);
@@ -781,7 +781,7 @@ size_t check_fat(int track)
 			return 1;
 		}
 		else
-			if(verbose>1) printf("diff=%d",(int)diff);
+			if(verbose>1) printf("(diff=%d)",(int)diff);
 	}
 	return 0;
 }

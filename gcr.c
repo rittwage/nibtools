@@ -1008,7 +1008,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	sector0_pos = find_sector0(work_buffer, track_len, &sector0_len);
 	sectorgap_pos = find_sector_gap(work_buffer, track_len, &sectorgap_len);
 
-	if(verbose>1)
+	if(verbose>2)
 		printf("{gap=%.4d;len=%d) ", (int)(sectorgap_pos-work_buffer), (int)sectorgap_len);
 
 	if((sectorgap_pos-work_buffer == sector0_pos-work_buffer) &&
