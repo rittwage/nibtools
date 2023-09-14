@@ -74,6 +74,11 @@ void parseargs(char *argv[])
 			printf("* End track set to %.1f (%d)\n", et/2, end_track);
 			break;
 
+		case 'z':
+			nb2cycle = atoi(&(*argv)[2]);
+			printf("* NB2 cycle chosen = %d\n", nb2cycle);
+			break;
+
 		case 'u':
 		case 'w':
 			mode = MODE_UNFORMAT_DISK;
@@ -128,6 +133,7 @@ void parseargs(char *argv[])
 					printf("VORPAL (NEWER)\n");
 					memset(align_map, ALIGN_AUTOGAP, MAX_TRACKS_1541+1);
 					align_map[18] = ALIGN_NONE;
+					fillbyte=0x55;
 					break;
 
 				case'r':
@@ -315,21 +321,31 @@ void parseargs(char *argv[])
 		case 'b':
 			// custom fillbyte
 			printf("* Custom fillbyte: ");
-			if ((*argv)[2] == '0')
+			//if ((*argv)[2] == '0')
+			//{
+			//	printf("$00\n");
+			//	fillbyte = 0x00;
+			//}
+			//if ((*argv)[2] == '5')
+			//{
+			//	printf("$55\n");
+			//	fillbyte = 0x55;
+			//}
+			//if ((*argv)[2] == 'f')
+			//{
+			//	printf("$ff\n");
+			//	fillbyte = 0xff;
+			//}
+			if ((*argv)[2] == 'a')
 			{
-				printf("$00\n");
-				fillbyte = 0x00;
+				/* adaptive */
+				fillbyte = 0xfe;
 			}
-			if ((*argv)[2] == '5')
+			else
 			{
-				printf("$55\n");
-				fillbyte = 0x55;
+				fillbyte = (unsigned char)strtol(&(*argv)[2], NULL, 16);
 			}
-			if ((*argv)[2] == 'f')
-			{
-				printf("$ff\n");
-				fillbyte = 0xff;
-			}
+			printf("%x\n",fillbyte);
 			break;
 
 		/* this is only used in reading or unformat */
@@ -357,6 +373,7 @@ void switchusage(void)
  	" -0: Enable bad GCR run reduction\n"
  	" -r: Disable automatic sync reduction\n"
 	" -f: Disable automatic bad GCR simulation\n"
+	//" -b: Custom fillbyte (0,5,f,a=adaptive)\n"
 	" -v: Verbose (output more detailed info)\n");
 }
 
@@ -418,7 +435,7 @@ int read_nib(BYTE *file_buffer, int file_buffer_size, BYTE *track_buffer, BYTE *
 	return 1;
 }
 
-int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
+int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length, size_t cycle)
 {
 	int track, pass_density, pass, nibsize, temp_track_inc, numtracks;
 	int header_entry = 0;
@@ -501,6 +518,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 			{
 				/* get track from file */
 				fread(nibdata, NIB_TRACK_LENGTH, 1, fpin);
+				if(pass>(cycle-1)) continue;
 
 				length = extract_GCR_track(tmpdata, nibdata,
 					&dummy,
@@ -514,7 +532,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 
 				if(pass_density == (track_density[track]&3))
 				{
-					if( (pass == 0) || (errors < best_err) )
+					if( (pass==(cycle-1)) || (errors < best_err) )
 					{
 						//track_length[track] = 0x2000;
 						memcpy(track_buffer + (track * NIB_TRACK_LENGTH), nibdata, NIB_TRACK_LENGTH);
@@ -539,7 +557,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 			if(track_density[track] & BM_FF_TRACK) printf("KILLER!");
 
 			printf("%d:%d) (pass %d, %d errors) %.1d%%", track_density[track]&3, track_length[track],
-				best_pass, best_err,
+				best_pass+1, best_err,
 				((track_length[track] / capacity[track_density[track]&3]) * 100));
 		}
 	}
@@ -580,7 +598,12 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 	{
 		printf("\nExtended SPS G64 detected\n");
 		headersize=0x7f0;
-		sync_align_buffer=1;
+		if(!sync_align_buffer) sync_align_buffer=1;
+		else
+		{
+			sync_align_buffer=0;
+			printf("SPS file, but sync align was disabled by switch\n");
+		}
 	}
 	else
 		headersize=0x2ac;
@@ -1224,7 +1247,7 @@ int sync_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, B
 	//BYTE *nibdata_aligned; // aligned track
 	//int aligned_len;       // aligned track length
 
-	printf("\nByte-syncing tracks...\n");
+	printf("\nSync-aligning tracks...");
 	for (track = start_track; track <= end_track; track ++)
 	{
 		if(track_length[track])

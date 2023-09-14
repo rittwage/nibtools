@@ -66,7 +66,7 @@ int align_delay;
 int cap_min_ignore;
 int increase_sync = 0;
 int presync = 0;
-BYTE fillbyte = 0xfe;
+BYTE fillbyte = 0x55;
 BYTE drive = 8;
 char * cbm_adapter = "";
 int use_floppycode_srq = 0;
@@ -78,6 +78,7 @@ int track_match=0;
 int old_g64=0;
 int read_killer=1;
 int backwards=0;
+int nb2cycle=0;
 
 unsigned char md5_hash_result[16];
 unsigned char md5_dir_hash_result[16];
@@ -268,7 +269,7 @@ int load_image(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
-		if(!(read_nb2(filename, track_buffer, track_density, track_length))) return 0;
+		if(!(read_nb2(filename, track_buffer, track_density, track_length, nb2cycle))) return 0;
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
 		if(fattrack!=99) search_fat_tracks(track_buffer, track_density, track_length);
 	}

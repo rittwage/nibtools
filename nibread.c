@@ -59,7 +59,7 @@ int align_delay;
 int align_report;
 int increase_sync = 0;
 int presync = 0;
-BYTE fillbyte = 0xfe;
+BYTE fillbyte = 0x55;
 BYTE drive = 8;
 char * cbm_adapter = "";
 int use_floppycode_srq = 0;
@@ -69,6 +69,7 @@ int sync_align_buffer=0;
 int fattrack=0;
 int old_g64=0;
 int backwards=0;
+int nb2cycle=0;
 
 BYTE density_map;
 float motor_speed;

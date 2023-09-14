@@ -43,7 +43,7 @@ int capacity_margin;
 int align_delay;
 int increase_sync = 0;
 int presync = 0;
-BYTE fillbyte = 0xfe;
+BYTE fillbyte = 0x55;
 BYTE drive = 8;
 char * cbm_adapter = "";
 int use_floppycode_srq = 0;
@@ -55,6 +55,7 @@ int track_match=0;
 int old_g64=0;
 int read_killer=1;
 int backwards=0;
+int nb2cycle=0;
 
 int ARCH_MAINDECL
 main(int argc, char **argv)
@@ -153,7 +154,8 @@ main(int argc, char **argv)
 	}
 	else if (compare_extension(inname, "NB2"))
 	{
-		if(!(read_nb2(inname, track_buffer, track_density, track_length))) exit(0);
+
+		if(!(read_nb2(inname, track_buffer, track_density, track_length, nb2cycle))) exit(0);
 		if( (compare_extension(outname, "G64")) || (compare_extension(outname, "D64")) )
 			align_tracks(track_buffer, track_density, track_length, track_alignment);
 		search_fat_tracks(track_buffer, track_density, track_length);

@@ -55,7 +55,7 @@ int unformat_passes;
 int align_delay;
 int increase_sync = 0;
 int presync = 0;
-BYTE fillbyte = 0xfe;
+BYTE fillbyte = 0x55;
 BYTE drive = 8;
 char * cbm_adapter = "";
 int use_floppycode_srq = 0;
@@ -68,6 +68,7 @@ int old_g64=0;
 int read_killer=1;
 int extended_parallel_test=0;
 int backwards=0;
+int nb2cycle=0;
 
 CBM_FILE fd;
 FILE *fplog;
@@ -234,7 +235,7 @@ int loadimage(char *filename)
 	}
 	else if (compare_extension(filename, "NB2"))
 	{
-		if(!(read_nb2(filename, track_buffer, track_density, track_length))) return 0;
+		if(!(read_nb2(filename, track_buffer, track_density, track_length, nb2cycle))) return 0;
 		align_tracks(track_buffer, track_density, track_length, track_alignment);
 		search_fat_tracks(track_buffer, track_density, track_length);
 	}

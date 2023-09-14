@@ -106,6 +106,7 @@ extern int sync_align_buffer;
 extern int fattrack;
 extern int old_g64;
 extern int backwards;
+extern int nb2cycle;
 
 #include "ihs.h"
 
@@ -126,7 +127,7 @@ void switchusage(void);
 int load_file(char *filename, BYTE *file_buffer);
 int save_file(char *filename, BYTE *file_buffer, int length);
 int read_nib(BYTE *file_buffer, int file_buffer_size, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
-int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
+int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length, size_t cycle);
 int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
 int write_nib(BYTE*file_buffer, BYTE *track_buffer, BYTE *track_density, size_t *track_length);
