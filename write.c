@@ -125,7 +125,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 	int track, verified, retries, added_sync=0, addsyncloops;
 	size_t badgcr, length, verlen, verlen2;
 	BYTE verbuf1[NIB_TRACK_LENGTH], verbuf2[NIB_TRACK_LENGTH], verbuf3[NIB_TRACK_LENGTH], align;
-	size_t gcr_diff;
+	size_t gcr_match;
 	char errorstring[0x1000];
 	char fillbytesave;
 
@@ -219,7 +219,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 
 				memset(verbuf2, 0, NIB_TRACK_LENGTH);
 				memset(verbuf3, 0, NIB_TRACK_LENGTH);
-				verlen   = extract_GCR_track(verbuf2, verbuf1, &align, track/2, track_length[track], track_length[track]);
+				verlen  = extract_GCR_track(verbuf2, verbuf1, &align, track/2, track_length[track], track_length[track]);
 				verlen2 = extract_GCR_track(verbuf3, track_buffer+(track * NIB_TRACK_LENGTH), &align, track/2, track_length[track], track_length[track]);
 
 				printf("\n      (%d:%d) VERIF", track_density[track]&3, verlen);
@@ -232,17 +232,16 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 				if(verbose>1) printf("%.4d)", badgcr);
 
 				// compare raw gcr data
-				gcr_diff = compare_tracks(verbuf3, verbuf2, verlen, verlen, 1, errorstring);
-				printf(" (diff:%.4d) ", (int)gcr_diff);
-				fprintf(fplog, " (diff:%.4d) ", (int)gcr_diff);
+				gcr_match = compare_tracks(verbuf3, verbuf2, verlen, verlen, 1, errorstring);
+				printf(" (match:%.4d) ", (int)gcr_match);
+				fprintf(fplog, " (match:%.4d) ", (int)gcr_match);
 
-
-				if(gcr_diff <= (size_t)sector_map[track/2]+10)
+				if(gcr_match >= (size_t)verlen-sector_map[track/2]+10)
 				{
 					printf("OK ");
 					verified=1;
 				}
-				else if(gcr_diff <= badgcr)
+				else if(gcr_match <= verlen-badgcr)
 				{
 					printf("WEAK OK");
 					verified=1;

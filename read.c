@@ -141,7 +141,7 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 	BYTE bbuffer[NIB_TRACK_LENGTH];
 	BYTE *cbufn, *cbufo, *bufn, *bufo;
 	BYTE align;
-	size_t leno, lenn, gcr_diff;
+	size_t leno, lenn, gcr_comp;
 	BYTE denso, densn;
 	size_t i, l, badgcr, retries, errors, best;
 	char errorstring[0x1000];
@@ -291,10 +291,10 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			}
 
 			// compare raw gcr data
-			gcr_diff = compare_tracks(cbufo, cbufn, leno, lenn, 1, errorstring);
-			if(verbose) printf("VERIFY: diff:%.4d ", (int)gcr_diff);
-			fprintf(fplog, "VERIFY: diff:%.4d ", (int)gcr_diff);
-			if(gcr_diff <= 10)
+			gcr_comp = compare_tracks(cbufo, cbufn, leno, lenn, 1, errorstring);
+			printf("VERIFY: match:%.4d ", (int)gcr_comp);
+			fprintf(fplog, "VERIFY: match:%.4d ", (int)gcr_comp);
+			if(gcr_comp <= lenn-10)
 			{
 				if(verbose) printf("OK ");
 				break;

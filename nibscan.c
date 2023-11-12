@@ -370,13 +370,13 @@ compare_disks(void)
 			if (gcr_percentage >= 98)
 			{
 				gcr_total++;
-				printf("\n[*>%d%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
+				printf("\n[%d%% GCR MATCH]\n", (gcr_match*100)/track_length[track]);
 				sprintf(tmpstr, "%d,", track/2);
 				strcat(gcr_matches, tmpstr);
 			}
 			else
 			{
-				printf("\n[*>%d%% GCR MATCH*]\n", (gcr_match*100)/track_length[track]);
+				printf("\n[%d%% GCR MATCH]\n", (gcr_match*100)/track_length[track]);
 				sprintf(tmpstr, "%d,", track/2);
 				strcat(gcr_mismatches, tmpstr);
 			}
@@ -408,21 +408,21 @@ compare_disks(void)
 
 			if(!errorstring)
 			{
-			sec_total += sec_match;
+				sec_total += sec_match;
 
-			if (sec_match == sector_map[track/2])
-			{
-				trk_total++;
-				printf("[*Data MATCH*]\n");
-				sprintf(tmpstr, "%d,", track / 2);
-				strcat(sec_matches, tmpstr);
-			}
-			else
-			{
-				printf("[*Data MISmatch*]\n");
-				sprintf(tmpstr, "%d,", track / 2);
-				strcat(sec_mismatches, tmpstr);
-			}
+				if (sec_match == sector_map[track/2])
+				{
+					trk_total++;
+					printf("[*Data MATCH*]\n");
+					sprintf(tmpstr, "%d,", track / 2);
+					strcat(sec_matches, tmpstr);
+				}
+				else
+				{
+					printf("[*Data MISmatch*]\n");
+					sprintf(tmpstr, "%d,", track / 2);
+					strcat(sec_mismatches, tmpstr);
+				}
 			}
 		}
 

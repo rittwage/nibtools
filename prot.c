@@ -15,7 +15,7 @@ extern int fattrack;
 void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
 	int track, numfats=0;
-	size_t diff=0;
+	size_t match=0;
 	char errorstring[0x1000];
 
 	if(!fattrack) /* autodetect fat tracks */
@@ -26,17 +26,17 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 			if (track_length[track] > 0 && track_length[track+2] > 0 &&
 				track_length[track] != 8192 && track_length[track+2] != 8192)
 			{
-				diff = compare_tracks(
+				match = compare_tracks(
 				  track_buffer + (track * NIB_TRACK_LENGTH),
 				  track_buffer + ((track+2) * NIB_TRACK_LENGTH),
 				  track_length[track],
 				  track_length[track+2], 1, errorstring);
 
-				if(verbose>1) printf("%4.1f: %d\n",(float)track/2,diff);
+				if(verbose>1) printf("%4.1f: %d\n",(float)track/2,match);
 
-				if (diff<=33) /* 34 happens on empty formatted disks */
+				if (match>=track_length[track]-33) /* 34 happens on empty formatted disks */
 				{
-					printf("Likely fat track found on T%d/%d (diff=%d)\n",track/2,(track/2)+1,(int)diff);
+					printf("Likely fat track found on T%d/%d (diff=%d)\n",track/2,(track/2)+1,(int)match);
 
 					memcpy(track_buffer + ((track+1) * NIB_TRACK_LENGTH),
 						track_buffer + (track * NIB_TRACK_LENGTH),

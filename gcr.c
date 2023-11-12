@@ -1448,8 +1448,8 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 		strcat(outputstring, tmpstr);
 	}
 
-	//return byte_match + sync_diff + presync_diff + shift_diff + gap_diff + badgcr_diff;
-	return byte_match;
+	return byte_match + sync_diff + presync_diff + shift_diff + gap_diff + badgcr_diff;
+	//return byte_diff;
 }
 
 size_t
