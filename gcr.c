@@ -1449,7 +1449,7 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 	}
 
 	//return byte_match + sync_diff + presync_diff + shift_diff + gap_diff + badgcr_diff;
-	return byte_diff;
+	return byte_match;
 }
 
 size_t
@@ -1513,7 +1513,7 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 			}
 			else
 			{
-				sprintf(tmpstr,"T%.1fS%d: Non-CBM (%.2x/E%d)(%.2x/E%d)\n",
+				if(verbose) sprintf(tmpstr,"T%.1fS%d: Non-CBM (%.2x/E%d)(%.2x/E%d)\n",
 					(float)track/2,sector,checksum1,error1,checksum2,error2);
 			}
 			sec_match++;
@@ -1575,7 +1575,6 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 		}
 		strcat(outputstring, tmpstr);
 	}
-
 	return sec_match;
 }
 

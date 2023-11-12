@@ -87,8 +87,8 @@ main(int argc, char *argv[])
 	FILE *fp;
 
 	printf(
-		"\nnibread - Commodore 1541/1571 disk image nibbler\n"
-		AUTHOR VERSION "\n\n");
+		"nibread - Commodore 1541/1571 disk image nibbler\n"
+		AUTHOR VERSION "\n");
 
 	/* we can do nothing with no switches */
 	if (argc < 2)
@@ -119,7 +119,7 @@ main(int argc, char *argv[])
 	force_density = 0;
 	track_match = 0;
 	interactive_mode = 0;
-	verbose = 1;
+	verbose = 0;
 	extended_parallel_test = 0;
 	force_nosync = 0;
 	align = ALIGN_NONE;
@@ -239,6 +239,12 @@ main(int argc, char *argv[])
 			if (!(*argv)[2]) usage();
 			et = atof(&(*argv)[2])*2;
 			end_track = (int)et;
+			if((et/2)>41) printf("WARNING: Most drives won't reach past 41 tracks and your head carriage can physically JAM!\n");
+			if((et/2)>MAX_TRACKS_1541)
+			{
+				printf("WARNING: MAX tracks is %d\n",MAX_TRACKS_1541);
+				end_track=(MAX_TRACKS_1541*2);
+			}
 			printf("* End track set to %.1f (%d)\n", et/2, end_track);
 			break;
 

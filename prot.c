@@ -79,7 +79,9 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 
 /* this routine tries to "fix" non-sync aligned images created from RAW Kryoflux stream files */
 /* PROBLEM: This simple implementation can miss sync like 01111111 11111110 which is 14 bits and valid... */
-/* PROBLEM: Many KF G64s begin the track in the middle of a sector, and is missed by this routine also */
+/* PROBLEM: Some/many non-syncaligned G64s begin the track in the middle of a sector, and is missed by this routine also */
+/* PROBLEM: This destroys sync lengths and possibly any data that is non-standard. */
+
 size_t sync_align(BYTE *buffer, int length)
 {
     int i, j;

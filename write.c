@@ -44,7 +44,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	/* handle short tracks */
 	if(tracklen < capacity[track_density[track]&3])
 	{
-			if(verbose) printf("[pad:%d]", capacity[track_density[track]&3] - tracklen);
+			printf("[pad:%d]", capacity[track_density[track]&3] - tracklen);
 			tracklen = capacity[track_density[track]&3];
 	}
 
@@ -131,6 +131,8 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 
 	//if(track_inc==1) unformat_disk(fd);
 
+	printf("Writing to disk");
+
 	for (track=backwards?end_track:start_track; backwards?(track>=start_track):(track<=end_track); backwards?(track-=track_inc):(track+=track_inc))
 	{
 		/* double-check our sync-flag assumptions and process track for remaster */
@@ -141,7 +143,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		if(track_density[track] & BM_FF_TRACK)
 		{
 				fill_track(fd, track, 0xFF);
-				if(verbose) printf("\n%4.1f: KILLED!",  (float) track / 2);
+				printf("\n%4.1f: KILLED!",  (float) track / 2);
 				continue;
 		}
 
@@ -151,29 +153,26 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 				if(track_inc!=1)
 				{
 					fill_track(fd, track, 0x00);
-					if(verbose) printf("\n%4.1f: UNFORMATTED!",  (float) track / 2);
+					printf("\n%4.1f: UNFORMATTED!",  (float) track / 2);
 				}
 				continue;
 		}
 
 		/* user display */
-		if(verbose)
-		{
-			printf("\n%4.1f: (", (float)track/2);
-			printf("%d", track_density[track]&3);
-			if ((track_density[track]&3) != speed_map[track/2]) printf("!");
-			printf(":%d) ", track_length[track]);
-			if (track_density[track] & BM_NO_SYNC) printf("NOSYNC ");
-			if (track_density[track] & BM_FF_TRACK) printf("KILLER ");
-			printf("WRITE ");
-		}
+		printf("\n%4.1f: (", (float)track/2);
+		printf("%d", track_density[track]&3);
+		if ((track_density[track]&3) != speed_map[track/2]) printf("!");
+		printf(":%d) ", track_length[track]);
+		if (track_density[track] & BM_NO_SYNC) printf("NOSYNC ");
+		if (track_density[track] & BM_FF_TRACK) printf("KILLER ");
+		printf("WRITE ");
 
 		/* loop last byte of track data for filler
 		   we do this before processing track in case we get wrong byte */
 		fillbytesave = fillbyte;
 		if(fillbyte == 0xfe)
 			fillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length[track] - 1];
-		if(verbose) printf("[fill:$%x]", fillbyte);
+		printf("[fill:$%x]", fillbyte);
 
 		if((increase_sync)&&(track_length[track])&&(!(track_density[track]&BM_NO_SYNC))&&(!(track_density[track]&BM_FF_TRACK)))
 		{
@@ -181,12 +180,12 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 			{
 				added_sync = lengthen_sync(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track], capacity[track_density[track]&3]);
 				track_length[track] += added_sync;
-				if(verbose) printf("[+sync:%d]", added_sync);
+				printf("[+sync:%d]", added_sync);
 			}
 		}
 
 		badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
-		if(verbose) printf("[weak:%d]", badgcr);
+		printf("[weak:%d]", badgcr);
 
 		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH),
 			track_density[track], track_length[track]);
@@ -223,7 +222,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 				verlen   = extract_GCR_track(verbuf2, verbuf1, &align, track/2, track_length[track], track_length[track]);
 				verlen2 = extract_GCR_track(verbuf3, track_buffer+(track * NIB_TRACK_LENGTH), &align, track/2, track_length[track], track_length[track]);
 
-				if(verbose) printf("\n      (%d:%d) VERIF", track_density[track]&3, verlen);
+				printf("\n      (%d:%d) VERIF", track_density[track]&3, verlen);
 				fprintf(fplog, "\n      (%d:%d) VERIF", track_density[track]&3, verlen);
 
 				// Fix bad GCR in tracks for compare
@@ -234,7 +233,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 
 				// compare raw gcr data
 				gcr_diff = compare_tracks(verbuf3, verbuf2, verlen, verlen, 1, errorstring);
-				if(verbose) printf(" (diff:%.4d) ", (int)gcr_diff);
+				printf(" (diff:%.4d) ", (int)gcr_diff);
 				fprintf(fplog, " (diff:%.4d) ", (int)gcr_diff);
 
 
@@ -257,7 +256,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 				}
 				if(((track>70)&&(retries>=3))||(retries>=10))
 				{
-					printf("\n      Write verify FAILED - Odd data or bad media! ");
+					printf("Write verify FAILED - Odd data or bad media!\n");
 					verified=1;
 				}
 			}
@@ -341,7 +340,7 @@ unformat_disk(CBM_FILE fd)
 	motor_on(fd);
 	set_density(fd, 2);
 
-	printf("Wiping/Unformatting...");
+	printf("Wiping/Unformatting...\n");
 
 	for (track = start_track; track <= end_track; track += 1/*track_inc*/)
 	{
@@ -372,7 +371,7 @@ void speed_adjust(CBM_FILE fd)
 {
 	int i, cap;
 
-	printf("\nTesting drive motor speed for 100 loops.\n");
+	printf("Testing drive motor speed for 100 loops.\n");
 	printf("--------------------------------------------------\n");
 	printf("Track 41.5 will be destroyed!\n");
 
@@ -398,9 +397,8 @@ void adjust_target(CBM_FILE fd)
 	int capacity_margin = 0;
 	BYTE track_dens[4] = { 32*2, 27*2, 21*2, 10*2 };
 
-	//printf("\nTesting track capacity at each density\n");
-	//printf("--------------------------------------------------\n");
-	printf("\nTesting track capacity/motor speed\n");
+	printf("Testing track capacity/motor speed\n");
+	printf("----------------------------------\n");
 
 	for (i = 0; i <= 3; i++)
 	{
@@ -414,12 +412,12 @@ void adjust_target(CBM_FILE fd)
 
 		set_bitrate(fd, (BYTE)i);
 
-		if(verbose) printf("%d: ", i);
+		printf("%d: ", i);
 
 		for(j = 0, run_total = 0; j < DENSITY_SAMPLES; j++)
 		{
 			cap[j] = track_capacity(fd);
-			if(verbose) printf("%d ", cap[j]);
+			printf("%d ", cap[j]);
 			run_total += cap[j];
 			if(cap[j] > cap_high[i]) cap_high[i] = cap[j];
 			if(cap[j] < cap_low[i]) cap_low[i] = cap[j];
@@ -433,19 +431,19 @@ void adjust_target(CBM_FILE fd)
 		switch(i)
 		{
 			case 0:
-				if(verbose) printf("(%.2frpm) margin:%d\n", (float)DENSITY0 / capacity[0], cap_margin[i]);
+				printf("(%.2frpm) margin:%d\n", (float)DENSITY0 / capacity[0], cap_margin[i]);
 				break;
 
 			case 1:
-				if(verbose) printf("(%.2frpm) margin:%d\n", (float)DENSITY1 / capacity[1], cap_margin[i]);
+				printf("(%.2frpm) margin:%d\n", (float)DENSITY1 / capacity[1], cap_margin[i]);
 				break;
 
 			case 2:
-				if(verbose) printf("(%.2frpm) margin:%d\n", (float)DENSITY2 / capacity[2], cap_margin[i]);
+				printf("(%.2frpm) margin:%d\n", (float)DENSITY2 / capacity[2], cap_margin[i]);
 				break;
 
 			case 3:
-				if(verbose) printf("(%.2frpm) margin:%d\n", (float)DENSITY3 / capacity[3], cap_margin[i]);
+				printf("(%.2frpm) margin:%d\n", (float)DENSITY3 / capacity[3], cap_margin[i]);
 				break;
 		}
 
@@ -457,7 +455,6 @@ void adjust_target(CBM_FILE fd)
 							+((float)DENSITY1 / (capacity[1] + capacity_margin + extra_capacity_margin))
 							+((float)DENSITY0 / (capacity[0] + capacity_margin + extra_capacity_margin)) ) / 4;
 
-	//printf("--------------------------------------------------\n");
 	printf("Motor speed: ~%.2f RPM.\n", motor_speed);
 	printf("Track capacity margin: %d\n", capacity_margin + extra_capacity_margin);
 
@@ -466,6 +463,7 @@ void adjust_target(CBM_FILE fd)
 		printf("\n\nERROR!\nDrive speed out of range.\nCheck motor, write-protect, or bad media.\n");
 		exit(0);
 	}
+	printf("----------------------------------\n");
 }
 
 void
@@ -474,7 +472,7 @@ init_aligned_disk(CBM_FILE fd)
 	int track;
 
 	/* write all 0x55 */
-	printf("\nWiping/Unformatting...\n");
+	printf("Wiping/Unformatting...\n");
 	for (track = start_track; track <= end_track; track += 1)
 	{
 		// step head

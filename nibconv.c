@@ -85,8 +85,8 @@ main(int argc, char **argv)
 		track_length[t] = NIB_TRACK_LENGTH; // I do not recall why this was done, but left at MAX
 
 	fprintf(stdout,
-		"\nnibconv - converts a CBM disk image from one format to another.\n"
-		AUTHOR VERSION "\n\n");
+		"nibconv - converts a CBM disk image from one format to another.\n"
+		AUTHOR VERSION "\n");
 
 	/* clear heap buffers */
 	memset(compressed_buffer, 0x00, sizeof(compressed_buffer));
@@ -132,7 +132,7 @@ main(int argc, char **argv)
 	else if (compare_extension(inname, "G64"))
 	{
 		if(!(read_g64(inname, track_buffer, track_density, track_length))) exit(0);
-		if(sync_align_buffer)	sync_tracks(track_buffer, track_density, track_length, track_alignment);
+		if(sync_align_buffer) sync_tracks(track_buffer, track_density, track_length, track_alignment);
 	}
 	else if (compare_extension(inname, "NBZ"))
 	{

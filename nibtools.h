@@ -5,7 +5,7 @@
  */
 
 #define VERSION "Built "__DATE__" "__TIME__
-#define AUTHOR "(C) Peter Rittwage\nhttp://c64preservation.com\n"
+#define AUTHOR "(C) Peter Rittwage\nhttps://c64preservation.com\n"
 
 #define FL_STEPTO      			0x00
 #define FL_MOTOR       		0x01
@@ -48,7 +48,7 @@
 #define MODE_UNFORMAT_DISK 	2
 #define MODE_WRITE_RAW	   	3
 #define MODE_TEST_ALIGNMENT 4
-#define MODE_SPEED_ADJUST 5
+#define MODE_SPEED_ADJUST 	5
 
 #define BYTETOBINARYPATTERN "%d%d%d%d%d%d%d%d"
 #define BYTETOBINARY(byte)  \

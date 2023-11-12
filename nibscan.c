@@ -105,12 +105,12 @@ main(int argc, char *argv[])
 	reduce_sync = 4;
 	reduce_badgcr = 0;
 	reduce_gap = 0;
-	verbose = 1;
+	verbose = 0;
 	cap_min_ignore = 0;
 
 	fprintf(stdout,
-		"\nnibscan - Commodore disk image scanner / comparator\n"
-		AUTHOR VERSION "\n\n");
+		"nibscan - Commodore disk image scanner / comparator\n"
+		AUTHOR VERSION "\n");
 
 	/* we can do nothing with no switches */
 	if (argc < 2)
@@ -325,7 +325,7 @@ compare_disks(void)
 	extract_cosmetic_id(track_buffer2 + (36 * NIB_TRACK_LENGTH), cid2);
 
 	if(waitkey) getchar();
-	printf("\nComparing...\n");
+	printf("Comparing...\n");
 
 	for (track = start_track; track <= end_track; track ++)
 	{
@@ -404,8 +404,11 @@ compare_disks(void)
 
 			printf("%s", errorstring);
 
-			sec_total += sec_match;
 			numsecs += sector_map[track/2];
+
+			if(!errorstring)
+			{
+			sec_total += sec_match;
 
 			if (sec_match == sector_map[track/2])
 			{
@@ -419,6 +422,7 @@ compare_disks(void)
 				printf("[*Data MISmatch*]\n");
 				sprintf(tmpstr, "%d,", track / 2);
 				strcat(sec_mismatches, tmpstr);
+			}
 			}
 		}
 
@@ -435,7 +439,7 @@ compare_disks(void)
 			if( waitkey) getchar();
 	}
 
-	printf("\n---------------------------------------------------------------------\n");
+	printf("---------------------------------------------------------------------\n");
 	printf("%d/%d tracks had at least 98%% GCR match\n", gcr_total, numtracks);
 	//printf("Matches (%s)\n", gcr_matches);
 	//printf("Mismatches (%s)\n", gcr_mismatches);
@@ -444,7 +448,7 @@ compare_disks(void)
 	//printf("Matches (%s)\n", sec_matches);
 	//printf("Mismatches (%s)\n", sec_mismatches);
 	//printf("\n");
-	printf("%d/%d total sectors (or errors) matched (%d mismatched)\n", sec_total, numsecs, numsecs-sec_total);
+	printf("%d/%d total sectors matched (%d mismatched)\n", sec_total, numsecs, numsecs-sec_total);
 	printf("CBM DOS errors (d1/%d - d2/%d)\n",errors_d1, errors_d2);
 	printf("%d tracks had mismatched densities (%s)\n", dens_mismatch, dens_mismatches);
 
@@ -486,17 +490,17 @@ scandisk(void)
 	memset(rapidlok_tracks, 0, sizeof(rapidlok_tracks));
 	errorstring[0] = '\0';
 
-	printf("\nScanning...\n");
+	printf("Scanning...\n");
 
 	// extract disk id from track 18
 	memset(id, 0, 3);
 	extract_id(track_buffer + (36 * NIB_TRACK_LENGTH), id);
-	printf("\ndisk id: %s\n", id);
+	printf("Header Disk ID: %s\n", id);
 
 	// collect and print "cosmetic" disk id for comparison
 	memset(cosmetic_id, 0, 3);
 	extract_cosmetic_id(track_buffer + (36 * NIB_TRACK_LENGTH), cosmetic_id);
-	printf("cosmetic disk id: %s\n", cosmetic_id);
+	printf("Cosmetic Disk ID: %s\n", cosmetic_id);
 
 	if(waitkey) getchar();
 
@@ -505,7 +509,7 @@ scandisk(void)
 	{
 		if(!check_formatted(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]))
 		{
-			//printf(":UNFORMATTED\n");
+			//printf(":UNFORMATTED");
 			continue;
 		}
 		else
@@ -622,7 +626,7 @@ scandisk(void)
 			fclose(trkout);
 		}
 	}
-	printf("\n---------------------------------------------------------------------\n");
+	printf("---------------------------------------------------------------------\n");
 	printf("%d unrecognized sectors (CBM disk errors) detected\n", errors);
 	printf("%d known empty sectors detected\n", empty);
 	printf("%d bad GCR bytes detected\n", totalgcr);

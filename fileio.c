@@ -36,6 +36,11 @@ void parseargs(char *argv[])
 		case '$':
 			sync_align_buffer = 1;
 			printf("* Force sync align tracks\n");
+			if((*argv)[2]=='$')
+			{
+				printf("* Don't force re-alignment\n");
+				sync_align_buffer = 2;
+			}
 			break;
 
 		case 'B':
@@ -71,6 +76,12 @@ void parseargs(char *argv[])
 			if (!(*argv)[2]) usage();
 			et = atof(&(*argv)[2])*2;
 			end_track = (int)et;
+			if((et/2)>41) printf("WARNING: Most drives won't reach past 41 tracks and your head carriage can physically JAM!\n");
+			if((et/2)>MAX_TRACKS_1541)
+			{
+				printf("WARNING: MAX tracks is %d\n",MAX_TRACKS_1541);
+				end_track=(MAX_TRACKS_1541*2);
+			}
 			printf("* End track set to %.1f (%d)\n", et/2, end_track);
 			break;
 
@@ -399,7 +410,7 @@ int load_file(char *filename, BYTE *file_buffer)
 			return 0;
 	}
 
-	printf("Successfully loaded %d bytes.", size);
+	printf("Successfully loaded %d bytes\n", size);
 	fclose(fpin);
 	return size;
 }
@@ -408,7 +419,7 @@ int read_nib(BYTE *file_buffer, int file_buffer_size, BYTE *track_buffer, BYTE *
 {
 	int track, t_index=0, h_index=0;
 
-	printf("\nParsing NIB data...\n");
+	printf("Parsing NIB data...\n");
 
 	if (memcmp(file_buffer, "MNIB-1541-RAW", 13) != 0)
 	{
@@ -450,7 +461,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 	char testfilename[16];
 	FILE *trkout;
 
-	printf("\nReading NB2 file...");
+	printf("Reading NB2 file...\n");
 
 	temp_track_inc = 1;  /* all nb2 files contain halftracks */
 
@@ -562,7 +573,7 @@ int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		}
 	}
 	fclose(fpin);
-	printf("\nSuccessfully loaded NB2 file\n");
+	//printf("Successfully loaded NB2 file\n");
 	return 1;
 }
 
@@ -574,7 +585,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 	BYTE length_record[2];
 	FILE *fpin;
 
-	printf("\nReading G64 file...");
+	printf("Reading G64 file...\n");
 
 	if ((fpin = fopen(filename, "rb")) == NULL)
 	{
@@ -667,7 +678,7 @@ int read_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		}
 	}
 	fclose(fpin);
-	printf("Successfully loaded G64 file\n");
+	//printf("Successfully loaded G64 file\n");
 	return 1;
 }
 
@@ -683,7 +694,7 @@ int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 	char errorstring[0x1000], tmpstr[8];
 	FILE *fpin;
 
-	printf("\nReading D64 file...");
+	printf("Reading D64 file...\n");
 
 	if ((fpin = fopen(filename, "rb")) == NULL)
 	{
@@ -785,7 +796,7 @@ int read_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *tr
 		}
 	}
 	fclose(fpin);
-	printf("\nSuccessfully loaded D64 file\n");
+	//printf("Successfully loaded D64 file\n");
 	return 1;
 }
 
@@ -821,7 +832,7 @@ int write_nib(BYTE*file_buffer, BYTE *track_buffer, BYTE *track_density, size_t 
 	char header[0x100];
 	int header_entry = 0;
 
-	printf("\nConverting to NIB format...\n");
+	printf("Converting to NIB format...\n");
 
 	/* clear header */
 	memset(header, 0, sizeof(header));
@@ -844,7 +855,7 @@ int write_nib(BYTE*file_buffer, BYTE *track_buffer, BYTE *track_density, size_t 
 		header_entry++;
 	}
 	memcpy(file_buffer, header, sizeof(header));
-	printf("Successfully parsed data to NIB format\n");
+	//printf("Successfully parsed data to NIB format\n");
 
 	return (sizeof(header) + (header_entry * NIB_TRACK_LENGTH));
 }
@@ -871,7 +882,7 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	BYTE errorinfo[MAXBLOCKSONDISK], errorcode;
 	int blocks_to_save;
 
-	printf("\nWriting D64 file...\n");
+	printf("Writing D64 file...\n");
 
 	memset(errorinfo, 0,sizeof(errorinfo));
 	memset(rawdata, 0,sizeof(rawdata));
@@ -1174,7 +1185,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		}
 	}
 	fclose(fpout);
-	printf("\nSuccessfully saved G64 file\n");
+	//printf("\nSuccessfully saved G64 file\n");
 	return 1;
 }
 
@@ -1247,7 +1258,7 @@ int sync_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, B
 	//BYTE *nibdata_aligned; // aligned track
 	//int aligned_len;       // aligned track length
 
-	printf("\nSync-aligning tracks...");
+	printf("Sync-aligning tracks...\n");
 	for (track = start_track; track <= end_track; track ++)
 	{
 		if(track_length[track])
@@ -1285,16 +1296,19 @@ int sync_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, B
 			/* end Arnd version */
 
 			/* re-extract/align data, since KF images are just index to index */
-			memcpy(temp_buffer, track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
-			memcpy(temp_buffer+track_length[track], track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
+			if(sync_align_buffer < 2)
+			{
+				memcpy(temp_buffer, track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
+				memcpy(temp_buffer+track_length[track], track_buffer+(track*NIB_TRACK_LENGTH), track_length[track]);
 
-			track_length[track] = extract_GCR_track(
-						track_buffer + (track * NIB_TRACK_LENGTH),
-						temp_buffer,
-						&track_alignment[track],
-						track/2,
-						capacity_min[track_density[track]&3],
-						capacity_max[track_density[track]&3] );
+				track_length[track] = extract_GCR_track(
+					track_buffer + (track * NIB_TRACK_LENGTH),
+					temp_buffer,
+					&track_alignment[track],
+					track/2,
+					capacity_min[track_density[track]&3],
+					capacity_max[track_density[track]&3] );
+			}
 		}
 	}
 	if(verbose) printf("\n");

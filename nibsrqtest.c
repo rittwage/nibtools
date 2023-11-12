@@ -44,8 +44,8 @@ main(int argc, char *argv[])
 	char cmd[80];
 	size_t l,m;
 
-	fprintf(stdout,"\nnibsrqtest - tests SRQ communication code (with 1571 drive)\n"
-		AUTHOR VERSION "\n\n");
+	fprintf(stdout,"nibsrqtest - tests SRQ communication code (with 1571 drive)\n"
+		AUTHOR VERSION "\n");
 
 	if(cbm_driver_open_ex(&fd, cbm_adapter) != 0)
 	{

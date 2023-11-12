@@ -89,8 +89,8 @@ main(int argc, char **argv)
 	cap_min_ignore = 0;
 
 	fprintf(stdout,
-		"\nnibrepair - converts a damaged NIB/NB2/G64 to a new 'repaired' G64 file.\n"
-		AUTHOR VERSION "\n\n");
+		"nibrepair - converts a damaged NIB/NB2/G64 to a new 'repaired' G64 file.\n"
+		AUTHOR VERSION "\n");
 
 	/* clear heap buffers */
 	memset(compressed_buffer, 0x00, sizeof(compressed_buffer));

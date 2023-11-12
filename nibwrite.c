@@ -81,8 +81,8 @@ main(int argc, char *argv[])
 	char argcache[256];
 
 	fprintf(stdout,
-		"\nnibwrite - Commodore 1541/1571 disk image 'remastering' tool\n"
-		AUTHOR VERSION "\n\n");
+		"nibwrite - Commodore 1541/1571 disk image 'remastering' tool\n"
+		AUTHOR VERSION "\n");
 
 	/* we can do nothing with no switches */
 	if (argc < 2)
@@ -103,7 +103,6 @@ main(int argc, char *argv[])
 	fix_gcr = 1;
 	align_disk = 0;
 	auto_capacity_adjust = 1;
-	verbose = 1;
 	gap_match_length = 7;
 	cap_min_ignore = 0;
 	motor_speed = 300;
@@ -214,8 +213,9 @@ int loadimage(char *filename)
 	else if (compare_extension(filename, "G64"))
 	{
 		if(!(read_g64(filename, track_buffer, track_density, track_length))) return 0;
-		if(sync_align_buffer)	sync_tracks(track_buffer, track_density, track_length, track_alignment);
+		if(sync_align_buffer) sync_tracks(track_buffer, track_density, track_length, track_alignment);
 		search_fat_tracks(track_buffer, track_density, track_length);
+
 	}
 	else if (compare_extension(filename, "NBZ"))
 	{

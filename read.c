@@ -317,7 +317,6 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 		}
 	}
 
-	//printf("\n");
 	fprintf(fplog, "%s (%d)", errorstring, leno);
 	memcpy(buffer, bufo, NIB_TRACK_LENGTH);
 	return denso;
@@ -330,7 +329,6 @@ read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
     //size_t errors = 0;
     //char errorstring[0x1000];
 
-	printf("\n");
 	fprintf(fplog,"\n");
 
 	if(!rawmode) get_disk_id(fd);
@@ -340,6 +338,7 @@ read_floppy(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		track_density[track] = paranoia_read_halftrack(fd, track, track_buffer + (track * NIB_TRACK_LENGTH));
 
 	step_to_halftrack(fd, 18*2);
+	printf("\n");
 	return 1;
 }
 
