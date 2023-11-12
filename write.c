@@ -165,7 +165,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		printf(":%d) ", track_length[track]);
 		if (track_density[track] & BM_NO_SYNC) printf("NOSYNC ");
 		if (track_density[track] & BM_FF_TRACK) printf("KILLER ");
-		printf("WRITE ");
+		printf("WRITE  ");
 
 		/* loop last byte of track data for filler
 		   we do this before processing track in case we get wrong byte */
@@ -222,8 +222,8 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 				verlen  = extract_GCR_track(verbuf2, verbuf1, &align, track/2, track_length[track], track_length[track]);
 				verlen2 = extract_GCR_track(verbuf3, track_buffer+(track * NIB_TRACK_LENGTH), &align, track/2, track_length[track], track_length[track]);
 
-				printf("\n      (%d:%d) VERIF", track_density[track]&3, verlen);
-				fprintf(fplog, "\n      (%d:%d) VERIF", track_density[track]&3, verlen);
+				printf("\n      (%d:%d) VERIFY", track_density[track]&3, verlen);
+				fprintf(fplog, "\n      (%d:%d) VERIFY", track_density[track]&3, verlen);
 
 				// Fix bad GCR in tracks for compare
 				badgcr = check_bad_gcr(verbuf2, track_length[track]);
