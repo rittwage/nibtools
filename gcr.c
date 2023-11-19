@@ -1448,7 +1448,7 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 		strcat(outputstring, tmpstr);
 	}
 
-	return byte_match + sync_diff + presync_diff + shift_diff + gap_diff + badgcr_diff;
+	return byte_match + sync_diff + presync_diff + shift_diff + gap_diff; //+ badgcr_diff;
 	//return byte_diff;
 }
 
@@ -1510,13 +1510,13 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 			if(error1 == SECTOR_OK)
 			{
 				/*sprintf(tmpstr,"S%d: sector data match\n",sector);*/
+				sec_match++;
 			}
 			else
 			{
 				if(verbose) sprintf(tmpstr,"T%.1fS%d: Non-CBM (%.2x/E%d)(%.2x/E%d)\n",
 					(float)track/2,sector,checksum1,error1,checksum2,error2);
 			}
-			sec_match++;
 		}
 		else
 		{
