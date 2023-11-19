@@ -390,7 +390,7 @@ compare_disks(void)
 		}
 
 		/* check for DOS sector matches */
-		//if(track/2 <= 35)
+		if(track/2 <= 35)
 		{
 			sec_match = compare_sectors(
 										track_buffer + (track * NIB_TRACK_LENGTH),
