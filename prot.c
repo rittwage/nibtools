@@ -34,19 +34,20 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 
 				if(verbose>1) printf("%4.1f: %d\n",(float)track/2,match);
 
-				if (match>=track_length[track]-33) /* 34 happens on empty formatted disks */
+				if (track_length[track]-match<=33) /* 34 happens on empty formatted disks */
 				{
-					printf("Likely fat track found on T%d/%d (diff=%d)\n",track/2,(track/2)+1,(int)match);
-
-					memcpy(track_buffer + ((track+1) * NIB_TRACK_LENGTH),
-						track_buffer + (track * NIB_TRACK_LENGTH),
-						NIB_TRACK_LENGTH);
-
-					track_length[track+1] = track_length[track];
-					track_density[track+1] = track_density[track];
+					printf("Likely fat track found on T%d/%d (diff=%d)\n",track/2,(track/2)+1,(int)track_length[track]-match);
 
 					if(!numfats)
+					{
 						fattrack=track;
+						memcpy(track_buffer + ((track+1) * NIB_TRACK_LENGTH),
+												track_buffer + (track * NIB_TRACK_LENGTH),
+												NIB_TRACK_LENGTH);
+
+						track_length[track+1] = track_length[track];
+						track_density[track+1] = track_density[track];
+					}
 					else
 					{
 						printf("These are likely not fat tracks, just repeat data - Ignoring\n");

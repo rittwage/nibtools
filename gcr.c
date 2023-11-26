@@ -1457,7 +1457,7 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 {
 	int sec_match, numsecs;
 	int sector, error1, error2, empty;
-	int i, j, k;
+	int i, j, k, diff;
 	BYTE checksum1, checksum2;
 	BYTE secbuf1[260], secbuf2[260];
 	char tmpstr[256];
@@ -1549,8 +1549,10 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 					printf("\n($%.2x) 2:", i);
 
 					for(k=0; k<16; k++)
+					{
 						printf("%.2x ", secbuf2[i+k]);
-
+						if(secbuf2[i+k]!=secbuf1[i+k]) diff=1;
+					}
 					for(k=0; k<16; k++)
 					{
 						if(secbuf2[i+k] >= 32)
@@ -1558,6 +1560,7 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 						else
 							printf("%c", secbuf2[i+k]+32);
 					}
+					if(diff) { printf(" DIFF"); diff=0; }
 					printf("\n");
 				}
 
