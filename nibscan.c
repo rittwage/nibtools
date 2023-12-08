@@ -763,12 +763,12 @@ raw_track_info(BYTE * gcrdata, size_t length)
 
 size_t check_fat(int track)
 {
-	size_t diff = 0;
+	size_t match = 0;
 	char errorstring[0x1000];
 
 	if (track_length[track] > 0 && track_length[track+2] > 0 && track_length[track] != 8192 && track_length[track+2] != 8192)
 	{
-		diff = compare_tracks(
+		match = compare_tracks(
 		  track_buffer + (track * NIB_TRACK_LENGTH),
 		  track_buffer + ((track+2) * NIB_TRACK_LENGTH),
 		  track_length[track],
@@ -776,18 +776,18 @@ size_t check_fat(int track)
 
 		if(verbose>1) printf("%s",errorstring);
 
-		if (diff<=10)
+		if (track_length[track]-match<=10)
 		{
-			printf("*FAT diff=%d*",(int)diff);
+			printf("*FAT diff=%d*",track_length[track]-match);
 			return 1;
 		}
-		else if (diff<34) /* 34 happens on empty formatted disks */
+		else if (track_length[track]-match<=33) /* 34 happens on empty formatted disks */
 		{
-			printf("*Possible FAT diff=%d*",(int)diff);
+			printf("*Possible FAT diff=%d*",(int)track_length[track]-match);
 			return 1;
 		}
 		else
-			if(verbose>1) printf("(diff=%d)",(int)diff);
+			if(verbose>1) printf("(diff=%d)",(int)track_length[track]-match);
 	}
 	return 0;
 }

@@ -1020,8 +1020,8 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		track size, and also requires it to be 84 tracks no matter if they're used or not.
 	*/
 
-	#define OLD_G64_TRACK_MAXLEN 8192
-	DWORD G64_TRACK_MAXLEN=7928;
+	#define OLD_G64_TRACK_MAXLEN 7928
+	DWORD G64_TRACK_MAXLEN = 7928;
 	BYTE header[12];
 	DWORD gcr_track_p[MAX_HALFTRACKS_1541] = {0};
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541] = {0};
@@ -1045,11 +1045,17 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	}
 
 	/* determine max track size (old VICE can't handle) */
-	//for (index= 0; index < MAX_HALFTRACKS_1541; index += track_inc)
-	//{
-	//	if(track_length[index+2] > G64_TRACK_MAXLEN)
-	//		G64_TRACK_MAXLEN = track_length[index+2];
-	//}
+	if(!old_g64)
+	{
+		for (track= 0; track < MAX_HALFTRACKS_1541; track += track_inc)
+		{
+			if(track_length[track+2] > G64_TRACK_MAXLEN)
+			{
+				G64_TRACK_MAXLEN = track_length[track+2];
+				if(verbose) printf("Larger Track %0.1f = %d\n",(float)(track+2)/2,G64_TRACK_MAXLEN);
+			}
+		}
+	}
 	printf("G64 Track Length = %d", G64_TRACK_MAXLEN);
 
 	/* Create G64 header */
@@ -1070,7 +1076,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	for (track = 0; track < MAX_HALFTRACKS_1541; track +=track_inc)
 	{
 		/* calculate track positions and speed zone data */
-		if((!old_g64)&&(!track_length[track+2])) continue;
+		if(!track_length[track+2]) continue;
 
 		gcr_track_p[track] = 0xc + (MAX_TRACKS_1541 * 16) + (index++ * (G64_TRACK_MAXLEN + 2));
 		gcr_speed_p[track] = track_density[track+2]&3;
@@ -1096,9 +1102,9 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		memset(buffer, fillbyte, sizeof(buffer));
 
 		track_len = track_length[track];
-		if(track_len>G64_TRACK_MAXLEN) track_len=G64_TRACK_MAXLEN;
+		//if(track_len>G64_TRACK_MAXLEN) track_len=G64_TRACK_MAXLEN;
 
-		if((!old_g64)&&(!track_len)) continue;
+		if(!track_len) continue;
 
 		memcpy(buffer, track_buffer + (track * NIB_TRACK_LENGTH), track_len);
 
