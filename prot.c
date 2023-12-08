@@ -304,7 +304,7 @@ align_pirateslayer(BYTE * work_buffer, size_t tracklen)
 			}
 			pos++;
 		}
-		printf(">>%d", shift+1);
+		//printf(">>%d", shift+1);
 		shift_buffer_right(work_buffer, tracklen, 1);
 	}
 

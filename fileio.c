@@ -1020,8 +1020,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		track size, and also requires it to be 84 tracks no matter if they're used or not.
 	*/
 
-	#define OLD_G64_TRACK_MAXLEN 7928
-	DWORD G64_TRACK_MAXLEN = 7928;
+	DWORD G64_TRACK_MAXLEN = 0;
 	BYTE header[12];
 	DWORD gcr_track_p[MAX_HALFTRACKS_1541] = {0};
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541] = {0};
@@ -1049,13 +1048,15 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	{
 		for (track= 0; track < MAX_HALFTRACKS_1541; track += track_inc)
 		{
-			if(track_length[track+2] > G64_TRACK_MAXLEN)
+			if((track_length[track+2] != 8192) && (track_length[track+2] > G64_TRACK_MAXLEN))
 			{
 				G64_TRACK_MAXLEN = track_length[track+2];
 				if(verbose) printf("Larger Track %0.1f = %d\n",(float)(track+2)/2,G64_TRACK_MAXLEN);
 			}
 		}
 	}
+	else
+		G64_TRACK_MAXLEN = 7928; // old hardcoded value
 	printf("G64 Track Length = %d", G64_TRACK_MAXLEN);
 
 	/* Create G64 header */
