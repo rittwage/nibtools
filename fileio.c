@@ -448,8 +448,9 @@ int read_nib(BYTE *file_buffer, int file_buffer_size, BYTE *track_buffer, BYTE *
 
 int read_nb2(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *track_length, size_t cycle)
 {
-	int track, pass_density, pass, nibsize, temp_track_inc, numtracks;
+	int track, pass_density, nibsize, temp_track_inc, numtracks;
 	int header_entry = 0;
+	size_t pass;
 	char header[0x100];
 	BYTE nibdata[0x2000];
 	BYTE tmpdata[0x2000];
@@ -1336,6 +1337,15 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 		memcpy(nibdata, track_buffer+(track*NIB_TRACK_LENGTH), NIB_TRACK_LENGTH);
 		memset(track_buffer + (track * NIB_TRACK_LENGTH), 0x00, NIB_TRACK_LENGTH);
 
+		/* output some specs */
+		if(verbose)
+		{
+			printf("%4.1f: ",(float) track/2);
+			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC! ");
+			//if(track_density[track] & BM_FF_TRACK) printf("KILLER! ");
+			printf("(D:%d) ", track_density[track]&3);
+		}
+
 		/* process track cycle */
 		track_length[track] = extract_GCR_track(
 			track_buffer + (track * NIB_TRACK_LENGTH),
@@ -1347,14 +1357,11 @@ int align_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_length, 
 		);
 
 		/* output some specs */
-		if((verbose)&&(track_length[track]>0))
+		if(verbose)
 		{
-			printf("%4.1f: ",(float) track/2);
-			if(track_density[track] & BM_NO_SYNC) printf("NOSYNC:");
-			if(track_density[track] & BM_FF_TRACK) printf("KILLER:");
-			printf("(%d:", track_density[track]&3);
-			printf("%d) ", track_length[track]);
-			printf("[align=%s]\n",alignments[track_alignment[track]]);
+			printf("(L:%d) ", track_length[track]);
+			printf("[align=%s]",alignments[track_alignment[track]]);
+			printf("\n");
 		}
 	}
 	return 1;

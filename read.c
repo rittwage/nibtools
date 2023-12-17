@@ -244,10 +244,10 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			break;
 
 		// all bad sectors (protection) and no cycle, we limit retries
-		if ((errors == sector_map[halftrack/2]) && (leno == NIB_TRACK_LENGTH))
-		{
-			if(l < (error_retries - 1))	l = error_retries - 1;
-		}
+		//if ((errors == sector_map[halftrack/2]) && (leno == NIB_TRACK_LENGTH))
+		//{
+		//	if(l < (error_retries - 1))	l = error_retries - 1;
+		//}
 	}
 
 	/* keep best cycle if ended with none */

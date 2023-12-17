@@ -202,8 +202,8 @@ main(int argc, char *argv[])
 			break;
 
 		case 'n':
-			force_nosync = 0;
-			printf("* Allowing track reads to wait for sync\n");
+			force_nosync = 1;
+			printf("* Allowing track reads to ignore sync\n");
 			break;
 
 		case 't':

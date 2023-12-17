@@ -858,14 +858,14 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	memcpy(work_buffer, cycle_start, NIB_TRACK_LENGTH);
 
 	/* find cycle */
-	if(verbose>1) printf("H");
+	if(verbose>1) printf("[H");
 	find_track_cycle_headers(&cycle_start, &cycle_stop, cap_min, cap_max);
 	track_len = cycle_stop - cycle_start;
 
 	/* second pass to find a cycle in track w/non-standard headers */
 	if ((track_len > cap_max) || (track_len < cap_min))
 	{
-		if(verbose>1) printf("/S");
+		if(verbose>1) printf("/S] ");
 		find_track_cycle_syncs(&cycle_start, &cycle_stop, cap_min, cap_max);
 		track_len = cycle_stop - cycle_start;
 	}
@@ -873,7 +873,7 @@ extract_GCR_track(BYTE *destination, BYTE *source, BYTE *align, int track, size_
 	/* third pass to find a cycle in track w/non-standard headers */
 	if ((track_len > cap_max) || (track_len < cap_min))
 	{
-		if(verbose>1) printf("/R");
+		if(verbose>1) printf("/R] ");
 		find_track_cycle_raw(&cycle_start, &cycle_stop, cap_min, cap_max);
 		track_len = cycle_stop - cycle_start;
 	}
@@ -1076,7 +1076,7 @@ aligned:
 			}
 			else j++;
 		}
-		printf("}");
+		printf("} ");
 	}
 	return track_len;
 }
@@ -1776,12 +1776,12 @@ check_bad_gcr(BYTE * gcrdata, size_t length)
 					{
 						if(memcmp(origdata+firstbad,gcrdata+firstbad,i-firstbad))
 						{
-							printf("badgcr(%0.4x-%0.4x):[",firstbad,i);
+							printf("badgcr(%x-%x):[",firstbad,i);
 							for(j=firstbad;j<i;j++)
-								printf("%0.2x:",origdata[j]);
+								printf("%x:",origdata[j]);
 							printf("]=[");
 							for(j=firstbad;j<i;j++)
-								printf("%0.2x:",gcrdata[j]);
+								printf("%x:",gcrdata[j]);
 							printf("]\n");
 						}
 						firstbad = 0;
