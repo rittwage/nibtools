@@ -187,8 +187,10 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
 		printf("[weak:%d]", badgcr);
 
+		verbose+=1;
 		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH),
 			track_density[track], track_length[track]);
+		verbose-=1;
 
 		master_track(fd, track_buffer, track_density, track, length);
 

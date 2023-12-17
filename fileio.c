@@ -1217,7 +1217,7 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 		{
 			/* reduce sync marks within the track */
 			length = reduce_runs(gcrdata, length, capacity[density&3], reduce_sync, 0xff);
-			if(verbose) printf("(sync:-%d)", orglen - length);
+			if(verbose) printf("[sync:-%d]", orglen - length);
 		}
 
 		/* reduce bad GCR runs */
@@ -1226,7 +1226,7 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 			(reduce_map[halftrack/2] & REDUCE_BAD) )
 		{
 			length = reduce_runs(gcrdata, length, capacity[density&3], 0, 0x00);
-			if(verbose) printf("(badgcr-%d)", orglen - length);
+			if(verbose) printf("[badgcr:-%d]", orglen - length);
 		}
 
 		/* reduce sector gaps -  they occur at the end of every sector and vary from 4-19 bytes, typically  */
@@ -1235,7 +1235,7 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 			(reduce_map[halftrack/2] & REDUCE_GAP) )
 		{
 			length = reduce_gaps(gcrdata, length, capacity[density & 3]);
-			if(verbose) printf("(gap-%d)", orglen - length);
+			if(verbose) printf("[gaps:-%d]", orglen - length);
 		}
 
 		/* still not small enough, we have to truncate the end (reduce tail) */
@@ -1243,7 +1243,7 @@ size_t compress_halftrack(int halftrack, BYTE *track_buffer, BYTE density, size_
 		if (length > capacity[density&3])
 		{
 			length = capacity[density&3];
-			if(verbose) printf("(trunc-%d)", orglen - length);
+			if(verbose) printf("[trunc:-%d]", orglen - length);
 		}
 	}
 
