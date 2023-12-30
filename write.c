@@ -44,7 +44,7 @@ master_track(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, int track, si
 	/* handle short tracks */
 	if(tracklen < capacity[track_density[track]&3])
 	{
-			printf("[pad:%d]", capacity[track_density[track]&3] - tracklen);
+			if(verbose) printf("[pad:%d]", capacity[track_density[track]&3] - tracklen);
 			tracklen = capacity[track_density[track]&3];
 	}
 
@@ -172,7 +172,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		fillbytesave = fillbyte;
 		if(fillbyte == 0xfe)
 			fillbyte = track_buffer[(track * NIB_TRACK_LENGTH) + track_length[track] - 1];
-		printf("[fill:$%x]", fillbyte);
+		if(verbose) printf("[fill:$%x]", fillbyte);
 
 		if((increase_sync)&&(track_length[track])&&(!(track_density[track]&BM_NO_SYNC))&&(!(track_density[track]&BM_FF_TRACK)))
 		{
@@ -180,16 +180,16 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 			{
 				added_sync = lengthen_sync(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track], capacity[track_density[track]&3]);
 				track_length[track] += added_sync;
-				printf("[+sync:%d]", added_sync);
+				if(verbose) printf("[+sync:%d]", added_sync);
 			}
 		}
 
 		badgcr = check_bad_gcr(track_buffer + (track * NIB_TRACK_LENGTH), track_length[track]);
-		printf("[weak:%d]", badgcr);
+		if(verbose) printf("[weak:%d]", badgcr);
 
-		verbose+=1;
+		//verbose+=1;
 		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
-		verbose-=1;
+		//verbose-=1;
 
 		master_track(fd, track_buffer, track_density, track, length);
 
@@ -339,14 +339,14 @@ unformat_disk(CBM_FILE fd)
 
 	for (track = start_track; track <= end_track; track += 1/*track_inc*/)
 	{
-		if(verbose>1) printf("\n%4.1f:",  (float) track/2);
+		if(verbose) printf("\n%4.1f:",  (float) track/2);
 		for(i=0;i<unformat_passes; i++)
 		{
-			if(verbose>1) printf(".");
+			if(verbose) printf(" [Pass:%d] ",i+1);
 			//if(read_killer) fill_track(fd, track, 0xFF);
 			fill_track(fd, track, 0x00);
 		}
-		if(verbose>1) printf("UNFORMATTED!");
+		if(verbose) printf("UNFORMATTED!");
 	}
 }
 
