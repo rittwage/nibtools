@@ -252,7 +252,7 @@ void parseargs(char *argv[])
 
 		case 'v':
 			verbose++;
-			printf("* Verbosity increased (%d)\n", verbose);
+			printf("* Verbosity on level %d\n", verbose);
 			break;
 
 		case 'V':

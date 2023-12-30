@@ -123,7 +123,7 @@ void
 master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_length)
 {
 	int track, verified, retries, added_sync=0, addsyncloops;
-	size_t badgcr, length, verlen, verlen2;
+	size_t badgcr, badgcr2, length, verlen, verlen2;
 	BYTE verbuf1[NIB_TRACK_LENGTH], verbuf2[NIB_TRACK_LENGTH], verbuf3[NIB_TRACK_LENGTH], align;
 	size_t gcr_match;
 	char errorstring[0x1000];
@@ -188,8 +188,7 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 		printf("[weak:%d]", badgcr);
 
 		verbose+=1;
-		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH),
-			track_density[track], track_length[track]);
+		length = compress_halftrack(track, track_buffer + (track * NIB_TRACK_LENGTH), track_density[track], track_length[track]);
 		verbose-=1;
 
 		master_track(fd, track_buffer, track_density, track, length);
@@ -224,40 +223,35 @@ master_disk(CBM_FILE fd, BYTE *track_buffer, BYTE *track_density, size_t *track_
 				verlen  = extract_GCR_track(verbuf2, verbuf1, &align, track/2, track_length[track], track_length[track]);
 				verlen2 = extract_GCR_track(verbuf3, track_buffer+(track * NIB_TRACK_LENGTH), &align, track/2, track_length[track], track_length[track]);
 
-				printf("\n      (%d:%d) VERIFY", track_density[track]&3, verlen);
-				fprintf(fplog, "\n      (%d:%d) VERIFY", track_density[track]&3, verlen);
+				printf("\n      (%d:%d) VERIFY ", track_density[track]&3, verlen);
+				fprintf(fplog, "\n      (%d:%d) VERIFY ", track_density[track]&3, verlen);
 
 				// Fix bad GCR in tracks for compare
 				badgcr = check_bad_gcr(verbuf2, track_length[track]);
 				if(verbose>1) printf("(badgcr=%.4d:", badgcr);
-				badgcr = check_bad_gcr(verbuf3, track_length[track]);
-				if(verbose>1) printf("%.4d)", badgcr);
+				badgcr2 = check_bad_gcr(verbuf3, track_length[track]);
+				if(verbose>1) printf("%.4d)", badgcr2);
 
 				// compare raw gcr data
 				gcr_match = compare_tracks(verbuf3, verbuf2, verlen, verlen, 1, errorstring);
-				printf(" (match:%.4d) ", (int)gcr_match);
+				//printf(" (match:%.4d) ", (int)gcr_match);
 				fprintf(fplog, " (match:%.4d) ", (int)gcr_match);
 
-				if(gcr_match >= (size_t)verlen-sector_map[track/2]+10)
+				if(gcr_match >= length-10)
 				{
-					printf("OK ");
-					verified=1;
-				}
-				else if(gcr_match <= verlen-badgcr)
-				{
-					printf("WEAK OK");
+					printf("OK (%.4d/%.4d) ",gcr_match,length);
 					verified=1;
 				}
 				else
 				{
 					retries++;
-					printf("Retry %d ", retries);
+					printf("Retry %d (%.4d/%.4d) ",retries,gcr_match,length);
 					fill_track(fd, track, 0x00);
 					master_track(fd, track_buffer, track_density, track, length);
 				}
 				if(((track>70)&&(retries>=3))||(retries>=10))
 				{
-					printf("Write verify FAILED - Odd data or bad media!\n");
+					printf("\nWrite verify FAILED - Odd data or bad media!\n");
 					verified=1;
 				}
 			}

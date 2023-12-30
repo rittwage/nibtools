@@ -262,7 +262,7 @@ main(int argc, char *argv[])
 
 		case 'v':
 			verbose++;
-			printf("* Verbose mode on\n");
+			printf("* Verbose on level %d\n",verbose);
 			break;
 
 		case 'e':	// change read retries
