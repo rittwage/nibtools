@@ -1021,11 +1021,11 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		track size, and also requires it to be 84 tracks no matter if they're used or not.
 	*/
 
-	DWORD G64_TRACK_MAXLEN = 0;
+	DWORD g64_max_tracklen = 0;
 	BYTE header[12];
 	DWORD gcr_track_p[MAX_HALFTRACKS_1541] = {0};
 	DWORD gcr_speed_p[MAX_HALFTRACKS_1541] = {0};
-	//BYTE gcr_track[G64_TRACK_MAXLEN + 2];
+	//BYTE gcr_track[g64_max_tracklen + 2];
 	BYTE gcr_track[NIB_TRACK_LENGTH + 2];
 	size_t track_len, badgcr;
 	//size_t skewbytes=0;
@@ -1036,6 +1036,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	//char errorstring[0x1000];
 
 	printf("Writing G64 file...\n");
+	printf("RPM set to %d\n",rpm_real);
 
 	fpout = fopen(filename, "wb");
 	if (fpout == NULL)
@@ -1049,24 +1050,24 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 	{
 		for (track= 0; track < MAX_HALFTRACKS_1541; track += track_inc)
 		{
-			if((track_length[track+2] != 8192) && (track_length[track+2] > G64_TRACK_MAXLEN))
+			if((track_length[track+2] != 8192) && (track_length[track+2] > g64_max_tracklen))
 			{
-				G64_TRACK_MAXLEN = track_length[track+2];
-				if(verbose) printf("Larger Track %0.1f = %d\n",(float)(track+2)/2,G64_TRACK_MAXLEN);
+				g64_max_tracklen = track_length[track+2];
+				if(verbose) printf("Longer Track %4.1f = %d\n",(float)(track+2)/2,g64_max_tracklen);
 			}
 		}
 	}
 	else
-		G64_TRACK_MAXLEN = 7928; // old hardcoded value
-	printf("G64 Track Length = %d", G64_TRACK_MAXLEN);
+		g64_max_tracklen = 7928; // old hardcoded value
+	printf("G64 Track Length = %d", g64_max_tracklen);
 
 	/* Create G64 header */
 	strcpy((char *) header, "GCR-1541");
 	header[8] = 0;	/* G64 version */
 	header[9] = MAX_HALFTRACKS_1541; /* Number of Halftracks  (VICE <2.2 can't handle non-84 track images) */
 	//header[9] = (unsigned char)end_track;
-	header[10] = (BYTE) (G64_TRACK_MAXLEN % 256);	/* Size of each stored track */
-	header[11] = (BYTE) (G64_TRACK_MAXLEN / 256);
+	header[10] = (BYTE) (g64_max_tracklen % 256);	/* Size of each stored track */
+	header[11] = (BYTE) (g64_max_tracklen / 256);
 
 	if (fwrite(header, sizeof(header), 1, fpout) != 1)
 	{
@@ -1080,7 +1081,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		/* calculate track positions and speed zone data */
 		if(!track_length[track+2]) continue;
 
-		gcr_track_p[track] = 0xc + (MAX_TRACKS_1541 * 16) + (index++ * (G64_TRACK_MAXLEN + 2));
+		gcr_track_p[track] = 0xc + (MAX_TRACKS_1541 * 16) + (index++ * (g64_max_tracklen + 2));
 		gcr_speed_p[track] = track_density[track+2]&3;
 	}
 
@@ -1104,7 +1105,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		memset(buffer, fillbyte, sizeof(buffer));
 
 		track_len = track_length[track];
-		//if(track_len>G64_TRACK_MAXLEN) track_len=G64_TRACK_MAXLEN;
+		//if(track_len>g64_max_tracklen) track_len=g64_max_tracklen;
 
 		if(!track_len) continue;
 
@@ -1126,7 +1127,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 		{
 			for(addsyncloops=0;addsyncloops<increase_sync;addsyncloops++)
 			{
-				added_sync = lengthen_sync(buffer, track_len, G64_TRACK_MAXLEN);
+				added_sync = lengthen_sync(buffer, track_len, g64_max_tracklen);
 				track_len += added_sync;
 				if(verbose) printf("[+sync:%d]", added_sync);
 			}
@@ -1156,17 +1157,26 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 
 			//printf("\ntrack=%d density=%d rpmreal=%d speedmap=%d capacity:%d\n",track,DENSITY0,rpm_real,speed_map[track/2],capacity[speed_map[track/2]]);
 
-			if(capacity[speed_map[track/2]] > G64_TRACK_MAXLEN)
-				capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
+			if(capacity[speed_map[track/2]] > g64_max_tracklen)
+				capacity[speed_map[track/2]] = g64_max_tracklen;
 
 			if(track_len > capacity[speed_map[track/2]])
+			{
+				printf("\nTrack %d too long (%d) for %d RPM and will be processed!",track/2,track_len,rpm_real);
 				track_len = compress_halftrack(track, buffer, track_density[track], track_len);
-			if(verbose) printf("(%d)", track_len);
+				printf(" (%d)", track_len);
+			}
+			if(verbose) printf(" (%d)", track_len);
 		}
 		else
 		{
-			capacity[speed_map[track/2]] = G64_TRACK_MAXLEN;
-			track_len = compress_halftrack(track, buffer, track_density[track], track_len);
+			capacity[speed_map[track/2]] = g64_max_tracklen;
+			if(track_len > capacity[speed_map[track/2]])
+			{
+				printf("\nTrack %d too long for %d RPM and will be processed!",track/2,rpm_real);
+				verbose+=1;
+			}
+				track_len = compress_halftrack(track, buffer, track_density[track], track_len);
 		}
 		if(verbose>1) printf("(fill:$%.2x)",fillbyte);
 
@@ -1186,7 +1196,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 
 		memcpy(gcr_track+2, buffer, track_len);
 
-		if (fwrite(gcr_track, (G64_TRACK_MAXLEN + 2), 1, fpout) != 1)
+		if (fwrite(gcr_track, (g64_max_tracklen + 2), 1, fpout) != 1)
 		{
 			printf("Cannot write track data.\n");
 			return 0;
