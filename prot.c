@@ -34,7 +34,7 @@ void search_fat_tracks(BYTE *track_buffer, BYTE *track_density, size_t *track_le
 
 				if(verbose>1) printf("%4.1f: %d\n",(float)track/2,match);
 
-				if (track_length[track]-match<=33) /* 34 happens on empty formatted disks */
+				if (track_length[track]-match<=32) /* 33 happens on empty formatted disks */
 				{
 					printf("Likely fat track found on T%d/%d (diff=%d)\n",track/2,(track/2)+1,(int)track_length[track]-match);
 
