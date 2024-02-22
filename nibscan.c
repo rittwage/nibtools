@@ -781,7 +781,9 @@ size_t check_fat(int track)
 			printf("*FAT diff=%d*",track_length[track]-match);
 			return 1;
 		}
-		else if (track_length[track]-match<=33) /* 34 happens on empty formatted disks */
+		else if ((track_length[track]-match<=30) /* 32-34 happens on empty formatted disks */
+				||
+				((track>=70)&&(track_length[track]-match<=40)) ) /* much more likely on track 34+ */
 		{
 			printf("*Possible FAT diff=%d*",(int)track_length[track]-match);
 			return 1;

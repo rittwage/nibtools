@@ -377,7 +377,7 @@ void speed_adjust(CBM_FILE fd)
 	for (i=0; i<100; i++)
 	{
 		cap = track_capacity(fd);
-		printf("Speed = %0.2fRPM\n",(float)DENSITY2 / cap);
+		printf("%d/100 - Speed = %0.2fRPM\n",i+1,(float)DENSITY2 / cap);
 	}
 
 }

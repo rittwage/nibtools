@@ -1370,6 +1370,7 @@ compare_tracks(BYTE *track1, BYTE *track2, size_t length1, size_t length2, int s
 				k--;
 				continue;
 			}
+
 			if (is_bad_gcr(track2, length2, k))
 			{
 				//badgcr_diff++;

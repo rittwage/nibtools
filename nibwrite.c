@@ -256,6 +256,12 @@ int writeimage(CBM_FILE fd)
 	if(auto_capacity_adjust)
 		adjust_target(fd);
 
+	if(fattrack)
+	{
+		printf("File contains possible FAT track on T%d - Attempt to write? (y/N)",fattrack/2);
+		if(getchar() != 'y') fattrack=0;
+	}
+
 	if((fattrack)&&(fattrack!=99))
 		unformat_disk(fd);
 
