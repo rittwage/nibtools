@@ -794,10 +794,10 @@ auto_gap(BYTE * work_buffer, size_t tracklen)
 	}
 
 	/* last 5 bytes of gap */
-	// printf("gapbyte: %x, len: %d\n",gapbyte,longest);
-	//if(key >= work_buffer + 5)
-	//	return(key - 5);
-	//else
+	//printf("gapbyte: %x, len: %d\n",gapbyte,longest);
+	if(key >= work_buffer + 5)
+		return(key - 5);
+	else
 	return key;
 }
 

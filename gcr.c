@@ -718,9 +718,9 @@ find_sector0(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 	while (pos >= work_buffer + tracklen)
 		pos -= tracklen;
 
-	if(*(pos-1)&1)
-		return pos - 1;  // go to  last byte that contains first few bits of sync
-	else
+	//if(*(pos-1)&1)
+	//	return pos - 1;  // go to  last byte that contains first few bits of sync
+	//else
 		return pos; // return at first full byte of sync
 }
 
@@ -778,9 +778,9 @@ find_sector_gap(BYTE * work_buffer, size_t tracklen, size_t * p_sectorlen)
 	while (pos >= work_buffer + tracklen)
 		pos -= tracklen;
 
-	if(*(pos-1)&1)
-		return pos - 1;  // go to  last byte that contains first few bits of sync
-	else
+	//if(*(pos-1)&1)
+	//	return pos - 1;  // go to  last byte that contains first few bits of sync
+	//else
 		return pos; // return at first full byte of sync
 }
 
