@@ -100,7 +100,7 @@ Writing back disk images to a real disk:
    Writing back to disks using the same hardware has less success, since 
    copy protection was designed to take advantage of the fact that you 
    cannot write everything you can read with any disk drive. Still, you
-   can write back the large majority of software successsully.
+   can write back the large majority of software successfully.
 
    The following table gives an overview over protection schemes
    and NIBTOOLS's chances on copying them:
@@ -109,13 +109,13 @@ Writing back disk images to a real disk:
 
    Read Errors              X       X	  years ca. 1983-1985
    Tracks 35-40             X       X     Firebird, Para Protect
-   Half Tracks                      X	  Big Five (Bounty Bob Strikes Back), System 3
-   Wide/Fat Tracks                  X     early EA, Activision, XEMAG
+   Half Tracks                      X	  Big Five (Bounty Bob Strikes Back)
+   Wide/Fat Tracks                  X     early EA, Activision XEMAG
    Long/Custom Tracks               X     Datasoft, Mindscape
    Slowed down motor                X     V-MAX!, Later Vorpal
-   Sync counting/anomalies          X     Epyx (early Vorpal)
+   Sync counting/anomalies          X     Early Vorpal
    Nonstandard bitrates             X     V-MAX!, Rapidlok
-   Bitrate changes in track	    X	  Software Toolworks (Chessmaster 2100, etc.)
+   Bitrate changes in track	    X	  Software Toolworks (Chessmaster 2100, etc.) (Cannot be written)
    NO sync marks	            X	  later EA (Pirateslayer), later Vorpal
    SHORT sync marks (10 bits)	    X     V-MAX!
    ALL sync marks (killer)	    X	  Br0derbund
@@ -125,7 +125,7 @@ Writing back disk images to a real disk:
    Not all of these may run on the current emulators. Disk emulation
    still isn't perfect, especially some of the more tricky protections
    (sector synchronization, Bitrate changes, bad GCR) are not yet
-   fully implemented by all emulators.
+   fully implemented by all versions of or all emulators.
 
    ---
 
@@ -138,7 +138,7 @@ Writing back disk images to a real disk:
 
    -E[n] : Ending Track (default 41)
 
-   -P    : Force to use parallel instead of SRQ on 1571 drive
+   -P    : Force 1571 to use parallel instead of SRQ
 
    -T    : Track skew in microseconds - Some protections depend on data being perfectly aligned from
            track to track.  Some depend on them being skewed a specific amount from each other.  You 
@@ -158,13 +158,13 @@ Writing back disk images to a real disk:
 
    -h 	 : Toggle halftracks (R/W) This option will step the drive heads 1/2 track at a time during disk
 	   operations instead of a full track. This protection is only very rarely used.  I have only found
-           2 disks out of thousands. Bounty Bob Strikes Back is one.
+            a few disks out of thousands. Bounty Bob Strikes Back is one.
 
    -k 	 : Disable reading 'killer' tracks (R) Some drives will timeout when trying to read tracks that consist
 	   of all sync. If you cannot read a disk because of timeouts, use this option.
 
    -r[n] : Disable or modify 'reduce syncs' option (R) 
-	   By default, NIBTOOLS will "compress" a track when writing back out to
+	   By default, NIBTOOLS will reduce syncs on a track when writing back out to
 	   a disk if the track is longer than what your drive can write at any given density (due to drive
 	   motor speed). Some protections count sync lengths so the protection might fail with this
 	   option. For 99% of disks, it is fine and is the default setting.
@@ -172,37 +172,38 @@ Writing back disk images to a real disk:
 	   * You can specify a minimum sync length to leave behind in bytes using [n]
 
    -F[n] : Creates a "FAT" track in the output image when used with nibconv, on track [n]+0.5,[n]+1.
-	   When used without [n] it will attempt to detect a FAT track by comparing GCR data.
+	   By default, it will attempt to detect a FAT track by comparing GCR data on consequetive tracks.
 	   Most fat tracks are autodetected, but not all.
 
-   -g  	 : Enable 'reduce gaps' option (R) This option is another form of "compression" used when writing out a
-	   disk. "gaps" are inert data placed right before a sync mark that can usually be safely removed, but 
-	   it's possible to remove too much and damage data, so this is off by default. 
+   -g  	 : Enable 'reduce gaps' option (R) This option is another form of data reduction used when writing out an
+	   oversized track. Gaps are inert data placed right before a sync mark that can usually be safely 
+	   removed, but it's possible to remove too much and damage data, so this is off by default. 
 	   If NIBTOOLS is truncating tracks and they still won't load, you can try this option to squeeze
 	   a bit more onto the track.  
 
-   -0  	 : Enable 'reduce bad GCR' option (R) This option is another form of "compression" used when writing out a
-	   disk. "Bad GCR" (when not used for copy protection) is unformatted or corrupted data that can
+   -0  	 : Enable 'reduce bad GCR' option (R) This option is another form of data reduction used when writing out an 
+	   oversized track. "Bad GCR" (when not used for copy protection) is unformatted or corrupted data that can
 	   usually be safely removed. It is not on by default, but if NIBTOOLS is truncating tracks and they still
 	   won't load, you can try this option to squeeze a bit more onto the track.
 
    -f[n] : Modify the "fixing" of bad GCR (W) - "Bad GCR" is either corrupted (or illegal) GCR that are
 	   either intentionally placed on a disk for protection, or are simply unformatted data on the disk.
-	   NIBTOOLS will by default write 0x01 bytes to the disk to simulate this.  Some protections
-	   check this data to see that it is unformatted (semi-random values). This option can be disabled if
-	   the program is using illegal GCR as part of regular data, such as some V-MAX track 20 loaders.
+	   NIBTOOLS will by default write 0x00 bytes to the disk to simulate this.  Some protections
+	   check this data to see that it is unformatted (drive will read semi-random values). This option
+	   can be disabled if the program is using illegal GCR as part of regular data, such as 
+	   some V-MAX track 20 loaders.
 
-	   * You can now specify an aggression level as [n]
+	   * You can specify an aggression level as [n]
 	    0 = do not repair detected bad GCR
-	    1 = kill only completely bad GCR bytes (default if no level specified)
+	    1 = kill only completely bad GCR bytes (default)
 		(after one bad byte has already passed)
 	    2 = kill completely bad GCR bytes and "mask out" the bad GCR in bytes preceding and following them
 		(after one bad one has already passed)
 	    3 = kill bad GCR bytes as well as the bytes preceding and following them
 		(even if this is the first bad GCR byte encountered)
 
-   -c 	 : Disable automatic capacity adjustments.  By default NIBTOOLS measures the speed of your drive and makes
-           adjustments to the data (compression) based on that speed.  If your drive is exactly 300rpm or the
+   -c 	 : Disable automatic capacity adjustments.  By default NIBTOOLS measures the speed of your drive and make
+           adjustments to the data based on that speed. If your drive is exactly 300rpm or the
            tracks you are writing are standard (D64), you can bypass this and save a few seconds.
 
    -aX 	 : Alternative track alignments (W) There are several different ways to align tracks when writing them
@@ -214,16 +215,16 @@ Writing back disk images to a real disk:
 	   -a0: Align all tracks to sector 0. 
 	   -as: Align all tracks to the longest sync mark (needed for UXB/Melbourne House protection)
 	   -aa: Align all tracks to the longest run of any one byte (autogap).
-	   -an: Align all tracks to the raw data as found (not normally used).
+	   -an: Align all tracks to the raw data as read (not normally used).
 
    -eX	 : Extended read retries (R) This is used on deteriorated disks to increase the number of read attempts
 	   to get a track with no errors. Use any numerical value, but if it's too high it could take a while
 	   to read the disk. Default is 10.
 
    -pX	 : Custom protection handlers (W) This is used to set some flags to handle copy protections which don't
-	   remaster with default settings. 
+	   write properly with default settings. 
         
-           -px: Used for V-MAX disks to remaster track 20 properly. 
+           -px: Used for V-MAX disks to remaster track 20 properly and align custom tracks. 
 	   -pg: Used for GMA/Securispeed disks to remaster track 38/39 properly.
 	   -pm: Used for older Rainbow Arts/Magic Bytes to remaster track 36 properly 
 	   -pr: Used for Rapidlok disks to help remaster them properly (limited success without patches). 
@@ -235,17 +236,17 @@ Writing back disk images to a real disk:
 
    -d 	 : Force default densities.  By default NIBTOOLS tries to detect the density of the written data.  If
            you're sure the disk is standard, you can use this to bypass the checks and save time. This is useful
-           because sometimes badly damaged tracks can detect at the wrong density.
+           because sometimes badly damaged tracks can be detected at the wrong density.
 
    -v 	 : Verbose. Output more detailed data to console. Specify multiple times (-v -v) for more info.
 
-   -V 	 : Enable raw track matching. This is a raw read verification
+   -V 	 : Enable raw track matching. This is a raw read verification, mostly for detecting bad floppy disks.
 
    -I 	 : (When used with nibread) Interactive mode.  This allows for reading many disks in one sitting without having to initialize
        	   the disk drive every time.  Imaging a disk in this way takes about 8 seconds for a full 41 tracks.
 
    -I 	 : (When used with nibconv, nibwrite) "Fix" too short syncs.  Sometimes when reading, we detect a short sync (9 bits instead of 10) and the
-	   1541 can't find the headers when written back out.  This will correct that, at the cost of making the track
+	   1541 can't find the headers when written back out.  This will correct that (crudely) at the cost of making the track
   	   slightly longer.
 
    -i 	 : Utilize index hole sensor on the 1571 drive, or the "Super-Card+" index hole circuit in any drive.  
@@ -257,11 +258,18 @@ Writing back disk images to a real disk:
 	   Default is automatically using the last byte of the detected track cycle
 	   Other useful ones are "00" for "bad" GCR, "55" for 0x55 (inert data), or "FF" for sync.
    
-   -C[n] : Simulate a certain track capacity (given [n] as motor RPM, default 300) used when converting to G64.  
+   -C[n] : Simulate a certain track capacity (given [n] as motor RPM, default 295 to be safe) used when converting to G64.  
 	   You can use this to see what happens when creating a G64 with regards to compression/truncation that happens
 	   when writing to a real disk with a motor at that RPM.  Accepts any number, but only numbers around 300 make
-	   much sense to try.  The max a G64 track can be is 7928 bytes (in VICE) and you'll get a damaged track if 
+	   much sense to try. The max a G64 track can be is 7928 bytes (in VICE) and you'll get a damaged track if 
 	   you go less than about 290, due to data truncation.
+
+	  NOTE: When writing a G64 file, we don't generally care about the limitations of drive hardware
+		However, VICE (previous to version 2.2) ignored the G64 header and hardcoded 7928 as the largest
+		track size, and also required it to be 84 tracks no matter if they're used or not.
+		Newer versions of VICE don't have this limit, but other emulators might.
+		Due to how a NIB file is constructed, no track could ever be longer than 8192 bytes, 
+	   	which is around 282 RPM. This never occurs in the real world.
 
    Why Does it Bump?
    -----------------
