@@ -1,5 +1,3 @@
-README.TXT for the NIBTOOLS utilities (Updated 2/16/2014)
-
 homepage: https://diskpreservation.com/dp.php?pg=nibtools
 
 NIBTOOLS is copyrighted
