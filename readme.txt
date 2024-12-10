@@ -284,9 +284,6 @@ Writing back disk images to a real disk:
 = References                           =
 ========================================
 
-  The latest version of this program is available on
-  http://c64preservation.com/nibtools
-
   [1] Circuit-diagrams and order form for the adaptor and cables
       http://sta.c64.org/cables.html  (diagrams and shop for X-cables)
       http://sta.c64.org/xe1541.html  (XE1541 cable)
