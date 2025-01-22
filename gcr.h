@@ -92,30 +92,30 @@ speed zone divisors are 13, 14, 15, 16 for densities 3, 2, 1, 0 respectively
 #define SYNC_NOT_FOUND				0x03	// 21,READ ERROR
 #define DATA_NOT_FOUND				0x04	// 22,READ ERROR
 #define BAD_DATA_CHECKSUM			0x05	// 23,READ ERROR
-#define BAD_GCR_CODE						0x06	// 24,READ ERROR
-#define BAD_HEADER_CHECKSUM	0x09	// 27,READ ERROR
-#define ID_MISMATCH						0x0B	// 29,DISK ID MISMATCH
+#define BAD_GCR_CODE				0x06	// 24,READ ERROR
+#define BAD_HEADER_CHECKSUM			0x09	// 27,READ ERROR
+#define ID_MISMATCH					0x0B	// 29,DISK ID MISMATCH
 #define DRIVE_NOT_READY				0x0F		// 74,DRIVE NOT READY
 
-#define BM_MATCH       		0x10
+#define BM_MATCH       	0x10
 #define BM_NO_CYCLE	   	0x20
 #define BM_NO_SYNC     	0x40
-#define BM_FF_TRACK    		0x80
+#define BM_FF_TRACK    	0x80
 
-#define ALIGN_NONE				0x0
-#define ALIGN_GAP					0x1
-#define ALIGN_SEC0				0x2
+#define ALIGN_NONE		0x0
+#define ALIGN_GAP		0x1
+#define ALIGN_SEC0		0x2
 #define ALIGN_LONGSYNC	0x3
-#define ALIGN_BADGCR			0x4
-#define ALIGN_VMAX				0x5
-#define ALIGN_AUTOGAP		0x6
-#define ALIGN_VMAX_CW		0x7
-#define ALIGN_RAW 				0x8
-#define ALIGN_PSLAYER 		0x9
-#define ALIGN_RAPIDLOK		0xa
+#define ALIGN_BADGCR	0x4
+#define ALIGN_VMAX		0x5
+#define ALIGN_AUTOGAP	0x6
+#define ALIGN_VMAX_CW	0x7
+#define ALIGN_RAW 		0x8
+#define ALIGN_PSLAYER 	0x9
+#define ALIGN_RAPIDLOK	0xa
 
-#define REDUCE_NONE   0x0
-#define REDUCE_SYNC	0x1
+#define REDUCE_NONE		0x0
+#define REDUCE_SYNC		0x1
 #define REDUCE_GAP		0x2
 #define REDUCE_BAD		0x4
 

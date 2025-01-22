@@ -40,8 +40,8 @@ BYTE sector_gap_length[MAX_TRACKS_1541 + 1] = {
 	10, 10, 10, 10, 10, 10, 10, 10, 10, 10,	/*  1 - 10 */
 	10, 10, 10, 10, 10, 10, 10, 17, 17, 17,	/* 11 - 20 */
 	17, 17, 17, 17, 11, 11, 11, 11, 11, 11,	/* 21 - 30 */
-	8, 8, 8, 8, 8,						/* 31 - 35 */
-	8, 8, 8, 8, 8, 8, 8				/* 36 - 42 (non-standard) */
+	8, 8, 8, 8, 8,							/* 31 - 35 */
+	8, 8, 8, 8, 8, 8, 8						/* 36 - 42 (non-standard) */
 };
 
 
@@ -59,8 +59,8 @@ BYTE align_map[MAX_TRACKS_1541 + 1] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/*  1 - 10 */
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 11 - 20 */
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 21 - 30 */
-	0, 0, 0, 0, 0, 0,					/* 31 - 35 */
-	0,	0, 0, 0, 0, 0						/* 37 - 42  */
+	0, 0, 0, 0, 0, 0,				/* 31 - 35 */
+	0, 0, 0, 0, 0, 0				/* 37 - 42  */
 };
 
 BYTE reduce_map[MAX_TRACKS_1541 + 1] = {
@@ -1534,35 +1534,40 @@ compare_sectors(BYTE * track1, BYTE * track2, size_t length1, size_t length2, BY
 				/* this prints out sector contents, which is not always terminal compatible */
 				for (i=0; i<256; i+=16)
 				{
-					printf("($%.2x) 1:", i);
 
-					for(j=0; j<16; j++)
-						printf("%.2x ", secbuf1[i+j]);
-
-					for(j=0; j<16; j++)
+					if((memcmp(secbuf1+i,secbuf2+i,16)) || verbose>1)
 					{
-						if(secbuf1[i+j] >= 32)
-							printf("%c", secbuf1[i+j]);
-						else
-							printf("%c", secbuf1[i+j]+32);
-					}
+						printf("($%.2x) 1:", i);
 
-					printf("\n($%.2x) 2:", i);
+						for(j=0; j<16; j++)
+							printf("%.2x ", secbuf1[i+j]);
 
-					for(k=0; k<16; k++)
-					{
-						printf("%.2x ", secbuf2[i+k]);
-						if(secbuf2[i+k]!=secbuf1[i+k]) diff=1;
+						for(j=0; j<16; j++)
+						{
+							if(secbuf1[i+j] >= 32)
+								printf("%c", secbuf1[i+j]);
+							else
+								printf("%c", secbuf1[i+j]+32);
+						}
+
+						printf("\n($%.2x) 2:", i);
+
+						for(k=0; k<16; k++)
+						{
+							printf("%.2x ", secbuf2[i+k]);
+							if(secbuf2[i+k]!=secbuf1[i+k]) diff=1;
+						}
+						for(k=0; k<16; k++)
+						{
+							if(secbuf2[i+k] >= 32)
+								printf("%c", secbuf2[i+k]);
+							else
+								printf("%c", secbuf2[i+k]+32);
+						}
+
+						if(diff) { printf(" DIFF"); diff=0; }
+						printf("\n");
 					}
-					for(k=0; k<16; k++)
-					{
-						if(secbuf2[i+k] >= 32)
-							printf("%c", secbuf2[i+k]);
-						else
-							printf("%c", secbuf2[i+k]+32);
-					}
-					if(diff) { printf(" DIFF"); diff=0; }
-					printf("\n");
 				}
 
 				if(verbose>1)

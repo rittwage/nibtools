@@ -1047,7 +1047,7 @@ int write_g64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 
 	/* when writing a G64 file, we don't care about the limitations of drive hardware
 		However, VICE (previous to version 2.2) ignored the G64 header and hardcodes 7928 as the largest
-		track size, and also requires it to be 84 tracks no matter if they're used or not.
+		track size, and also required it to be 84 tracks no matter if they're used or not.
 	*/
 
 	DWORD g64_max_tracklen = 0;
