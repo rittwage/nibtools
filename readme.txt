@@ -1,4 +1,4 @@
-homepage: https://diskpreservation.com/dp.php?pg=nibtools
+homepage: https://diskpreservation.rittwage.com/dp.php?pg=nibtools
 
 NIBTOOLS is copyrighted
 (C) 2005 Pete Rittwage 
