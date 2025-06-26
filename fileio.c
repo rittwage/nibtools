@@ -914,6 +914,12 @@ int write_d64(char *filename, BYTE *track_buffer, BYTE *track_density, size_t *t
 
 	printf("Writing D64 file...\n");
 
+	if (!extract_id(track_buffer + (18 * 2 * NIB_TRACK_LENGTH), id))
+	{
+		printf("Cannot find directory sector.\nAborted!");
+		return 0;
+	}
+
 	memset(errorinfo, 0,sizeof(errorinfo));
 	memset(rawdata, 0,sizeof(rawdata));
 	memset(d64data, 0,sizeof(d64data));
