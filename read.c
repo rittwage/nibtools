@@ -294,9 +294,10 @@ BYTE paranoia_read_halftrack(CBM_FILE fd, int halftrack, BYTE * buffer)
 			gcr_comp = compare_tracks(cbufo, cbufn, leno, lenn, 1, errorstring);
 			printf("[VERIFY] (%.4d/%.4d) ",(int)gcr_comp,leno);
 			fprintf(fplog, "[VERIFY] match:%.4d ", (int)gcr_comp);
-			if(gcr_comp <= lenn-10)
+			if(gcr_comp >= lenn-10)
 			{
 				if(verbose) printf("OK ");
+				fprintf(fplog, "OK ");
 				break;
 			}
 
